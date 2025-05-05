@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+const plugin = require('tailwindcss/plugin')
 
 export default {
     darkMode: ["class"],
@@ -87,8 +88,33 @@ export default {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+        rotate: {
+          'y-180': 'rotateY(180deg)',
+        },
+        perspective: {
+          '1000': '1000px',
+        },
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+     plugin(function({ addUtilities }: { addUtilities: any }) {
+      addUtilities({
+        '.transform-style-3d': {
+          'transform-style': 'preserve-3d',
+        },
+        '.backface-hidden': {
+          'backface-visibility': 'hidden',
+          '-webkit-backface-visibility': 'hidden', // For Safari
+        },
+        '.rotate-y-180': {
+          'transform': 'rotateY(180deg)',
+        },
+         '.perspective-1000': {
+          'perspective': '1000px',
+        },
+      })
+    })
+  ],
 } satisfies Config;
