@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -6,7 +7,7 @@ import { cn } from '@/lib/utils';
 
 interface GameCardProps {
   cardId: string;
-  verb: string;
+  text: string; // Changed from verb to text
   isFlipped: boolean;
   isMatched: boolean;
   onClick: (cardId: string) => void;
@@ -15,7 +16,7 @@ interface GameCardProps {
 
 const GameCard: React.FC<GameCardProps> = ({
   cardId,
-  verb,
+  text, // Changed from verb to text
   isFlipped,
   isMatched,
   onClick,
@@ -78,7 +79,7 @@ const GameCard: React.FC<GameCardProps> = ({
       {/* Front Face */}
       <Card className={frontFaceStyle}>
         <CardContent className="p-0">
-          <span className={cn("text-sm md:text-base font-medium", fontStyle)}>{verb}</span>
+          <span className={cn("text-sm md:text-base font-medium", fontStyle)}>{text}</span>
         </CardContent>
       </Card>
     </div>

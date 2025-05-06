@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -16,9 +17,10 @@ interface CompletionDialogProps {
   moves: number;
   time: number;
   onPlayAgain: () => void;
+  itemType: 'verb' | 'adjective'; // To customize the message
 }
 
-const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain }) => {
+const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -34,7 +36,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
         <AlertDialogHeader>
           <AlertDialogTitle>Congratulations!</AlertDialogTitle>
           <AlertDialogDescription>
-            You matched all the verb pairs!
+            You matched all the {itemType} pairs!
             <br />
             You completed the game in <strong>{moves} moves</strong> and <strong>{formatTime(time)}</strong>.
           </AlertDialogDescription>

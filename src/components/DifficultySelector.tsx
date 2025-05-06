@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -8,10 +9,16 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 interface DifficultySelectorProps {
   onSelectDifficulty: (difficulty: Difficulty) => void;
   currentDifficulty: Difficulty | null;
+  itemType: 'Verbs' | 'Adjectives'; // To customize the button text
 }
 
-const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficulty, currentDifficulty }) => {
+const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficulty, currentDifficulty, itemType }) => {
   const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
+  const itemCounts = {
+    easy: 15,
+    medium: 30,
+    hard: 60,
+  };
 
   return (
     <div className="flex justify-center space-x-4 my-8">
@@ -23,7 +30,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
           className="capitalize px-6 py-2 rounded-md shadow-sm"
           aria-pressed={currentDifficulty === level}
         >
-          {level} ({level === 'easy' ? 15 : level === 'medium' ? 30 : 60} Verbs)
+          {level} ({itemCounts[level]} {itemType})
         </Button>
       ))}
     </div>
