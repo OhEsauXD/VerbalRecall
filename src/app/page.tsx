@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -37,6 +36,13 @@ export default function Home() {
   const [showAdjectiveCompletionDialog, setShowAdjectiveCompletionDialog] = useState(false);
   const [adjectiveFinalTime, setAdjectiveFinalTime] = useState(0);
 
+  // Shared state for hints
+  const [isHintActive, setIsHintActive] = useState(false);
+
+  // Function to toggle hints
+  const toggleHint = () => {
+    setIsHintActive(prev => !prev);
+  };
 
   // Function to start a new verb game
   const startVerbGame = useCallback((selectedDifficulty: Difficulty) => {
@@ -49,6 +55,7 @@ export default function Home() {
     setIsVerbGameActive(true);
     setShowVerbCompletionDialog(false);
     setVerbFinalTime(0);
+    // setIsHintActive(false); // Reset hint when new game starts
   }, []);
 
   // Function to start a new adjective game
@@ -62,6 +69,7 @@ export default function Home() {
     setIsAdjectiveGameActive(true);
     setShowAdjectiveCompletionDialog(false);
     setAdjectiveFinalTime(0);
+    // setIsHintActive(false); // Reset hint when new game starts
   }, []);
 
   // Handle verb difficulty selection
@@ -233,7 +241,13 @@ export default function Home() {
 
         {verbDifficulty && (
           <>
-            <GameStatus moves={verbMoves} isGameActive={isVerbGameActive} onTimerUpdate={handleVerbTimerUpdate} />
+            <GameStatus 
+              moves={verbMoves} 
+              isGameActive={isVerbGameActive} 
+              onTimerUpdate={handleVerbTimerUpdate}
+              isHintActive={isHintActive}
+              onToggleHint={toggleHint} 
+            />
             <div className={`grid ${gridColsClass(verbDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000`}>
               {verbCards.map((card) => (
                 <GameCard
@@ -244,6 +258,7 @@ export default function Home() {
                   isMatched={card.isMatched}
                   onClick={handleVerbCardClick}
                   language={card.language}
+                  isHintActive={isHintActive}
                 />
               ))}
             </div>
@@ -265,7 +280,13 @@ export default function Home() {
 
         {adjectiveDifficulty && (
           <>
-            <GameStatus moves={adjectiveMoves} isGameActive={isAdjectiveGameActive} onTimerUpdate={handleAdjectiveTimerUpdate} />
+            <GameStatus 
+              moves={adjectiveMoves} 
+              isGameActive={isAdjectiveGameActive} 
+              onTimerUpdate={handleAdjectiveTimerUpdate} 
+              isHintActive={isHintActive}
+              onToggleHint={toggleHint}
+            />
             <div className={`grid ${gridColsClass(adjectiveDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000`}>
               {adjectiveCards.map((card) => (
                 <GameCard
@@ -276,6 +297,7 @@ export default function Home() {
                   isMatched={card.isMatched}
                   onClick={handleAdjectiveCardClick}
                   language={card.language}
+                  isHintActive={isHintActive}
                 />
               ))}
             </div>

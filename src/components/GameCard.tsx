@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -7,20 +6,22 @@ import { cn } from '@/lib/utils';
 
 interface GameCardProps {
   cardId: string;
-  text: string; // Changed from verb to text
+  text: string;
   isFlipped: boolean;
   isMatched: boolean;
   onClick: (cardId: string) => void;
   language: 'en' | 'es';
+  isHintActive: boolean; 
 }
 
 const GameCard: React.FC<GameCardProps> = ({
   cardId,
-  text, // Changed from verb to text
+  text,
   isFlipped,
   isMatched,
   onClick,
   language,
+  isHintActive,
 }) => {
   const handleClick = () => {
     if (!isFlipped && !isMatched) {
@@ -44,9 +45,16 @@ const GameCard: React.FC<GameCardProps> = ({
   `;
 
   // Back face (visible when flipped=false)
+  const getHintColor = () => {
+    if (isHintActive && !isFlipped && !isMatched) {
+      return language === 'en' ? 'bg-blue-200' : 'bg-green-200';
+    }
+    return 'bg-secondary text-secondary-foreground';
+  };
+  
   const backFaceStyle = cn(
     faceStyle,
-    'bg-secondary text-secondary-foreground', // Soft gray background
+    getHintColor(),
     isFlipped ? 'rotate-y-180' : ''
   );
 
@@ -64,14 +72,13 @@ const GameCard: React.FC<GameCardProps> = ({
     isFlipped || isMatched ? 'rotate-y-180' : '' // Rotate container when flipped/matched
   );
 
-  const fontStyle = language === 'es' ? 'italic' : ''; // Example: italic for Spanish
+  const fontStyle = language === 'es' ? 'italic' : '';
 
   return (
     <div className={cardContainerStyle} onClick={handleClick} role="button" aria-pressed={isFlipped}>
       {/* Back Face */}
       <Card className={backFaceStyle}>
         <CardContent className="p-0">
-          {/* Optionally show a logo or pattern on the back */}
           <span className="text-4xl">?</span>
         </CardContent>
       </Card>

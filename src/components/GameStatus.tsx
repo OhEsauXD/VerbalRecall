@@ -1,14 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Lightbulb } from 'lucide-react';
 
 interface GameStatusProps {
   moves: number;
   isGameActive: boolean;
   onTimerUpdate: (time: number) => void; // Callback to update time in parent
+  isHintActive: boolean;
+  onToggleHint: () => void;
 }
 
-const GameStatus: React.FC<GameStatusProps> = ({ moves, isGameActive, onTimerUpdate }) => {
+const GameStatus: React.FC<GameStatusProps> = ({ moves, isGameActive, onTimerUpdate, isHintActive, onToggleHint }) => {
   const [time, setTime] = useState(0);
 
   useEffect(() => {
@@ -42,15 +46,25 @@ const GameStatus: React.FC<GameStatusProps> = ({ moves, isGameActive, onTimerUpd
   };
 
   return (
-    <div className="flex justify-around items-center my-4 p-4 bg-muted rounded-lg shadow">
-      <div className="text-center">
-        <div className="text-sm text-muted-foreground">Moves</div>
-        <div className="text-xl font-semibold">{moves}</div>
+    <div className="flex flex-col items-center my-4 p-4 bg-muted rounded-lg shadow w-full max-w-md">
+      <div className="flex justify-around w-full">
+        <div className="text-center">
+          <div className="text-sm text-muted-foreground">Moves</div>
+          <div className="text-xl font-semibold">{moves}</div>
+        </div>
+        <div className="text-center">
+          <div className="text-sm text-muted-foreground">Time</div>
+          <div className="text-xl font-semibold">{formatTime(time)}</div>
+        </div>
       </div>
-      <div className="text-center">
-        <div className="text-sm text-muted-foreground">Time</div>
-        <div className="text-xl font-semibold">{formatTime(time)}</div>
-      </div>
+      <Button 
+        onClick={onToggleHint} 
+        variant={isHintActive ? "default" : "outline"} 
+        className="mt-4"
+        aria-pressed={isHintActive}
+      >
+        <Lightbulb className="mr-2 h-4 w-4" /> {isHintActive ? 'Hide Hints' : 'Show Hints'}
+      </Button>
     </div>
   );
 };
