@@ -9,13 +9,14 @@ import { Button } from '@/components/ui/button'; // Import Button
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  setActiveGameType: (type: 'verbs' | 'adjectives' | null) => void;
+  // Removed setActiveGameType prop
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, setActiveGameType }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <SidebarProvider defaultOpen={false}>
-      <DashboardContent setActiveGameType={setActiveGameType}>
+      {/* Pass children directly to DashboardContent */}
+      <DashboardContent>
         {children}
       </DashboardContent>
     </SidebarProvider>
@@ -23,7 +24,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, setActiveGa
 };
 
 // Separate component to use the hook within the provider context
-const DashboardContent: React.FC<{children: React.ReactNode, setActiveGameType: (type: 'verbs' | 'adjectives' | null) => void}> = ({ children, setActiveGameType }) => {
+const DashboardContent: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const { toggleSidebar } = useSidebar(); // Get toggle function from context
 
   return (
@@ -49,7 +50,8 @@ const DashboardContent: React.FC<{children: React.ReactNode, setActiveGameType: 
             </Button>
           </SidebarHeader>
           <SidebarContent className="p-2 flex-1 overflow-y-auto">
-             <SidebarNav setActiveGameType={setActiveGameType} />
+             {/* Removed setActiveGameType prop */}
+             <SidebarNav />
           </SidebarContent>
           <SidebarFooter className="p-2">
              <NightModeToggle />
@@ -70,7 +72,7 @@ const DashboardContent: React.FC<{children: React.ReactNode, setActiveGameType: 
           </header>
 
           {/* Main Content Area */}
-           <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-y-auto">
+           <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-y-auto items-center justify-center">
                 {children}
             </main>
         </SidebarInset>

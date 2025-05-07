@@ -6,16 +6,18 @@ import DifficultySelector from '@/components/DifficultySelector';
 import GameCard from '@/components/GameCard';
 import GameStatus from '@/components/GameStatus';
 import CompletionDialog from '@/components/CompletionDialog';
+import GameSelection from '@/components/GameSelection'; // Import the new component
 import { generateGameBoard, CardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator'; // Keep Separator if needed elsewhere, but likely unused now
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type GameType = 'verbs' | 'adjectives';
+type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
-  const [activeGameType, setActiveGameType] = useState<GameType | null>(null);
+  const [view, setView] = useState<ViewState>('selection');
+  const [currentGameType, setCurrentGameType] = useState<GameType | null>(null);
 
   // Verb Game State
   const [verbDifficulty, setVerbDifficulty] = useState<Difficulty | null>(null);
@@ -46,6 +48,41 @@ export default function Home() {
     setIsHintActive(prev => !prev);
   };
 
+  const resetGameState = (difficultyStateSetter: Function, cardStateSetter: Function, gameActiveSetter: Function) => {
+     difficultyStateSetter(null);
+     cardStateSetter([]);
+     gameActiveSetter(false);
+     setVerbFlippedCards([]);
+     setVerbMatchedPairs([]);
+     setVerbMoves(0);
+     setAdjectiveFlippedCards([]);
+     setAdjectiveMatchedPairs([]);
+     setAdjectiveMoves(0);
+     setIsHintActive(false);
+  }
+
+  const handleSelectGameType = (type: GameType) => {
+    setCurrentGameType(type);
+    setView('difficulty');
+  };
+
+  const handleGoBackToSelection = () => {
+    setView('selection');
+    setCurrentGameType(null);
+    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
+    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+  };
+
+    const handleGoBackToDifficulty = () => {
+        setView('difficulty');
+        if (currentGameType === 'verbs') {
+            resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
+        } else if (currentGameType === 'adjectives') {
+            resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+        }
+    };
+
+
   // --- Verb Game Logic ---
   const startVerbGame = useCallback((selectedDifficulty: Difficulty) => {
     setVerbDifficulty(selectedDifficulty);
@@ -57,6 +94,7 @@ export default function Home() {
     setIsVerbGameActive(true);
     setShowVerbCompletionDialog(false);
     setVerbFinalTime(0);
+    setView('game'); // Move to game view
     setIsHintActive(false);
   }, []);
 
@@ -100,10 +138,9 @@ export default function Home() {
 
   const handleVerbPlayAgain = () => {
     setShowVerbCompletionDialog(false);
-    setVerbDifficulty(null);
-    setVerbCards([]);
-    setIsVerbGameActive(false);
-    setActiveGameType(null); // Go back to game selection
+    setView('selection'); // Go back to game selection after completion
+    setCurrentGameType(null);
+    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
   };
 
   useEffect(() => {
@@ -124,6 +161,7 @@ export default function Home() {
     setIsAdjectiveGameActive(true);
     setShowAdjectiveCompletionDialog(false);
     setAdjectiveFinalTime(0);
+    setView('game'); // Move to game view
     setIsHintActive(false);
   }, []);
 
@@ -157,7 +195,7 @@ export default function Home() {
     }
   };
 
-  const handleAdjectiveTimerUpdate = (currentTime: number) => {
+   const handleAdjectiveTimerUpdate = (currentTime: number) => {
     if (!isAdjectiveGameActive && showAdjectiveCompletionDialog) {
        if (adjectiveFinalTime === 0) setAdjectiveFinalTime(currentTime);
     } else if (isAdjectiveGameActive) {
@@ -165,12 +203,12 @@ export default function Home() {
     }
   };
 
+
   const handleAdjectivePlayAgain = () => {
     setShowAdjectiveCompletionDialog(false);
-    setAdjectiveDifficulty(null);
-    setAdjectiveCards([]);
-    setIsAdjectiveGameActive(false);
-    setActiveGameType(null); // Go back to game selection
+    setView('selection'); // Go back to game selection after completion
+    setCurrentGameType(null);
+    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
   };
 
    useEffect(() => {
@@ -183,9 +221,9 @@ export default function Home() {
 
   // --- Difficulty Selection ---
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
-    if (activeGameType === 'verbs') {
+    if (currentGameType === 'verbs') {
       startVerbGame(selectedDifficulty);
-    } else if (activeGameType === 'adjectives') {
+    } else if (currentGameType === 'adjectives') {
       startAdjectiveGame(selectedDifficulty);
     }
   };
@@ -196,99 +234,95 @@ export default function Home() {
                        'grid-cols-8 sm:grid-cols-10 md:grid-cols-12';
 
 
-  const renderGameContent = () => {
-    if (activeGameType === 'verbs') {
-      if (!verbDifficulty) {
-        return <DifficultySelector itemType="Verbs" onSelectDifficulty={handleSelectDifficulty} currentDifficulty={verbDifficulty} />;
-      }
-      return (
-        <>
-          <GameStatus
-            moves={verbMoves}
-            isGameActive={isVerbGameActive}
-            onTimerUpdate={handleVerbTimerUpdate}
-            isHintActive={isHintActive}
-            onToggleHint={toggleHint}
-          />
-          <div className={`grid ${getGridColsClass(verbDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
-            {verbCards.map((card) => (
-              <GameCard
-                key={card.id}
-                cardId={card.id}
-                text={card.verb}
-                isFlipped={card.isFlipped}
-                isMatched={card.isMatched}
-                onClick={handleVerbCardClick}
-                language={card.language}
-                isHintActive={isHintActive}
-              />
-            ))}
+  const renderContent = () => {
+    switch (view) {
+      case 'selection':
+        return <GameSelection onSelectGame={handleSelectGameType} />;
+      case 'difficulty':
+        return (
+          <div className="flex flex-col items-center w-full">
+            <h2 className="text-2xl font-semibold text-center my-4 text-primary-foreground">
+                Select Difficulty for {currentGameType === 'verbs' ? 'Verbs' : 'Adjectives'}
+            </h2>
+            <DifficultySelector
+              itemType={currentGameType === 'verbs' ? 'Verbs' : 'Adjectives'}
+              onSelectDifficulty={handleSelectDifficulty}
+              onGoBack={handleGoBackToSelection}
+              // Pass null initially, will be set by the specific game logic later
+              currentDifficulty={currentGameType === 'verbs' ? verbDifficulty : adjectiveDifficulty}
+            />
           </div>
-          <Button onClick={() => { setVerbDifficulty(null); setIsVerbGameActive(false); setVerbCards([]); }} variant="outline" className="mt-8">
-            Back to Difficulty
-          </Button>
-        </>
-      );
-    }
-
-    if (activeGameType === 'adjectives') {
-       if (!adjectiveDifficulty) {
-        return <DifficultySelector itemType="Adjectives" onSelectDifficulty={handleSelectDifficulty} currentDifficulty={adjectiveDifficulty} />;
-      }
-      return (
-        <>
-          <GameStatus
-            moves={adjectiveMoves}
-            isGameActive={isAdjectiveGameActive}
-            onTimerUpdate={handleAdjectiveTimerUpdate}
-            isHintActive={isHintActive}
-            onToggleHint={toggleHint}
-          />
-          <div className={`grid ${getGridColsClass(adjectiveDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
-            {adjectiveCards.map((card) => (
-              <GameCard
-                key={card.id}
-                cardId={card.id}
-                text={card.text}
-                isFlipped={card.isFlipped}
-                isMatched={card.isMatched}
-                onClick={handleAdjectiveCardClick}
-                language={card.language}
+        );
+      case 'game':
+        if (currentGameType === 'verbs') {
+          return (
+            <>
+              <GameStatus
+                moves={verbMoves}
+                isGameActive={isVerbGameActive}
+                onTimerUpdate={handleVerbTimerUpdate}
                 isHintActive={isHintActive}
+                onToggleHint={toggleHint}
               />
-            ))}
-          </div>
-           <Button onClick={() => { setAdjectiveDifficulty(null); setIsAdjectiveGameActive(false); setAdjectiveCards([]); }} variant="outline" className="mt-8">
-            Back to Difficulty
-          </Button>
-        </>
-      );
+              <div className={`grid ${getGridColsClass(verbDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {verbCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.verb}
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handleVerbCardClick}
+                    language={card.language}
+                    isHintActive={isHintActive}
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
+        } else if (currentGameType === 'adjectives') {
+          return (
+             <>
+              <GameStatus
+                moves={adjectiveMoves}
+                isGameActive={isAdjectiveGameActive}
+                onTimerUpdate={handleAdjectiveTimerUpdate}
+                isHintActive={isHintActive}
+                onToggleHint={toggleHint}
+              />
+              <div className={`grid ${getGridColsClass(adjectiveDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {adjectiveCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.text}
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handleAdjectiveCardClick}
+                    language={card.language}
+                     isHintActive={isHintActive}
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
+        }
+        return null; // Should not happen if currentGameType is set
+      default:
+        return <GameSelection onSelectGame={handleSelectGameType} />;
     }
-
-    return (
-        <div className="text-center mt-10">
-            <h2 className="text-2xl font-semibold text-foreground mb-4">Welcome to Verbal Recall!</h2>
-            <p className="text-muted-foreground">Select a game type from the menu to start playing.</p>
-        </div>
-    );
   };
 
   return (
-    <DashboardLayout setActiveGameType={setActiveGameType}>
-        <div className="flex flex-col items-center justify-center p-4 w-full">
-          {activeGameType === 'verbs' && (
-            <div className="w-full flex flex-col items-center mb-6">
-              <h2 className="text-2xl font-semibold text-center my-4 text-primary-foreground">Verb Matching Game</h2>
-              <p className="text-center text-muted-foreground mb-4">Match the English and Spanish verbs!</p>
-            </div>
-          )}
-           {activeGameType === 'adjectives' && (
-            <div className="w-full flex flex-col items-center mb-6">
-                <h2 className="text-2xl font-semibold text-center my-4 text-primary-foreground">Adjective Matching Game</h2>
-                <p className="text-center text-muted-foreground mb-4">Match the English and Spanish adjectives!</p>
-            </div>
-          )}
-          {renderGameContent()}
+    <DashboardLayout>
+        <div className="flex flex-col items-center justify-start p-4 w-full h-full"> {/* Ensure content takes full height */}
+          {renderContent()}
         </div>
 
 
