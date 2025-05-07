@@ -2,63 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
-    /* Dark Blue Theme */
-    --background: 210 100% 12%; /* #001d3d */
-    --foreground: 45 100% 51%; /* #ffc300 */
-
-    --card: 211 100% 19%; /* #003566 */
-    --card-foreground: 0 0% 100%; /* White */
-
-    --popover: 211 100% 10%; /* Darker #001d3d shade */
-    --popover-foreground: 49 100% 51%; /* #ffd60a */
-
-    --primary: 45 100% 51%; /* #ffc300 */
-    --primary-foreground: 210 100% 5%; /* Very dark blue #000814 for contrast on primary */
-
-    --secondary: 211 100% 19%; /* #003566 */
-    --secondary-foreground: 0 0% 100%; /* White */
-
-    --muted: 211 100% 15%; /* Mid blue #00284d */
-    --muted-foreground: 0 0% 70%; /* Light Gray */
-
-    --accent: 49 100% 51%; /* #ffd60a */
-    --accent-foreground: 210 100% 5%; /* Very dark blue #000814 */
-
-    --destructive: 0 84% 60%; /* Standard destructive red */
-    --destructive-foreground: 0 0% 100%; /* White */
-
-    --border: 211 100% 19%; /* #003566 */
-    --input: 211 100% 19%; /* #003566 */
-    --ring: 45 100% 51%; /* #ffc300 - Primary color for focus rings */
-
-    /* Chart Colors */
-    --chart-1: 45 100% 51%; /* #ffc300 */
-    --chart-2: 49 100% 51%; /* #ffd60a */
-    --chart-3: 211 100% 30%; /* Lighter blue #004a8d */
-    --chart-4: 0 0% 80%; /* Light Gray */
-    --chart-5: 0 0% 100%; /* White */
-
-    --radius: 0.5rem;
-
-    /* Sidebar colors using the theme */
-    --sidebar-background: 210 100% 5%; /* #000814 - Darkest blue */
-    --sidebar-foreground: 0 0% 90%; /* Light Gray for text */
-    --sidebar-primary: 45 100% 51%; /* #ffc300 - Use primary */
-    --sidebar-primary-foreground: 210 100% 5%; /* #000814 - Darkest blue for contrast */
-    --sidebar-accent: 211 100% 15%; /* #00284d - Mid blue for hover/active */
-    --sidebar-accent-foreground: 49 100% 51%; /* #ffd60a - Brighter yellow on hover */
-    --sidebar-border: 211 100% 19%; /* #003566 - Border color */
-    --sidebar-ring: 45 100% 51%; /* #ffc300 - Ring color */
-  }
-
-  .dark {
-     /* Same as light theme for now, can be adjusted if needed */
+    /* Dark Blue Theme (Applied by default) */
     --background: 210 100% 12%; /* #001d3d */
     --foreground: 45 100% 51%; /* #ffc300 */
 
@@ -106,6 +52,55 @@ body {
     --sidebar-border: 211 100% 19%; /* #003566 */
     --sidebar-ring: 45 100% 51%; /* #ffc300 */
   }
+
+  /* Light theme overrides */
+  .light {
+     /* Light Blue Theme (Example - Adjust as needed) */
+    --background: 210 40% 98%; /* Very light blue */
+    --foreground: 210 100% 12%; /* #001d3d - Dark blue text */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 210 100% 12%; /* Dark blue text */
+
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 210 100% 12%; /* Dark blue text */
+
+    --primary: 45 100% 51%; /* #ffc300 */
+    --primary-foreground: 210 100% 5%; /* Dark blue text */
+
+    --secondary: 210 40% 92%; /* Lighter blue */
+    --secondary-foreground: 210 100% 12%; /* Dark blue text */
+
+    --muted: 210 40% 95%; /* Very light gray-blue */
+    --muted-foreground: 210 30% 50%; /* Muted blue text */
+
+    --accent: 49 100% 51%; /* #ffd60a */
+    --accent-foreground: 210 100% 5%; /* Dark blue text */
+
+    --destructive: 0 84% 60%; /* Standard destructive red */
+    --destructive-foreground: 0 0% 100%; /* White */
+
+    --border: 210 40% 90%; /* Light border */
+    --input: 210 40% 90%; /* Light border */
+    --ring: 45 100% 51%; /* #ffc300 */
+
+    /* Chart Colors */
+    --chart-1: 45 100% 51%; /* #ffc300 */
+    --chart-2: 49 100% 51%; /* #ffd60a */
+    --chart-3: 211 100% 60%; /* Brighter blue */
+    --chart-4: 210 30% 70%; /* Mid Gray-blue */
+    --chart-5: 210 100% 12%; /* Dark blue */
+
+    /* Sidebar colors for light theme */
+    --sidebar-background: 210 40% 96%; /* Light gray-blue */
+    --sidebar-foreground: 210 100% 12%; /* Dark blue text */
+    --sidebar-primary: 45 100% 51%; /* #ffc300 */
+    --sidebar-primary-foreground: 210 100% 5%; /* Dark blue */
+    --sidebar-accent: 210 40% 90%; /* Lighter blue for hover */
+    --sidebar-accent-foreground: 45 100% 51%; /* Primary color on hover */
+    --sidebar-border: 210 40% 85%; /* Slightly darker border */
+    --sidebar-ring: 45 100% 51%; /* #ffc300 */
+  }
 }
 
 @layer base {
@@ -113,6 +108,6 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans; /* Add font-sans here */
   }
 }

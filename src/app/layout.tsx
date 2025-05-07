@@ -1,22 +1,16 @@
 import type { Metadata } from 'next';
-import { Geist_Sans, Geist_Mono } from 'next/font/google'; // Use correct import path for Geist
+import { GeistSans } from "geist/font/sans"; // Import the font object
+import { GeistMono } from "geist/font/mono";  // Import the font object
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/ThemeProvider"; // Import ThemeProvider
+import { ThemeProvider } from "@/components/ThemeProvider";
 
-const geistSans = Geist_Sans({ // Use correct font object name
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({ // Use correct font object name
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+// The GeistSans and GeistMono objects already contain the necessary info,
+// including the CSS variable name. We don't call them as functions.
 
 export const metadata: Metadata = {
   title: 'Verbal Recall',
-  description: 'A memory game for English and Spanish verbs and adjectives.', // Updated description
+  description: 'A memory game for English and Spanish verbs and adjectives.',
 };
 
 export default function RootLayout({
@@ -25,12 +19,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning> {/* Add suppressHydrationWarning for next-themes */}
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+       {/* Apply the font variables directly to the body className */}
+      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark" // Set dark as default
+          enableSystem={false} // Disable system theme detection if dark is default
           disableTransitionOnChange
         >
           {children}
