@@ -8,103 +8,103 @@ body {
 
 @layer base {
   :root {
-    /* Light Blue */
-    --background: 196 53% 90%; /* #ADD8E6 slightly adjusted for better contrast */
-    --foreground: 210 40% 10%; /* Dark Blue-Gray */
-    /* Soft Gray */
-    --card: 0 0% 83%; /* #D3D3D3 */
-    --card-foreground: 0 0% 10%; /* Dark Gray */
-    /* Light Blue */
-    --popover: 196 53% 90%;
-    --popover-foreground: 210 40% 10%;
-    /* Teal */
-    --primary: 180 100% 25%; /* #008080 */
-    --primary-foreground: 0 0% 100%; /* White */
-    /* Soft Gray */
-    --secondary: 0 0% 83%;
-    --secondary-foreground: 0 0% 10%;
-    /* Lighter Gray */
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 45%;
-    /* Teal */
-    --accent: 180 100% 25%;
-    --accent-foreground: 0 0% 100%;
-    /* Destructive Red */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    /* Light Gray Border */
-    --border: 0 0% 80%;
-    /* Input Border */
-    --input: 0 0% 80%;
-    /* Ring Color (Teal Focus) */
-    --ring: 180 100% 25%;
-    /* Chart Colors (Using theme) */
-    --chart-1: 180 100% 25%; /* Teal */
-    --chart-2: 196 53% 70%; /* Lighter Blue */
-    --chart-3: 0 0% 50%; /* Mid Gray */
-    --chart-4: 0 0% 30%; /* Dark Gray */
-    --chart-5: 210 40% 10%; /* Dark Blue-Gray */
+    /* Dark Blue Theme */
+    --background: 210 100% 12%; /* #001d3d */
+    --foreground: 45 100% 51%; /* #ffc300 */
+
+    --card: 211 100% 19%; /* #003566 */
+    --card-foreground: 0 0% 100%; /* White */
+
+    --popover: 211 100% 10%; /* Darker #001d3d shade */
+    --popover-foreground: 49 100% 51%; /* #ffd60a */
+
+    --primary: 45 100% 51%; /* #ffc300 */
+    --primary-foreground: 210 100% 5%; /* Very dark blue #000814 for contrast on primary */
+
+    --secondary: 211 100% 19%; /* #003566 */
+    --secondary-foreground: 0 0% 100%; /* White */
+
+    --muted: 211 100% 15%; /* Mid blue #00284d */
+    --muted-foreground: 0 0% 70%; /* Light Gray */
+
+    --accent: 49 100% 51%; /* #ffd60a */
+    --accent-foreground: 210 100% 5%; /* Very dark blue #000814 */
+
+    --destructive: 0 84% 60%; /* Standard destructive red */
+    --destructive-foreground: 0 0% 100%; /* White */
+
+    --border: 211 100% 19%; /* #003566 */
+    --input: 211 100% 19%; /* #003566 */
+    --ring: 45 100% 51%; /* #ffc300 - Primary color for focus rings */
+
+    /* Chart Colors */
+    --chart-1: 45 100% 51%; /* #ffc300 */
+    --chart-2: 49 100% 51%; /* #ffd60a */
+    --chart-3: 211 100% 30%; /* Lighter blue #004a8d */
+    --chart-4: 0 0% 80%; /* Light Gray */
+    --chart-5: 0 0% 100%; /* White */
 
     --radius: 0.5rem;
 
-    /* Sidebar colors (adjust if needed, though not used in this game prototype) */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar colors using the theme */
+    --sidebar-background: 210 100% 5%; /* #000814 - Darkest blue */
+    --sidebar-foreground: 0 0% 90%; /* Light Gray for text */
+    --sidebar-primary: 45 100% 51%; /* #ffc300 - Use primary */
+    --sidebar-primary-foreground: 210 100% 5%; /* #000814 - Darkest blue for contrast */
+    --sidebar-accent: 211 100% 15%; /* #00284d - Mid blue for hover/active */
+    --sidebar-accent-foreground: 49 100% 51%; /* #ffd60a - Brighter yellow on hover */
+    --sidebar-border: 211 100% 19%; /* #003566 - Border color */
+    --sidebar-ring: 45 100% 51%; /* #ffc300 - Ring color */
   }
 
   .dark {
-    /* Define dark mode colors if needed, using the same logic */
-    --background: 210 40% 10%; /* Dark Blue-Gray */
-    --foreground: 196 53% 90%; /* Light Blue */
-    --card: 0 0% 10%; /* Dark Gray */
-    --card-foreground: 0 0% 90%; /* Lighter Gray */
-    --popover: 210 40% 10%;
-    --popover-foreground: 196 53% 90%;
-    /* Teal */
-    --primary: 180 100% 25%;
-    --primary-foreground: 0 0% 100%;
-    /* Mid Gray */
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 90%;
-    /* Darker Gray */
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-    /* Teal */
-    --accent: 180 100% 25%;
-    --accent-foreground: 0 0% 100%;
-    /* Destructive Red */
-    --destructive: 0 70% 45%;
-    --destructive-foreground: 0 0% 100%;
-    /* Mid Gray Border */
-    --border: 0 0% 25%;
-    --input: 0 0% 25%;
-    /* Ring Color (Teal Focus) */
-    --ring: 180 100% 25%;
+     /* Same as light theme for now, can be adjusted if needed */
+    --background: 210 100% 12%; /* #001d3d */
+    --foreground: 45 100% 51%; /* #ffc300 */
+
+    --card: 211 100% 19%; /* #003566 */
+    --card-foreground: 0 0% 100%; /* White */
+
+    --popover: 210 100% 5%; /* #000814 */
+    --popover-foreground: 49 100% 51%; /* #ffd60a */
+
+    --primary: 45 100% 51%; /* #ffc300 */
+    --primary-foreground: 210 100% 5%; /* #000814 */
+
+    --secondary: 211 100% 19%; /* #003566 */
+    --secondary-foreground: 0 0% 100%; /* White */
+
+    --muted: 211 100% 15%; /* #00284d */
+    --muted-foreground: 0 0% 70%; /* Light Gray */
+
+    --accent: 49 100% 51%; /* #ffd60a */
+    --accent-foreground: 210 100% 5%; /* #000814 */
+
+    --destructive: 0 70% 45%; /* Darker Red */
+    --destructive-foreground: 0 0% 100%; /* White */
+
+    --border: 211 100% 19%; /* #003566 */
+    --input: 211 100% 19%; /* #003566 */
+    --ring: 45 100% 51%; /* #ffc300 */
 
     /* Chart Colors */
-    --chart-1: 180 100% 35%; /* Brighter Teal */
-    --chart-2: 196 53% 70%; /* Lighter Blue */
-    --chart-3: 0 0% 60%; /* Light Gray */
-    --chart-4: 0 0% 80%; /* Lighter Gray */
-    --chart-5: 196 53% 90%; /* Light Blue */
+    --chart-1: 45 100% 51%; /* #ffc300 */
+    --chart-2: 49 100% 51%; /* #ffd60a */
+    --chart-3: 211 100% 30%; /* #004a8d */
+    --chart-4: 0 0% 80%; /* Light Gray */
+    --chart-5: 0 0% 100%; /* White */
 
     --radius: 0.5rem;
 
     /* Sidebar colors */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 210 100% 5%; /* #000814 */
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 45 100% 51%; /* #ffc300 */
+    --sidebar-primary-foreground: 210 100% 5%; /* #000814 */
+    --sidebar-accent: 211 100% 15%; /* #00284d */
+    --sidebar-accent-foreground: 49 100% 51%; /* #ffd60a */
+    --sidebar-border: 211 100% 19%; /* #003566 */
+    --sidebar-ring: 45 100% 51%; /* #ffc300 */
   }
 }
 
