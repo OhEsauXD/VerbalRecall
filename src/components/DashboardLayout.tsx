@@ -6,17 +6,18 @@ import SidebarNav from '@/components/SidebarNav';
 import NightModeToggle from '@/components/NightModeToggle';
 import { Menu, PanelLeftClose } from 'lucide-react'; // Import PanelLeftClose
 import { Button } from '@/components/ui/button'; // Import Button
+import type { GameType } from '@/app/page'; // Import GameType
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  // Removed setActiveGameType prop
+  onSelectGameTypeFromSidebar: (type: GameType) => void; // Callback for sidebar selection
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, onSelectGameTypeFromSidebar }) => {
   return (
     <SidebarProvider defaultOpen={false}>
-      {/* Pass children directly to DashboardContent */}
-      <DashboardContent>
+      {/* Pass children and callback directly to DashboardContent */}
+      <DashboardContent onSelectGameTypeFromSidebar={onSelectGameTypeFromSidebar}>
         {children}
       </DashboardContent>
     </SidebarProvider>
@@ -24,7 +25,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 };
 
 // Separate component to use the hook within the provider context
-const DashboardContent: React.FC<{children: React.ReactNode}> = ({ children }) => {
+const DashboardContent: React.FC<{ children: React.ReactNode; onSelectGameTypeFromSidebar: (type: GameType) => void }> = ({ children, onSelectGameTypeFromSidebar }) => {
   const { toggleSidebar } = useSidebar(); // Get toggle function from context
 
   return (
@@ -50,8 +51,8 @@ const DashboardContent: React.FC<{children: React.ReactNode}> = ({ children }) =
             </Button>
           </SidebarHeader>
           <SidebarContent className="p-2 flex-1 overflow-y-auto">
-             {/* Removed setActiveGameType prop */}
-             <SidebarNav />
+             {/* Pass the callback to SidebarNav */}
+             <SidebarNav onSelectGameType={onSelectGameTypeFromSidebar} />
           </SidebarContent>
           <SidebarFooter className="p-2">
              <NightModeToggle />

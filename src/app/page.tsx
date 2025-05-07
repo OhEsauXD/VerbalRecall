@@ -12,7 +12,7 @@ import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives'
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-type GameType = 'verbs' | 'adjectives';
+export type GameType = 'verbs' | 'adjectives'; // Export GameType
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
@@ -241,14 +241,13 @@ export default function Home() {
       case 'difficulty':
         return (
           <div className="flex flex-col items-center w-full">
-            <h2 className="text-2xl font-semibold text-center my-4 text-primary-foreground">
+            <h2 className="text-2xl font-semibold text-center my-4 text-foreground"> {/* Changed text color */}
                 Select Difficulty for {currentGameType === 'verbs' ? 'Verbs' : 'Adjectives'}
             </h2>
             <DifficultySelector
               itemType={currentGameType === 'verbs' ? 'Verbs' : 'Adjectives'}
               onSelectDifficulty={handleSelectDifficulty}
               onGoBack={handleGoBackToSelection}
-              // Pass null initially, will be set by the specific game logic later
               currentDifficulty={currentGameType === 'verbs' ? verbDifficulty : adjectiveDifficulty}
             />
           </div>
@@ -320,7 +319,8 @@ export default function Home() {
   };
 
   return (
-    <DashboardLayout>
+    // Pass handleSelectGameType to DashboardLayout
+    <DashboardLayout onSelectGameTypeFromSidebar={handleSelectGameType}>
         <div className="flex flex-col items-center justify-start p-4 w-full h-full"> {/* Ensure content takes full height */}
           {renderContent()}
         </div>

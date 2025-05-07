@@ -4,8 +4,8 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import type { GameType } from '@/app/page'; // Import GameType
 
-type GameType = 'verbs' | 'adjectives';
 
 interface GameSelectionProps {
   onSelectGame: (type: GameType) => void;
@@ -13,9 +13,9 @@ interface GameSelectionProps {
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center gap-8 p-4 md:p-8">
+    <div className="flex flex-col md:flex-row items-stretch justify-center gap-8 p-4 md:p-8 w-full"> {/* Added items-stretch and w-full */}
        {/* Verb Game Card */}
-      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
+      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col"> {/* Added flex flex-col */}
         <CardHeader className="p-0">
           <Image
             src="https://picsum.photos/400/200"
@@ -26,13 +26,13 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
             data-ai-hint="language learning"
           />
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-6 flex-grow"> {/* Added flex-grow */}
           <CardTitle className="mb-2 text-xl font-semibold text-primary">Verb Matching Game</CardTitle>
           <CardDescription className="text-muted-foreground">
             Test your knowledge of common English and Spanish verbs. Match the pairs as quickly as you can!
           </CardDescription>
         </CardContent>
-        <CardFooter className="p-6 pt-0">
+        <CardFooter className="p-6 pt-0 mt-auto"> {/* Added mt-auto */}
           <Button onClick={() => onSelectGame('verbs')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             Play Verbs
           </Button>
@@ -40,7 +40,7 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
       </Card>
 
        {/* Adjective Game Card */}
-      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
+      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col"> {/* Added flex flex-col */}
         <CardHeader className="p-0">
           <Image
             src="https://picsum.photos/400/200"
@@ -51,13 +51,13 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
             data-ai-hint="colorful abstract"
           />
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-6 flex-grow"> {/* Added flex-grow */}
           <CardTitle className="mb-2 text-xl font-semibold text-primary">Adjective Matching Game</CardTitle>
           <CardDescription className="text-muted-foreground">
             Challenge your recall of English and Spanish adjectives. Find all the matching pairs to win!
           </CardDescription>
         </CardContent>
-        <CardFooter className="p-6 pt-0">
+        <CardFooter className="p-6 pt-0 mt-auto"> {/* Added mt-auto */}
           <Button onClick={() => onSelectGame('adjectives')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             Play Adjectives
           </Button>
