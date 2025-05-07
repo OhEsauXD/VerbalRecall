@@ -13,11 +13,17 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, setActiveGameType }) => {
   return (
-    <SidebarProvider>
+    // Set defaultOpen to false to make the sidebar hidden by default
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground">
-        {/* Sidebar for Desktop */}
+        {/* Sidebar */}
         <Sidebar side="left" variant="sidebar" collapsible="icon">
           <SidebarHeader>
+            {/* Sidebar Trigger for Desktop (appears when collapsed) */}
+            <SidebarTrigger className="hidden md:flex group-data-[state=expanded]:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu</span>
+             </SidebarTrigger>
             <h2 className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Verbal Recall</h2>
           </SidebarHeader>
           <SidebarContent className="p-2 flex-1 overflow-y-auto">
@@ -30,9 +36,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, setActiveGa
 
         {/* Mobile Header & Main Content */}
         <SidebarInset className="flex flex-col flex-1">
-          {/* Mobile Header */}
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 md:hidden">
-             <SidebarTrigger>
+          {/* Header (visible on all sizes, contains trigger) */}
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
+             {/* Sidebar Trigger for Mobile and when Desktop sidebar is expanded */}
+             <SidebarTrigger className="md:hidden group-data-[state=expanded]:md:flex">
                <Menu className="h-5 w-5" />
                <span className="sr-only">Toggle Menu</span>
              </SidebarTrigger>
