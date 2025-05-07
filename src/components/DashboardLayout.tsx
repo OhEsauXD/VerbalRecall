@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarFooter, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarFooter, SidebarInset, useSidebar } from '@/components/ui/sidebar'; // Import useSidebar
 import SidebarNav from '@/components/SidebarNav';
 import NightModeToggle from '@/components/NightModeToggle';
-import { Menu } from 'lucide-react';
+import { Menu, PanelLeftClose } from 'lucide-react'; // Import PanelLeftClose
+import { Button } from '@/components/ui/button'; // Import Button
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -13,8 +14,19 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, setActiveGameType }) => {
   return (
-    // Set defaultOpen to false to make the sidebar hidden by default
     <SidebarProvider defaultOpen={false}>
+      <DashboardContent setActiveGameType={setActiveGameType}>
+        {children}
+      </DashboardContent>
+    </SidebarProvider>
+  );
+};
+
+// Separate component to use the hook within the provider context
+const DashboardContent: React.FC<{children: React.ReactNode, setActiveGameType: (type: 'verbs' | 'adjectives' | null) => void}> = ({ children, setActiveGameType }) => {
+  const { toggleSidebar } = useSidebar(); // Get toggle function from context
+
+  return (
       <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground">
         {/* Sidebar */}
         <Sidebar side="left" variant="sidebar" collapsible="icon">
@@ -25,6 +37,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, setActiveGa
                 <span className="sr-only">Toggle Menu</span>
              </SidebarTrigger>
             <h2 className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Verbal Recall</h2>
+            {/* New Toggle Button for Expanded Desktop Sidebar */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto h-7 w-7 hidden md:flex group-data-[state=collapsed]:hidden" // Show only when expanded on desktop
+              onClick={toggleSidebar}
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose className="h-5 w-5" />
+            </Button>
           </SidebarHeader>
           <SidebarContent className="p-2 flex-1 overflow-y-auto">
              <SidebarNav setActiveGameType={setActiveGameType} />
@@ -53,8 +75,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, setActiveGa
             </main>
         </SidebarInset>
       </div>
-    </SidebarProvider>
   );
-};
+}
+
 
 export default DashboardLayout;
