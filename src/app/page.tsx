@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -377,6 +378,7 @@ export default function Home() {
                     onClick={handleVerbCardClick}
                     language={card.language}
                     isHintActive={isHintActive}
+                    cardType='verb'
                   />
                 ))}
               </div>
@@ -406,6 +408,7 @@ export default function Home() {
                     onClick={handleAdjectiveCardClick}
                     language={card.language}
                      isHintActive={isHintActive}
+                     cardType='adjective'
                   />
                 ))}
               </div>
@@ -431,6 +434,8 @@ export default function Home() {
                     cardId={card.id}
                     text={card.type === 'name' ? card.name : undefined} // Pass text only for name cards
                     imageUrl={card.type === 'image' ? card.imageUrl : undefined} // Pass imageUrl only for image cards
+                    spanishName={card.type === 'image' ? card.spanishName : undefined} // Pass Spanish name for image cards
+                    dataAiHint={card.dataAiHint}
                     isFlipped={card.isFlipped}
                     isMatched={card.isMatched}
                     onClick={handleAnimalCardClick}
@@ -485,5 +490,3 @@ export default function Home() {
     </DashboardLayout>
   );
 }
-
-    

@@ -10,6 +10,7 @@ interface GameCardProps {
   cardId: string;
   text?: string; // Make text optional
   imageUrl?: string; // Add imageUrl prop
+  spanishName?: string; // Add Spanish name prop (optional)
   dataAiHint?: string; // Add AI hint prop for images
   isFlipped: boolean;
   isMatched: boolean;
@@ -23,11 +24,12 @@ const GameCard: React.FC<GameCardProps> = ({
   cardId,
   text,
   imageUrl,
+  spanishName, // Destructure spanishName
   dataAiHint,
   isFlipped,
   isMatched,
   onClick,
-  language, // 'en' for name card, 'es' for image card
+  language, // 'en' for name card, 'es' for image card (associated with Spanish name)
   isHintActive,
   cardType, // Used for hint logic
 }) => {
@@ -48,17 +50,20 @@ const GameCard: React.FC<GameCardProps> = ({
   // Card face styling
   const faceStyle = `
     absolute inset-0 w-full h-full
-    flex items-center justify-center
+    flex flex-col items-center justify-center
     rounded-lg backface-hidden p-2 text-center overflow-hidden
   `;
 
   // Back face (visible when flipped=false)
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
-        // Hint logic based on language (or cardType if needed for more complex scenarios)
+        // Hint logic based on language or cardType
       if (language === 'en') { // English text (verb, adj, or animal name)
         return 'bg-blue-200';
       } else if (language === 'es') { // Spanish text (verb, adj) or image (associated with Spanish name)
+        if (cardType === 'image') {
+            return 'bg-yellow-200'; // Distinct hint for image cards
+        }
         return 'bg-green-200';
       }
     }
@@ -85,7 +90,9 @@ const GameCard: React.FC<GameCardProps> = ({
     isFlipped || isMatched ? 'rotate-y-180' : '' // Rotate container when flipped/matched
   );
 
-  const fontStyle = language === 'es' ? 'italic' : '';
+  // Determine font style based on card content (Spanish text is italic)
+  const fontStyle = (cardType === 'name' || cardType === 'verb' || cardType === 'adjective') && language === 'es' ? 'italic' : '';
+  const spanishNameStyle = cardType === 'image' ? 'italic text-xs mt-1' : ''; // Specific style for Spanish name under image
 
   return (
     <div className={cardContainerStyle} onClick={handleClick} role="button" aria-pressed={isFlipped}>
@@ -98,16 +105,21 @@ const GameCard: React.FC<GameCardProps> = ({
 
       {/* Front Face */}
       <Card className={frontFaceStyle}>
-        <CardContent className="p-0 flex items-center justify-center w-full h-full">
+        <CardContent className="p-0 flex flex-col items-center justify-center w-full h-full">
           {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={dataAiHint || "Animal image"}
-              width={100} // Adjust size as needed
-              height={100} // Adjust size as needed
-              className="object-contain max-w-full max-h-full rounded-md"
-              data-ai-hint={dataAiHint} // Add data-ai-hint
-            />
+            <>
+              <Image
+                src={imageUrl}
+                alt={dataAiHint || "Animal image"}
+                width={80} // Adjusted size to make space for text
+                height={80} // Adjusted size
+                className="object-contain max-w-full max-h-[70%] rounded-md" // Max height to prevent overflow
+                data-ai-hint={dataAiHint} // Add data-ai-hint
+              />
+              {spanishName && ( // Conditionally render Spanish name
+                <span className={cn("block", spanishNameStyle)}>{spanishName}</span>
+              )}
+            </>
           ) : (
             <span className={cn("text-sm md:text-base font-medium", fontStyle)}>{text}</span>
           )}
@@ -129,10 +141,18 @@ if (typeof window !== 'undefined') {
   const styleSheet = document.createElement("style");
   styleSheet.type = "text/css";
   styleSheet.innerText = styles;
-  document.head.appendChild(styleSheet);
+  // Ensure head exists before appending
+  if (document.head) {
+     document.head.appendChild(styleSheet);
+  } else {
+    // Fallback if head is not immediately available (e.g., during SSR hydration)
+    document.addEventListener('DOMContentLoaded', () => {
+         if (document.head) {
+            document.head.appendChild(styleSheet);
+         }
+     });
+  }
 }
 
 
 export default GameCard;
-
-    

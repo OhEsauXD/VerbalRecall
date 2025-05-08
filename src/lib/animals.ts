@@ -87,6 +87,7 @@ export type AnimalCardData = {
     language: 'en' | 'es'; // Use 'en' for name, 'es' for image (representing the Spanish name association)
     type: 'name' | 'image'; // Explicitly define the card type
     name?: string; // Animal name (only for 'name' type)
+    spanishName?: string; // Spanish name (only for 'image' type)
     imageUrl?: string; // Placeholder image URL (only for 'image' type)
     dataAiHint?: string; // AI hint for image search
     isFlipped: boolean;
@@ -130,6 +131,7 @@ export function generateAnimalGameBoard(difficulty: 'easy' | 'medium' | 'hard'):
       pairId: pair.id,
       language: 'es', // Associate image card with Spanish name
       type: 'image',
+      spanishName: pair.es, // Add the Spanish name here
       // Use Picsum for placeholder images initially
       imageUrl: `https://picsum.photos/seed/${pair.id}/100/100`,
       dataAiHint: pair.imageHint, // Store the hint
@@ -140,5 +142,3 @@ export function generateAnimalGameBoard(difficulty: 'easy' | 'medium' | 'hard'):
 
   return shuffle(gameCards);
 }
-
-    
