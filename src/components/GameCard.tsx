@@ -3,25 +3,32 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import Image from 'next/image'; // Import next/image
 
 interface GameCardProps {
   cardId: string;
-  text: string;
+  text?: string; // Make text optional
+  imageUrl?: string; // Add imageUrl prop
+  dataAiHint?: string; // Add AI hint prop for images
   isFlipped: boolean;
   isMatched: boolean;
   onClick: (cardId: string) => void;
-  language: 'en' | 'es';
-  isHintActive: boolean; 
+  language: 'en' | 'es' | 'name' | 'image'; // Update language prop to include card type for animals
+  isHintActive: boolean;
+  cardType?: 'name' | 'image' | 'verb' | 'adjective'; // Add cardType prop to distinguish animal cards
 }
 
 const GameCard: React.FC<GameCardProps> = ({
   cardId,
   text,
+  imageUrl,
+  dataAiHint,
   isFlipped,
   isMatched,
   onClick,
-  language,
+  language, // Still needed for text cards
   isHintActive,
+  cardType, // Used for hint logic
 }) => {
   const handleClick = () => {
     if (!isFlipped && !isMatched) {
@@ -41,17 +48,22 @@ const GameCard: React.FC<GameCardProps> = ({
   const faceStyle = `
     absolute inset-0 w-full h-full
     flex items-center justify-center
-    rounded-lg backface-hidden p-2 text-center
+    rounded-lg backface-hidden p-2 text-center overflow-hidden
   `;
 
   // Back face (visible when flipped=false)
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
-      return language === 'en' ? 'bg-blue-200' : 'bg-green-200';
+        // Hint logic based on card type
+      if (cardType === 'name' || language === 'en') { // English verbs/adjectives or animal name
+        return 'bg-blue-200';
+      } else if (cardType === 'image' || language === 'es') { // Spanish verbs/adjectives or animal image
+        return 'bg-green-200';
+      }
     }
-    return 'bg-secondary text-secondary-foreground';
+    return 'bg-secondary text-secondary-foreground'; // Default back face
   };
-  
+
   const backFaceStyle = cn(
     faceStyle,
     getHintColor(),
@@ -61,8 +73,8 @@ const GameCard: React.FC<GameCardProps> = ({
   // Front face (visible when flipped=true or matched=true)
   const frontFaceStyle = cn(
     faceStyle,
-    'bg-card text-card-foreground rotate-y-180', // White background for text visibility
-    isMatched ? 'bg-accent text-accent-foreground' : '', // Teal background for matched
+    'bg-card text-card-foreground rotate-y-180', // White background for text/image visibility
+    isMatched ? 'bg-accent text-accent-foreground' : '', // Accent background for matched
     isFlipped ? '' : 'rotate-y-180' // Start rotated if not flipped
   );
 
@@ -85,8 +97,19 @@ const GameCard: React.FC<GameCardProps> = ({
 
       {/* Front Face */}
       <Card className={frontFaceStyle}>
-        <CardContent className="p-0">
-          <span className={cn("text-sm md:text-base font-medium", fontStyle)}>{text}</span>
+        <CardContent className="p-0 flex items-center justify-center w-full h-full">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={dataAiHint || "Animal image"}
+              width={100} // Adjust size as needed
+              height={100} // Adjust size as needed
+              className="object-contain max-w-full max-h-full rounded-md"
+              data-ai-hint={dataAiHint} // Add data-ai-hint
+            />
+          ) : (
+            <span className={cn("text-sm md:text-base font-medium", fontStyle)}>{text}</span>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -110,3 +133,5 @@ if (typeof window !== 'undefined') {
 
 
 export default GameCard;
+
+    

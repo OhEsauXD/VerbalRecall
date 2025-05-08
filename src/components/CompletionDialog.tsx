@@ -17,7 +17,7 @@ interface CompletionDialogProps {
   moves: number;
   time: number;
   onPlayAgain: () => void;
-  itemType: 'verb' | 'adjective'; // To customize the message
+  itemType: 'verb' | 'adjective' | 'animal'; // Add 'animal'
 }
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
@@ -30,13 +30,16 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
 
   if (!isOpen) return null;
 
+  // Customize message based on itemType
+  const itemText = itemType === 'verb' ? 'verb' : itemType === 'adjective' ? 'adjective' : 'animal name/picture';
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onPlayAgain}> {/* Use onOpenChange to handle closing */}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Congratulations!</AlertDialogTitle>
           <AlertDialogDescription>
-            You matched all the {itemType} pairs!
+            You matched all the {itemText} pairs!
             <br />
             You completed the game in <strong>{moves} moves</strong> and <strong>{formatTime(time)}</strong>.
           </AlertDialogDescription>
@@ -50,3 +53,5 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
 };
 
 export default CompletionDialog;
+
+    

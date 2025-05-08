@@ -1,27 +1,27 @@
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home } from 'lucide-react'; // Icons for verbs, adjectives, and home
+import { BookText, SpellCheck, Home, PawPrint } from 'lucide-react'; // Import PawPrint
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { useSidebar } from '@/components/ui/sidebar'; // Import useSidebar hook
-import type { GameType } from '@/app/page'; // Import GameType
+import { useSidebar } from '@/components/ui/sidebar';
+import type { GameType } from '@/app/page';
 
 interface SidebarNavProps {
-  onSelectGameType: (type: GameType) => void; // Callback to update game type in parent
-  onGoHome: () => void; // Callback to navigate home
+  onSelectGameType: (type: GameType) => void;
+  onGoHome: () => void;
 }
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) => {
-  const { setOpenMobile } = useSidebar(); // Get setOpenMobile from context
+  const { setOpenMobile } = useSidebar();
 
   const handleSelectGame = (type: GameType) => {
-    onSelectGameType(type); // Call the callback passed from parent
-    setOpenMobile(false); // Close mobile sidebar on selection
+    onSelectGameType(type);
+    setOpenMobile(false);
   };
 
   const handleGoHomeClick = () => {
-    onGoHome(); // Call the home callback
-    setOpenMobile(false); // Close mobile sidebar
+    onGoHome();
+    setOpenMobile(false);
   };
 
   return (
@@ -44,8 +44,16 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>Adjectives</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
+      <SidebarMenuItem> {/* New Item for Animals */}
+        <SidebarMenuButton onClick={() => handleSelectGame('animals')} tooltip="Play Animal Game">
+           <PawPrint />
+          <span>Animals</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     </SidebarMenu>
   );
 };
 
 export default SidebarNav;
+
+    

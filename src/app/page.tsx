@@ -6,13 +6,14 @@ import DifficultySelector from '@/components/DifficultySelector';
 import GameCard from '@/components/GameCard';
 import GameStatus from '@/components/GameStatus';
 import CompletionDialog from '@/components/CompletionDialog';
-import GameSelection from '@/components/GameSelection'; // Import the new component
-import { generateGameBoard, CardData } from '@/lib/verbs';
+import GameSelection from '@/components/GameSelection';
+import { generateGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
+import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals'; // Import animal game logic
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives'; // Export GameType
+export type GameType = 'verbs' | 'adjectives' | 'animals'; // Add 'animals'
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
@@ -21,7 +22,7 @@ export default function Home() {
 
   // Verb Game State
   const [verbDifficulty, setVerbDifficulty] = useState<Difficulty | null>(null);
-  const [verbCards, setVerbCards] = useState<CardData[]>([]);
+  const [verbCards, setVerbCards] = useState<VerbCardData[]>([]);
   const [verbFlippedCards, setVerbFlippedCards] = useState<string[]>([]);
   const [verbMatchedPairs, setVerbMatchedPairs] = useState<number[]>([]);
   const [verbMoves, setVerbMoves] = useState(0);
@@ -41,6 +42,17 @@ export default function Home() {
   const [showAdjectiveCompletionDialog, setShowAdjectiveCompletionDialog] = useState(false);
   const [adjectiveFinalTime, setAdjectiveFinalTime] = useState(0);
 
+  // Animal Game State
+  const [animalDifficulty, setAnimalDifficulty] = useState<Difficulty | null>(null);
+  const [animalCards, setAnimalCards] = useState<AnimalCardData[]>([]);
+  const [animalFlippedCards, setAnimalFlippedCards] = useState<string[]>([]);
+  const [animalMatchedPairs, setAnimalMatchedPairs] = useState<number[]>([]);
+  const [animalMoves, setAnimalMoves] = useState(0);
+  const [isAnimalGameActive, setIsAnimalGameActive] = useState(false);
+  const [isAnimalChecking, setIsAnimalChecking] = useState(false);
+  const [showAnimalCompletionDialog, setShowAnimalCompletionDialog] = useState(false);
+  const [animalFinalTime, setAnimalFinalTime] = useState(0);
+
   // Hint State
   const [isHintActive, setIsHintActive] = useState(false);
 
@@ -48,51 +60,56 @@ export default function Home() {
     setIsHintActive(prev => !prev);
   };
 
-  const resetGameState = (difficultyStateSetter: Function, cardStateSetter: Function, gameActiveSetter: Function) => {
+  const resetGameState = (difficultyStateSetter: Function, cardStateSetter: Function, gameActiveSetter: Function, flippedSetter: Function, matchedSetter: Function, movesSetter: Function) => {
      difficultyStateSetter(null);
      cardStateSetter([]);
      gameActiveSetter(false);
-     setVerbFlippedCards([]);
-     setVerbMatchedPairs([]);
-     setVerbMoves(0);
-     setAdjectiveFlippedCards([]);
-     setAdjectiveMatchedPairs([]);
-     setAdjectiveMoves(0);
-     setIsHintActive(false);
+     flippedSetter([]);
+     matchedSetter([]);
+     movesSetter(0);
+     setIsHintActive(false); // Reset hint as well
   }
 
   const handleSelectGameType = (type: GameType) => {
     setCurrentGameType(type);
     setView('difficulty');
-    // Reset the other game's state if necessary
-    if (type === 'verbs') {
-        resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
-    } else {
-         resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
+    // Reset other game states
+    if (type !== 'verbs') {
+        resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive, setVerbFlippedCards, setVerbMatchedPairs, setVerbMoves);
+    }
+    if (type !== 'adjectives') {
+         resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
+    }
+     if (type !== 'animals') {
+         resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
     }
   };
 
   const handleGoBackToSelection = () => {
     setView('selection');
     setCurrentGameType(null);
-    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
-    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive, setVerbFlippedCards, setVerbMatchedPairs, setVerbMoves);
+    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
+    resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
   };
 
     const handleGoBackToDifficulty = () => {
         setView('difficulty');
         if (currentGameType === 'verbs') {
-            resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
+            resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive, setVerbFlippedCards, setVerbMatchedPairs, setVerbMoves);
         } else if (currentGameType === 'adjectives') {
-            resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+            resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
+        } else if (currentGameType === 'animals') {
+            resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
         }
     };
 
   const handleGoHome = () => {
     setView('selection');
     setCurrentGameType(null);
-    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
-    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive, setVerbFlippedCards, setVerbMatchedPairs, setVerbMoves);
+    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
+    resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
   };
 
 
@@ -153,7 +170,7 @@ export default function Home() {
     setShowVerbCompletionDialog(false);
     setView('selection'); // Go back to game selection after completion
     setCurrentGameType(null);
-    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
+    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive, setVerbFlippedCards, setVerbMatchedPairs, setVerbMoves);
   };
 
   useEffect(() => {
@@ -221,7 +238,7 @@ export default function Home() {
     setShowAdjectiveCompletionDialog(false);
     setView('selection'); // Go back to game selection after completion
     setCurrentGameType(null);
-    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
   };
 
    useEffect(() => {
@@ -232,12 +249,83 @@ export default function Home() {
   }, [adjectiveMatchedPairs, adjectiveCards.length, isAdjectiveGameActive]);
 
 
+  // --- Animal Game Logic ---
+  const startAnimalGame = useCallback((selectedDifficulty: Difficulty) => {
+    setAnimalDifficulty(selectedDifficulty);
+    const newBoard = generateAnimalGameBoard(selectedDifficulty);
+    setAnimalCards(newBoard);
+    setAnimalFlippedCards([]);
+    setAnimalMatchedPairs([]);
+    setAnimalMoves(0);
+    setIsAnimalGameActive(true);
+    setShowAnimalCompletionDialog(false);
+    setAnimalFinalTime(0);
+    setView('game'); // Move to game view
+    setIsHintActive(false);
+  }, []);
+
+  const handleAnimalCardClick = (cardId: string) => {
+    if (isAnimalChecking || animalFlippedCards.length >= 2 || animalCards.find(c => c.id === cardId)?.isFlipped) {
+      return;
+    }
+    const newFlippedCards = [...animalFlippedCards, cardId];
+    setAnimalFlippedCards(newFlippedCards);
+    setAnimalMoves((prevMoves) => prevMoves + 1);
+    setAnimalCards((prevCards) => prevCards.map((card) => card.id === cardId ? { ...card, isFlipped: true } : card));
+
+    if (newFlippedCards.length === 2) {
+      setIsAnimalChecking(true);
+      const [firstCardId, secondCardId] = newFlippedCards;
+      const firstCard = animalCards.find((card) => card.id === firstCardId);
+      const secondCard = animalCards.find((card) => card.id === secondCardId);
+
+      if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+        setAnimalMatchedPairs((prevMatched) => [...prevMatched, firstCard.pairId]);
+        setAnimalCards((prevCards) => prevCards.map((card) => card.pairId === firstCard.pairId ? { ...card, isMatched: true } : card));
+        setAnimalFlippedCards([]);
+        setIsAnimalChecking(false);
+      } else {
+        setTimeout(() => {
+          setAnimalCards((prevCards) => prevCards.map((card) => newFlippedCards.includes(card.id) ? { ...card, isFlipped: false } : card));
+          setAnimalFlippedCards([]);
+          setIsAnimalChecking(false);
+        }, 1000);
+      }
+    }
+  };
+
+   const handleAnimalTimerUpdate = (currentTime: number) => {
+    if (!isAnimalGameActive && showAnimalCompletionDialog) {
+       if (animalFinalTime === 0) setAnimalFinalTime(currentTime);
+    } else if (isAnimalGameActive) {
+        setAnimalFinalTime(currentTime);
+    }
+  };
+
+
+  const handleAnimalPlayAgain = () => {
+    setShowAnimalCompletionDialog(false);
+    setView('selection'); // Go back to game selection after completion
+    setCurrentGameType(null);
+    resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
+  };
+
+   useEffect(() => {
+    if (isAnimalGameActive && animalCards.length > 0 && animalMatchedPairs.length === animalCards.length / 2) {
+      setIsAnimalGameActive(false);
+      setShowAnimalCompletionDialog(true);
+    }
+  }, [animalMatchedPairs, animalCards.length, isAnimalGameActive]);
+
+
   // --- Difficulty Selection ---
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
     if (currentGameType === 'verbs') {
       startVerbGame(selectedDifficulty);
     } else if (currentGameType === 'adjectives') {
       startAdjectiveGame(selectedDifficulty);
+    } else if (currentGameType === 'animals') {
+        startAnimalGame(selectedDifficulty);
     }
   };
 
@@ -252,16 +340,18 @@ export default function Home() {
       case 'selection':
         return <GameSelection onSelectGame={handleSelectGameType} />;
       case 'difficulty':
+        const itemType = currentGameType === 'verbs' ? 'Verbs' : currentGameType === 'adjectives' ? 'Adjectives' : 'Animals';
+        const currentDifficulty = currentGameType === 'verbs' ? verbDifficulty : currentGameType === 'adjectives' ? adjectiveDifficulty : animalDifficulty;
         return (
           <div className="flex flex-col items-center w-full">
-            <h2 className="text-2xl font-semibold text-center my-4 text-foreground"> {/* Changed text color */}
-                Select Difficulty for {currentGameType === 'verbs' ? 'Verbs' : 'Adjectives'}
+            <h2 className="text-2xl font-semibold text-center my-4 text-foreground">
+                Select Difficulty for {itemType}
             </h2>
             <DifficultySelector
-              itemType={currentGameType === 'verbs' ? 'Verbs' : 'Adjectives'}
+              itemType={itemType}
               onSelectDifficulty={handleSelectDifficulty}
               onGoBack={handleGoBackToSelection}
-              currentDifficulty={currentGameType === 'verbs' ? verbDifficulty : adjectiveDifficulty}
+              currentDifficulty={currentDifficulty}
             />
           </div>
         );
@@ -324,6 +414,37 @@ export default function Home() {
               </Button>
             </>
           );
+        } else if (currentGameType === 'animals') {
+           return (
+             <>
+              <GameStatus
+                moves={animalMoves}
+                isGameActive={isAnimalGameActive}
+                onTimerUpdate={handleAnimalTimerUpdate}
+                isHintActive={isHintActive}
+                onToggleHint={toggleHint}
+              />
+              <div className={`grid ${getGridColsClass(animalDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {animalCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.type === 'name' ? card.name : undefined} // Pass text only for name cards
+                    imageUrl={card.type === 'image' ? card.imageUrl : undefined} // Pass imageUrl only for image cards
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handleAnimalCardClick}
+                    language={card.language}
+                    isHintActive={isHintActive}
+                    cardType={card.type} // Pass card type for hint logic
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
         }
         return null; // Should not happen if currentGameType is set
       default:
@@ -332,15 +453,13 @@ export default function Home() {
   };
 
   return (
-    // Pass callbacks to DashboardLayout
     <DashboardLayout
       onSelectGameTypeFromSidebar={handleSelectGameType}
       onGoHome={handleGoHome}
     >
-        <div className="flex flex-col items-center justify-start p-4 w-full h-full"> {/* Ensure content takes full height */}
+        <div className="flex flex-col items-center justify-start p-4 w-full h-full">
           {renderContent()}
         </div>
-
 
       <CompletionDialog
         isOpen={showVerbCompletionDialog}
@@ -356,6 +475,15 @@ export default function Home() {
         onPlayAgain={handleAdjectivePlayAgain}
         itemType="adjective"
       />
+       <CompletionDialog
+        isOpen={showAnimalCompletionDialog}
+        moves={animalMoves}
+        time={animalFinalTime}
+        onPlayAgain={handleAnimalPlayAgain}
+        itemType="animal"
+      />
     </DashboardLayout>
   );
 }
+
+    
