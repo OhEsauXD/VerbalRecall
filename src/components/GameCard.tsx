@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -13,7 +14,7 @@ interface GameCardProps {
   isFlipped: boolean;
   isMatched: boolean;
   onClick: (cardId: string) => void;
-  language: 'en' | 'es' | 'name' | 'image'; // Update language prop to include card type for animals
+  language: 'en' | 'es'; // Language now reflects the content (en name, es-associated image)
   isHintActive: boolean;
   cardType?: 'name' | 'image' | 'verb' | 'adjective'; // Add cardType prop to distinguish animal cards
 }
@@ -26,7 +27,7 @@ const GameCard: React.FC<GameCardProps> = ({
   isFlipped,
   isMatched,
   onClick,
-  language, // Still needed for text cards
+  language, // 'en' for name card, 'es' for image card
   isHintActive,
   cardType, // Used for hint logic
 }) => {
@@ -54,10 +55,10 @@ const GameCard: React.FC<GameCardProps> = ({
   // Back face (visible when flipped=false)
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
-        // Hint logic based on card type
-      if (cardType === 'name' || language === 'en') { // English verbs/adjectives or animal name
+        // Hint logic based on language (or cardType if needed for more complex scenarios)
+      if (language === 'en') { // English text (verb, adj, or animal name)
         return 'bg-blue-200';
-      } else if (cardType === 'image' || language === 'es') { // Spanish verbs/adjectives or animal image
+      } else if (language === 'es') { // Spanish text (verb, adj) or image (associated with Spanish name)
         return 'bg-green-200';
       }
     }

@@ -1,4 +1,5 @@
 
+
 export type AnimalPair = {
   id: number;
   en: string;
@@ -83,7 +84,7 @@ function shuffle<T>(array: T[]): T[] {
 export type AnimalCardData = {
     id: string; // Unique ID for the card instance (e.g., "name-en-1", "image-1")
     pairId: number; // ID linking the name and image pair
-    language: 'en' | 'es' | 'name' | 'image'; // 'name' for text cards, 'image' for image cards
+    language: 'en' | 'es'; // Use 'en' for name, 'es' for image (representing the Spanish name association)
     type: 'name' | 'image'; // Explicitly define the card type
     name?: string; // Animal name (only for 'name' type)
     imageUrl?: string; // Placeholder image URL (only for 'image' type)
@@ -113,21 +114,21 @@ export function generateAnimalGameBoard(difficulty: 'easy' | 'medium' | 'hard'):
 
   const gameCards: AnimalCardData[] = [];
   selectedPairs.forEach((pair) => {
-    // Add name card (combined English/Spanish for simplicity here, can be split if needed)
+    // Add name card (English only)
     gameCards.push({
-      id: `name-${pair.id}`,
+      id: `name-${pair.id}`, // Keep unique prefix
       pairId: pair.id,
-      language: 'name', // Identify as a name card
+      language: 'en', // English name card
       type: 'name',
-      name: `${pair.en} / ${pair.es}`, // Combine names or choose one based on game mode
+      name: pair.en, // Use only English name
       isFlipped: false,
       isMatched: false,
     });
-    // Add image card
+    // Add image card (Associated with Spanish name)
     gameCards.push({
-      id: `image-${pair.id}`,
+      id: `image-${pair.id}`, // Keep unique prefix
       pairId: pair.id,
-      language: 'image', // Identify as an image card
+      language: 'es', // Associate image card with Spanish name
       type: 'image',
       // Use Picsum for placeholder images initially
       imageUrl: `https://picsum.photos/seed/${pair.id}/100/100`,
