@@ -1,3 +1,5 @@
+import { CardType } from '@/components/GameCard';
+
 export type TransportBuildingPair = {
   id: number;
   en: string;
@@ -86,6 +88,7 @@ function shuffle<T>(array: T[]): T[] {
 export type TransportBuildingCardData = {
     id: string; // Unique ID for the card instance (e.g., "name-en-121", "image-121")
     pairId: number; // ID linking the name and image pair
+ type: Extract<CardType, 'name' | 'image'>; // Use CardType and specifically allow 'name' and 'image'
     language: 'en' | 'es'; // 'en' for name, 'es' for image (representing the Spanish name association)
     type: 'name' | 'image'; // Explicitly define the card type
     name?: string; // Item name (only for 'name' type)
@@ -122,7 +125,7 @@ export function generateTransportBuildingGameBoard(difficulty: 'easy' | 'medium'
       id: `tb-name-${pair.id}`, // Prefix to avoid ID collision
       pairId: pair.id,
       language: 'en', // English name card
-      type: 'name',
+      type: 'name' as const, // Use 'as const' for literal type inference
       name: pair.en, // Use only English name
       isFlipped: false,
       isMatched: false,
@@ -132,7 +135,7 @@ export function generateTransportBuildingGameBoard(difficulty: 'easy' | 'medium'
       id: `tb-image-${pair.id}`, // Prefix to avoid ID collision
       pairId: pair.id,
       language: 'es', // Associate image card with Spanish name
-      type: 'image',
+      type: 'image' as const, // Use 'as const' for literal type inference
       spanishName: pair.es, // Add the Spanish name here
       // Use Picsum for placeholder images initially
       imageUrl: `https://picsum.photos/seed/${pair.id + 300}/100/100`, // Further offset seed

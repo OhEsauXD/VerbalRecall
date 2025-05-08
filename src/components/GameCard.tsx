@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import Image from 'next/image'; // Import next/image
 
+export type CardType = 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nation' | 'nationality';
+export type CardType = 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nation' | 'nationality' | 'name' | 'image';
 interface GameCardProps {
   cardId: string;
   text?: string; // Make text optional
@@ -20,7 +22,7 @@ interface GameCardProps {
   onClick: (cardId: string) => void;
   language: 'en' | 'es' | 'infinitive' | 'past'; // Language now reflects the content
   isHintActive: boolean;
-  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nation' | 'nationality'; // Add nation types
+  cardType?: CardType;
 }
 
 const GameCard: React.FC<GameCardProps> = ({

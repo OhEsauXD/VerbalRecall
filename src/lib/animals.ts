@@ -1,5 +1,7 @@
 
 
+import { CardType } from '@/components/GameCard';
+
 export type AnimalPair = {
   id: number;
   en: string;
@@ -85,7 +87,7 @@ export type AnimalCardData = {
     id: string; // Unique ID for the card instance (e.g., "name-en-1", "image-1")
     pairId: number; // ID linking the name and image pair
     language: 'en' | 'es'; // Use 'en' for name, 'es' for image (representing the Spanish name association)
-    type: 'name' | 'image'; // Explicitly define the card type
+    type: 'name' | 'image'; // Use the imported CardType with 'name' and 'image'
     name?: string; // Animal name (only for 'name' type)
     spanishName?: string; // Spanish name (only for 'image' type)
     imageUrl?: string; // Placeholder image URL (only for 'image' type)
