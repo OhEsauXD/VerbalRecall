@@ -64,6 +64,12 @@ export default function Home() {
   const handleSelectGameType = (type: GameType) => {
     setCurrentGameType(type);
     setView('difficulty');
+    // Reset the other game's state if necessary
+    if (type === 'verbs') {
+        resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+    } else {
+         resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
+    }
   };
 
   const handleGoBackToSelection = () => {
@@ -81,6 +87,13 @@ export default function Home() {
             resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
         }
     };
+
+  const handleGoHome = () => {
+    setView('selection');
+    setCurrentGameType(null);
+    resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive);
+    resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive);
+  };
 
 
   // --- Verb Game Logic ---
@@ -319,8 +332,11 @@ export default function Home() {
   };
 
   return (
-    // Pass handleSelectGameType to DashboardLayout
-    <DashboardLayout onSelectGameTypeFromSidebar={handleSelectGameType}>
+    // Pass callbacks to DashboardLayout
+    <DashboardLayout
+      onSelectGameTypeFromSidebar={handleSelectGameType}
+      onGoHome={handleGoHome}
+    >
         <div className="flex flex-col items-center justify-start p-4 w-full h-full"> {/* Ensure content takes full height */}
           {renderContent()}
         </div>

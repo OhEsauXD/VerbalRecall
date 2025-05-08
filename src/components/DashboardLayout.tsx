@@ -11,13 +11,14 @@ import type { GameType } from '@/app/page'; // Import GameType
 interface DashboardLayoutProps {
   children: React.ReactNode;
   onSelectGameTypeFromSidebar: (type: GameType) => void; // Callback for sidebar selection
+  onGoHome: () => void; // Callback for navigating home
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, onSelectGameTypeFromSidebar }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, onSelectGameTypeFromSidebar, onGoHome }) => {
   return (
     <SidebarProvider defaultOpen={false}>
-      {/* Pass children and callback directly to DashboardContent */}
-      <DashboardContent onSelectGameTypeFromSidebar={onSelectGameTypeFromSidebar}>
+      {/* Pass children and callbacks directly to DashboardContent */}
+      <DashboardContent onSelectGameTypeFromSidebar={onSelectGameTypeFromSidebar} onGoHome={onGoHome}>
         {children}
       </DashboardContent>
     </SidebarProvider>
@@ -25,7 +26,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, onSelectGam
 };
 
 // Separate component to use the hook within the provider context
-const DashboardContent: React.FC<{ children: React.ReactNode; onSelectGameTypeFromSidebar: (type: GameType) => void }> = ({ children, onSelectGameTypeFromSidebar }) => {
+const DashboardContent: React.FC<{ children: React.ReactNode; onSelectGameTypeFromSidebar: (type: GameType) => void; onGoHome: () => void }> = ({ children, onSelectGameTypeFromSidebar, onGoHome }) => {
   const { toggleSidebar } = useSidebar(); // Get toggle function from context
 
   return (
@@ -51,8 +52,8 @@ const DashboardContent: React.FC<{ children: React.ReactNode; onSelectGameTypeFr
             </Button>
           </SidebarHeader>
           <SidebarContent className="p-2 flex-1 overflow-y-auto">
-             {/* Pass the callback to SidebarNav */}
-             <SidebarNav onSelectGameType={onSelectGameTypeFromSidebar} />
+             {/* Pass the callbacks to SidebarNav */}
+             <SidebarNav onSelectGameType={onSelectGameTypeFromSidebar} onGoHome={onGoHome} />
           </SidebarContent>
           <SidebarFooter className="p-2">
              <NightModeToggle />
