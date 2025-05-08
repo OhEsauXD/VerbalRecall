@@ -1,7 +1,8 @@
+
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog } from 'lucide-react'; // Import Cog icon for regular verbs
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe } from 'lucide-react'; // Import Globe icon for nations
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -80,8 +81,16 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>Transport/Buildings</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
+       <SidebarMenuItem> {/* Nations & Nationalities Item */}
+        <SidebarMenuButton onClick={() => handleSelectGame('nations')} tooltip="Play Nations & Nationalities Game">
+           <Globe />
+          <span>Nations</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     </SidebarMenu>
   );
 };
 
 export default SidebarNav;
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -8,29 +9,35 @@ import Image from 'next/image'; // Import next/image
 interface GameCardProps {
   cardId: string;
   text?: string; // Make text optional
-  imageUrl?: string; // Add imageUrl prop
+  imageUrl?: string; // Add imageUrl prop for general images
+  flagUrl?: string; // Add specific flagUrl prop
+  nation?: string; // Add nation name prop (optional)
+  nationality?: string; // Add nationality prop (optional)
   spanishName?: string; // Add Spanish name prop (optional)
   dataAiHint?: string; // Add AI hint prop for images
   isFlipped: boolean;
   isMatched: boolean;
   onClick: (cardId: string) => void;
-  language: 'en' | 'es' | 'infinitive' | 'past'; // Language now reflects the content (en name, es-associated image, infinitive verb, past tense verb)
+  language: 'en' | 'es' | 'infinitive' | 'past'; // Language now reflects the content
   isHintActive: boolean;
-  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense'; // Add regularPastTense
+  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nation' | 'nationality'; // Add nation types
 }
 
 const GameCard: React.FC<GameCardProps> = ({
   cardId,
   text,
   imageUrl,
-  spanishName, // Destructure spanishName
+  flagUrl, // Destructure flagUrl
+  nation,
+  nationality,
+  spanishName,
   dataAiHint,
   isFlipped,
   isMatched,
   onClick,
-  language, // 'en' for name card, 'es' for image card (associated with Spanish name)
+  language,
   isHintActive,
-  cardType, // Used for hint logic
+  cardType,
 }) => {
   const handleClick = () => {
     if (!isFlipped && !isMatched) {
@@ -56,14 +63,14 @@ const GameCard: React.FC<GameCardProps> = ({
   // Back face (visible when flipped=false)
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
-        // Hint logic based on language or cardType
-      if (language === 'en' || language === 'infinitive') { // English text, infinitive verb, or name card
+      // Hint logic based on language or cardType
+      if (language === 'en' || language === 'infinitive' || cardType === 'nation') { // English text, infinitive verb, name card, or nation card (flag)
         return 'bg-blue-200';
-      } else if (language === 'es' || language === 'past') { // Spanish text, image, or past tense verb
+      } else if (language === 'es' || language === 'past' || cardType === 'nationality') { // Spanish text, image, past tense verb, or nationality card
         if (cardType === 'image') {
-            return 'bg-yellow-200'; // Distinct hint for image cards
+            return 'bg-yellow-200'; // Distinct hint for general image cards
         }
-        // Hint for Spanish text or either Past Tense type
+        // Hint for Spanish text, Past Tense, or Nationality
         return 'bg-green-200';
       }
     }
@@ -90,9 +97,56 @@ const GameCard: React.FC<GameCardProps> = ({
     isFlipped || isMatched ? 'rotate-y-180' : '' // Rotate container when flipped/matched
   );
 
-  // Determine font style based on card content (Spanish text and Past Tense are italic)
-  const fontStyle = (language === 'es' || language === 'past') ? 'italic' : '';
-  const spanishNameStyle = cardType === 'image' ? 'italic text-xs mt-1' : ''; // Specific style for Spanish name under image
+  // Determine font style based on card content (Spanish text, Past Tense, Nationality are italic)
+  const fontStyle = (language === 'es' || language === 'past' || cardType === 'nationality') ? 'italic' : '';
+  const spanishNameStyle = cardType === 'image' ? 'italic text-xs mt-1' : '';
+  const nationNameStyle = cardType === 'nation' ? 'text-xs mt-1 font-semibold' : ''; // Style for nation name below flag
+
+  const renderFrontContent = () => {
+    if (cardType === 'nation') {
+      return (
+        <>
+          {flagUrl && (
+            <Image
+              src={flagUrl}
+              alt={`${nation} flag`}
+              width={80} // Adjusted size
+              height={50} // Adjusted size for flag aspect ratio
+              className="object-contain max-w-full max-h-[60%] rounded-sm border border-muted" // Border for flags
+            />
+          )}
+          {nation && ( // Display nation name below the flag
+            <span className={cn("block", nationNameStyle)}>{nation}</span>
+          )}
+        </>
+      );
+    } else if (imageUrl) {
+      return (
+        <>
+          <Image
+            src={imageUrl}
+            alt={dataAiHint || "Item image"}
+            width={80}
+            height={80}
+            className="object-contain max-w-full max-h-[70%] rounded-md"
+            data-ai-hint={dataAiHint}
+          />
+          {spanishName && (
+            <span className={cn("block", spanishNameStyle)}>{spanishName}</span>
+          )}
+        </>
+      );
+    } else {
+       // Display text (verb, adjective, nationality, etc.)
+      const displayText = cardType === 'nationality' ? nationality : text;
+      return (
+        <span className={cn("text-sm md:text-base font-medium", fontStyle)}>
+          {displayText}
+        </span>
+      );
+    }
+  };
+
 
   return (
     <div className={cardContainerStyle} onClick={handleClick} role="button" aria-pressed={isFlipped}>
@@ -106,23 +160,7 @@ const GameCard: React.FC<GameCardProps> = ({
       {/* Front Face */}
       <Card className={frontFaceStyle}>
         <CardContent className="p-0 flex flex-col items-center justify-center w-full h-full">
-          {imageUrl ? (
-            <>
-              <Image
-                src={imageUrl}
-                alt={dataAiHint || "Item image"} // Generic alt text
-                width={80} // Adjusted size to make space for text
-                height={80} // Adjusted size
-                className="object-contain max-w-full max-h-[70%] rounded-md" // Max height to prevent overflow
-                data-ai-hint={dataAiHint} // Add data-ai-hint
-              />
-              {spanishName && ( // Conditionally render Spanish name
-                <span className={cn("block", spanishNameStyle)}>{spanishName}</span>
-              )}
-            </>
-          ) : (
-            <span className={cn("text-sm md:text-base font-medium", fontStyle)}>{text}</span>
-          )}
+          {renderFrontContent()}
         </CardContent>
       </Card>
     </div>
@@ -156,3 +194,5 @@ if (typeof window !== 'undefined') {
 
 
 export default GameCard;
+
+    

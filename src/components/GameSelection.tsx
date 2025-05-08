@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -214,8 +215,35 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
             </Button>
             </CardFooter>
         </Card>
+
+         {/* Nations & Nationalities Game Card */}
+        <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+            <CardHeader className="p-0">
+            <Image
+                src="https://picsum.photos/400/200?random=9" // New random seed
+                alt="Abstract representation of nations and flags"
+                width={400}
+                height={200}
+                className="w-full h-48 object-cover"
+                data-ai-hint="flags world" // AI Hint for nations image
+            />
+            </CardHeader>
+            <CardContent className="p-6 flex-grow">
+            <CardTitle className="mb-2 text-xl font-semibold text-primary">Nations & Nationalities</CardTitle>
+            <CardDescription className="text-muted-foreground">
+                Match country flags and names with their corresponding nationalities. Test your geography knowledge!
+            </CardDescription>
+            </CardContent>
+            <CardFooter className="p-6 pt-0 mt-auto">
+            <Button onClick={() => onSelectGame('nations')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                Play Nations
+            </Button>
+            </CardFooter>
+        </Card>
     </div>
   );
 };
 
 export default GameSelection;
+
+    

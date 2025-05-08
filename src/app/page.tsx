@@ -17,10 +17,11 @@ import { generateFoodGameBoard, FoodCardData } from '@/lib/food';
 import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@/lib/transportBuildings';
 import { generatePastTenseGameBoard, PastTenseCardData, pastTensePairs } from '@/lib/pastTense'; // Irregular
 import { generateRegularPastTenseGameBoard, RegularPastTenseCardData, regularPastTensePairs } from '@/lib/regularPastTense'; // Regular
+import { generateNationGameBoard, NationCardData, nationPairs } from '@/lib/nations'; // New Nation Game
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense'; // Add 'regularPastTense'
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations'; // Add 'nations'
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
@@ -115,6 +116,17 @@ export default function Home() {
   const [showRegularPastTenseCompletionDialog, setShowRegularPastTenseCompletionDialog] = useState(false);
   const [regularPastTenseFinalTime, setRegularPastTenseFinalTime] = useState(0);
 
+   // Nations & Nationalities Game State
+  const [nationDifficulty, setNationDifficulty] = useState<Difficulty | null>(null);
+  const [nationCards, setNationCards] = useState<NationCardData[]>([]);
+  const [nationFlippedCards, setNationFlippedCards] = useState<string[]>([]);
+  const [nationMatchedPairs, setNationMatchedPairs] = useState<number[]>([]);
+  const [nationMoves, setNationMoves] = useState(0);
+  const [isNationGameActive, setIsNationGameActive] = useState(false);
+  const [isNationChecking, setIsNationChecking] = useState(false);
+  const [showNationCompletionDialog, setShowNationCompletionDialog] = useState(false);
+  const [nationFinalTime, setNationFinalTime] = useState(0);
+
 
   // Hint State
   const [isHintActive, setIsHintActive] = useState(false);
@@ -145,6 +157,7 @@ export default function Home() {
     if (type !== 'transportBuildings') resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
     if (type !== 'pastTense') resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
     if (type !== 'regularPastTense') resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
+    if (type !== 'nations') resetGameState(setNationDifficulty, setNationCards, setIsNationGameActive, setNationFlippedCards, setNationMatchedPairs, setNationMoves);
   };
 
   const handleGoBackToSelection = () => {
@@ -158,6 +171,7 @@ export default function Home() {
     resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
     resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
     resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
+    resetGameState(setNationDifficulty, setNationCards, setIsNationGameActive, setNationFlippedCards, setNationMatchedPairs, setNationMoves);
   };
 
     const handleGoBackToDifficulty = () => {
@@ -178,6 +192,8 @@ export default function Home() {
              resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
         } else if (currentGameType === 'regularPastTense') {
              resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
+        } else if (currentGameType === 'nations') {
+             resetGameState(setNationDifficulty, setNationCards, setIsNationGameActive, setNationFlippedCards, setNationMatchedPairs, setNationMoves);
         }
     };
 
@@ -192,6 +208,7 @@ export default function Home() {
     resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
     resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
     resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
+    resetGameState(setNationDifficulty, setNationCards, setIsNationGameActive, setNationFlippedCards, setNationMatchedPairs, setNationMoves);
   };
 
 
@@ -737,6 +754,73 @@ export default function Home() {
         }
     }, [regularPastTenseMatchedPairs, regularPastTenseCards.length, isRegularPastTenseGameActive]);
 
+  // --- Nations & Nationalities Game Logic ---
+  const startNationGame = useCallback((selectedDifficulty: Difficulty) => {
+    setNationDifficulty(selectedDifficulty);
+    const newBoard = generateNationGameBoard(selectedDifficulty);
+    setNationCards(newBoard);
+    setNationFlippedCards([]);
+    setNationMatchedPairs([]);
+    setNationMoves(0);
+    setIsNationGameActive(true);
+    setShowNationCompletionDialog(false);
+    setNationFinalTime(0);
+    setView('game');
+    setIsHintActive(false);
+  }, []);
+
+  const handleNationCardClick = (cardId: string) => {
+    if (isNationChecking || nationFlippedCards.length >= 2 || nationCards.find(c => c.id === cardId)?.isFlipped) {
+      return;
+    }
+    const newFlippedCards = [...nationFlippedCards, cardId];
+    setNationFlippedCards(newFlippedCards);
+    setNationMoves((prevMoves) => prevMoves + 1);
+    setNationCards((prevCards) => prevCards.map((card) => card.id === cardId ? { ...card, isFlipped: true } : card));
+
+    if (newFlippedCards.length === 2) {
+      setIsNationChecking(true);
+      const [firstCardId, secondCardId] = newFlippedCards;
+      const firstCard = nationCards.find((card) => card.id === firstCardId);
+      const secondCard = nationCards.find((card) => card.id === secondCardId);
+
+      if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+        setNationMatchedPairs((prevMatched) => [...prevMatched, firstCard.pairId]);
+        setNationCards((prevCards) => prevCards.map((card) => card.pairId === firstCard.pairId ? { ...card, isMatched: true } : card));
+        setNationFlippedCards([]);
+        setIsNationChecking(false);
+      } else {
+        setTimeout(() => {
+          setNationCards((prevCards) => prevCards.map((card) => newFlippedCards.includes(card.id) ? { ...card, isFlipped: false } : card));
+          setNationFlippedCards([]);
+          setIsNationChecking(false);
+        }, 1000);
+      }
+    }
+  };
+
+  const handleNationTimerUpdate = (currentTime: number) => {
+    if (!isNationGameActive && showNationCompletionDialog) {
+       if (nationFinalTime === 0) setNationFinalTime(currentTime);
+    } else if (isNationGameActive) {
+        setNationFinalTime(currentTime);
+    }
+  };
+
+  const handleNationPlayAgain = () => {
+    setShowNationCompletionDialog(false);
+    setView('selection');
+    setCurrentGameType(null);
+    resetGameState(setNationDifficulty, setNationCards, setIsNationGameActive, setNationFlippedCards, setNationMatchedPairs, setNationMoves);
+  };
+
+   useEffect(() => {
+    if (isNationGameActive && nationCards.length > 0 && nationMatchedPairs.length === nationCards.length / 2) {
+      setIsNationGameActive(false);
+      setShowNationCompletionDialog(true);
+    }
+  }, [nationMatchedPairs, nationCards.length, isNationGameActive]);
+
 
   // --- Difficulty Selection ---
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
@@ -748,6 +832,7 @@ export default function Home() {
     else if (currentGameType === 'transportBuildings') startTransportBuildingGame(selectedDifficulty);
     else if (currentGameType === 'pastTense') startPastTenseGame(selectedDifficulty);
     else if (currentGameType === 'regularPastTense') startRegularPastTenseGame(selectedDifficulty);
+    else if (currentGameType === 'nations') startNationGame(selectedDifficulty);
   };
 
   // --- Grid Columns ---
@@ -768,7 +853,8 @@ export default function Home() {
                          currentGameType === 'food' ? 'Food Items' :
                          currentGameType === 'transportBuildings' ? 'Transport/Buildings' :
                          currentGameType === 'pastTense' ? 'Irregular Past Tense Verbs' :
-                         'Regular Past Tense Verbs';
+                         currentGameType === 'regularPastTense' ? 'Regular Past Tense Verbs' :
+                         'Nations & Nationalities'; // Add Nation text
 
         const currentDifficulty = currentGameType === 'verbs' ? verbDifficulty :
                                 currentGameType === 'adjectives' ? adjectiveDifficulty :
@@ -777,13 +863,16 @@ export default function Home() {
                                 currentGameType === 'food' ? foodDifficulty :
                                 currentGameType === 'transportBuildings' ? transportBuildingDifficulty :
                                 currentGameType === 'pastTense' ? pastTenseDifficulty :
-                                regularPastTenseDifficulty;
+                                currentGameType === 'regularPastTense' ? regularPastTenseDifficulty :
+                                nationDifficulty; // Add Nation state
 
         // Dynamically calculate the hard difficulty count based on the available pairs
         const itemCounts = currentGameType === 'pastTense'
             ? { easy: 15, medium: 30, hard: pastTensePairs.length }
             : currentGameType === 'regularPastTense'
             ? { easy: 15, medium: 30, hard: regularPastTensePairs.length }
+            : currentGameType === 'nations'
+            ? { easy: 15, medium: 30, hard: nationPairs.length } // Add nation counts
             : { easy: 15, medium: 30, hard: 60 }; // Default for other games
 
         return (
@@ -1069,6 +1158,39 @@ export default function Home() {
             </>
           );
         }
+         // --- Nations & Nationalities Game Rendering ---
+        else if (currentGameType === 'nations') {
+          return (
+            <>
+              <GameStatus
+                moves={nationMoves}
+                isGameActive={isNationGameActive}
+                onTimerUpdate={handleNationTimerUpdate}
+                isHintActive={isHintActive}
+                onToggleHint={toggleHint}
+              />
+              <div className={`grid ${getGridColsClass(nationDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {nationCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.type === 'nationality' ? card.nationality : card.nation} // Display nation or nationality
+                    imageUrl={card.type === 'nation' ? card.flagUrl : undefined} // Display flag for nation
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handleNationCardClick}
+                    language={card.type === 'nation' ? 'en' : 'es'} // 'en' for nation (flag), 'es' for nationality (text) for hint
+                    isHintActive={isHintActive}
+                    cardType={card.type}
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
+        }
         return null; // Should not happen if currentGameType is set
       default:
         return <GameSelection onSelectGame={handleSelectGameType} />;
@@ -1140,6 +1262,15 @@ export default function Home() {
         onPlayAgain={handleRegularPastTensePlayAgain}
         itemType="regularPastTense"
       />
+       <CompletionDialog
+        isOpen={showNationCompletionDialog}
+        moves={nationMoves}
+        time={nationFinalTime}
+        onPlayAgain={handleNationPlayAgain}
+        itemType="nations"
+      />
     </DashboardLayout>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -16,7 +17,7 @@ interface CompletionDialogProps {
   moves: number;
   time: number;
   onPlayAgain: () => void;
-  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense'; // Add 'regularPastTense'
+  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nations'; // Add 'nations'
 }
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
@@ -36,8 +37,9 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
                    itemType === 'plant' ? 'plant name/picture' :
                    itemType === 'food' ? 'food/candy/drink name/picture' :
                    itemType === 'transportBuilding' ? 'transport/building name/picture' :
-                   itemType === 'pastTense' ? 'irregular past tense verb' : // Specify irregular
-                   'regular past tense verb'; // Add regular past tense text
+                   itemType === 'pastTense' ? 'irregular past tense verb' :
+                   itemType === 'regularPastTense' ? 'regular past tense verb' :
+                   'nation/nationality'; // Add nation text
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onPlayAgain}> {/* Use onOpenChange to handle closing */}
@@ -59,3 +61,5 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
 };
 
 export default CompletionDialog;
+
+    
