@@ -14,7 +14,7 @@ interface GameSelectionProps {
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 p-4 md:p-8 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-4 md:p-8 w-full"> {/* Adjusted grid for 5 items */}
        {/* Verb Game Card */}
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
@@ -111,6 +111,31 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
             <CardFooter className="p-6 pt-0 mt-auto">
             <Button onClick={() => onSelectGame('plants')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                 Play Plants
+            </Button>
+            </CardFooter>
+        </Card>
+
+        {/* Food Game Card */}
+        <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+            <CardHeader className="p-0">
+            <Image
+                src="https://picsum.photos/400/200?random=5" // Added random query
+                alt="Abstract representation of food, candy, and drinks"
+                width={400}
+                height={200}
+                className="w-full h-48 object-cover"
+                data-ai-hint="food drink" // AI Hint for food/drink image
+            />
+            </CardHeader>
+            <CardContent className="p-6 flex-grow">
+            <CardTitle className="mb-2 text-xl font-semibold text-primary">Food/Candy/Drink Game</CardTitle>
+            <CardDescription className="text-muted-foreground">
+                Match foods, candies, and drinks in English and Spanish with their pictures. Test your culinary vocabulary!
+            </CardDescription>
+            </CardContent>
+            <CardFooter className="p-6 pt-0 mt-auto">
+            <Button onClick={() => onSelectGame('food')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                Play Food Items
             </Button>
             </CardFooter>
         </Card>

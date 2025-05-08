@@ -11,11 +11,12 @@ import GameSelection from '@/components/GameSelection';
 import { generateGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
-import { generatePlantGameBoard, PlantCardData } from '@/lib/plants'; // Import plant game logic
+import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
+import { generateFoodGameBoard, FoodCardData } from '@/lib/food'; // Import food game logic
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants'; // Add 'plants'
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food'; // Add 'food'
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
@@ -66,6 +67,17 @@ export default function Home() {
   const [showPlantCompletionDialog, setShowPlantCompletionDialog] = useState(false);
   const [plantFinalTime, setPlantFinalTime] = useState(0);
 
+  // Food Game State
+  const [foodDifficulty, setFoodDifficulty] = useState<Difficulty | null>(null);
+  const [foodCards, setFoodCards] = useState<FoodCardData[]>([]);
+  const [foodFlippedCards, setFoodFlippedCards] = useState<string[]>([]);
+  const [foodMatchedPairs, setFoodMatchedPairs] = useState<number[]>([]);
+  const [foodMoves, setFoodMoves] = useState(0);
+  const [isFoodGameActive, setIsFoodGameActive] = useState(false);
+  const [isFoodChecking, setIsFoodChecking] = useState(false);
+  const [showFoodCompletionDialog, setShowFoodCompletionDialog] = useState(false);
+  const [foodFinalTime, setFoodFinalTime] = useState(0);
+
 
   // Hint State
   const [isHintActive, setIsHintActive] = useState(false);
@@ -100,6 +112,9 @@ export default function Home() {
     if (type !== 'plants') {
         resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
     }
+    if (type !== 'food') {
+        resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
+    }
   };
 
   const handleGoBackToSelection = () => {
@@ -109,6 +124,7 @@ export default function Home() {
     resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
     resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
     resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
+    resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
   };
 
     const handleGoBackToDifficulty = () => {
@@ -121,6 +137,8 @@ export default function Home() {
             resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
         } else if (currentGameType === 'plants') {
             resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
+        } else if (currentGameType === 'food') {
+            resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
         }
     };
 
@@ -131,6 +149,7 @@ export default function Home() {
     resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
     resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
     resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
+    resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
   };
 
 
@@ -407,6 +426,75 @@ export default function Home() {
   }, [plantMatchedPairs, plantCards.length, isPlantGameActive]);
 
 
+  // --- Food Game Logic ---
+  const startFoodGame = useCallback((selectedDifficulty: Difficulty) => {
+    setFoodDifficulty(selectedDifficulty);
+    const newBoard = generateFoodGameBoard(selectedDifficulty);
+    setFoodCards(newBoard);
+    setFoodFlippedCards([]);
+    setFoodMatchedPairs([]);
+    setFoodMoves(0);
+    setIsFoodGameActive(true);
+    setShowFoodCompletionDialog(false);
+    setFoodFinalTime(0);
+    setView('game');
+    setIsHintActive(false);
+  }, []);
+
+  const handleFoodCardClick = (cardId: string) => {
+    if (isFoodChecking || foodFlippedCards.length >= 2 || foodCards.find(c => c.id === cardId)?.isFlipped) {
+      return;
+    }
+    const newFlippedCards = [...foodFlippedCards, cardId];
+    setFoodFlippedCards(newFlippedCards);
+    setFoodMoves((prevMoves) => prevMoves + 1);
+    setFoodCards((prevCards) => prevCards.map((card) => card.id === cardId ? { ...card, isFlipped: true } : card));
+
+    if (newFlippedCards.length === 2) {
+      setIsFoodChecking(true);
+      const [firstCardId, secondCardId] = newFlippedCards;
+      const firstCard = foodCards.find((card) => card.id === firstCardId);
+      const secondCard = foodCards.find((card) => card.id === secondCardId);
+
+      if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+        setFoodMatchedPairs((prevMatched) => [...prevMatched, firstCard.pairId]);
+        setFoodCards((prevCards) => prevCards.map((card) => card.pairId === firstCard.pairId ? { ...card, isMatched: true } : card));
+        setFoodFlippedCards([]);
+        setIsFoodChecking(false);
+      } else {
+        setTimeout(() => {
+          setFoodCards((prevCards) => prevCards.map((card) => newFlippedCards.includes(card.id) ? { ...card, isFlipped: false } : card));
+          setFoodFlippedCards([]);
+          setIsFoodChecking(false);
+        }, 1000);
+      }
+    }
+  };
+
+   const handleFoodTimerUpdate = (currentTime: number) => {
+    if (!isFoodGameActive && showFoodCompletionDialog) {
+       if (foodFinalTime === 0) setFoodFinalTime(currentTime);
+    } else if (isFoodGameActive) {
+        setFoodFinalTime(currentTime);
+    }
+  };
+
+
+  const handleFoodPlayAgain = () => {
+    setShowFoodCompletionDialog(false);
+    setView('selection');
+    setCurrentGameType(null);
+    resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
+  };
+
+   useEffect(() => {
+    if (isFoodGameActive && foodCards.length > 0 && foodMatchedPairs.length === foodCards.length / 2) {
+      setIsFoodGameActive(false);
+      setShowFoodCompletionDialog(true);
+    }
+  }, [foodMatchedPairs, foodCards.length, isFoodGameActive]);
+
+
   // --- Difficulty Selection ---
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
     if (currentGameType === 'verbs') {
@@ -417,6 +505,8 @@ export default function Home() {
         startAnimalGame(selectedDifficulty);
     } else if (currentGameType === 'plants') {
         startPlantGame(selectedDifficulty);
+    } else if (currentGameType === 'food') {
+        startFoodGame(selectedDifficulty);
     }
   };
 
@@ -434,18 +524,20 @@ export default function Home() {
         const itemType = currentGameType === 'verbs' ? 'Verbs' :
                          currentGameType === 'adjectives' ? 'Adjectives' :
                          currentGameType === 'animals' ? 'Animals' :
-                         'Plants'; // Add Plants type
+                         currentGameType === 'plants' ? 'Plants' :
+                         'Food Items'; // Add Food type text
         const currentDifficulty = currentGameType === 'verbs' ? verbDifficulty :
                                 currentGameType === 'adjectives' ? adjectiveDifficulty :
                                 currentGameType === 'animals' ? animalDifficulty :
-                                plantDifficulty; // Add Plant difficulty
+                                currentGameType === 'plants' ? plantDifficulty :
+                                foodDifficulty; // Add Food difficulty
         return (
           <div className="flex flex-col items-center w-full">
             <h2 className="text-2xl font-semibold text-center my-4 text-foreground">
                 Select Difficulty for {itemType}
             </h2>
             <DifficultySelector
-              itemType={itemType}
+              itemType={itemType as any} // Cast needed due to widened type
               onSelectDifficulty={handleSelectDifficulty}
               onGoBack={handleGoBackToSelection}
               currentDifficulty={currentDifficulty}
@@ -546,7 +638,7 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'plants') { // Add Plants case
+        } else if (currentGameType === 'plants') {
            return (
              <>
               <GameStatus
@@ -568,6 +660,39 @@ export default function Home() {
                     isFlipped={card.isFlipped}
                     isMatched={card.isMatched}
                     onClick={handlePlantCardClick}
+                    language={card.language}
+                    isHintActive={isHintActive}
+                    cardType={card.type}
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
+        } else if (currentGameType === 'food') { // Add Food case
+           return (
+             <>
+              <GameStatus
+                moves={foodMoves}
+                isGameActive={isFoodGameActive}
+                onTimerUpdate={handleFoodTimerUpdate}
+                isHintActive={isHintActive}
+                onToggleHint={toggleHint}
+              />
+              <div className={`grid ${getGridColsClass(foodDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {foodCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.type === 'name' ? card.name : undefined}
+                    imageUrl={card.type === 'image' ? card.imageUrl : undefined}
+                    spanishName={card.type === 'image' ? card.spanishName : undefined}
+                    dataAiHint={card.dataAiHint}
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handleFoodCardClick}
                     language={card.language}
                     isHintActive={isHintActive}
                     cardType={card.type}
@@ -622,6 +747,13 @@ export default function Home() {
         time={plantFinalTime}
         onPlayAgain={handlePlantPlayAgain}
         itemType="plant"
+      />
+       <CompletionDialog
+        isOpen={showFoodCompletionDialog}
+        moves={foodMoves}
+        time={foodFinalTime}
+        onPlayAgain={handleFoodPlayAgain}
+        itemType="food"
       />
     </DashboardLayout>
   );

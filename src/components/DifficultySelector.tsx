@@ -11,7 +11,7 @@ interface DifficultySelectorProps {
   onSelectDifficulty: (difficulty: Difficulty) => void;
   onGoBack: () => void; // Function to go back to game selection
   currentDifficulty: Difficulty | null;
-  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants'; // Add 'Plants'
+  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items'; // Add 'Food Items'
 }
 
 const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficulty, onGoBack, currentDifficulty, itemType }) => {
@@ -23,7 +23,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
   };
 
   // Adjust pluralization based on itemType
-  const pluralItemType = itemType === 'Plants' ? 'items' : itemType;
+  const pluralItemType = itemType === 'Plants' || itemType === 'Food Items' ? 'items' : itemType;
 
 
   return (

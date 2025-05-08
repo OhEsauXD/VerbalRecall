@@ -17,7 +17,7 @@ interface GameCardProps {
   onClick: (cardId: string) => void;
   language: 'en' | 'es'; // Language now reflects the content (en name, es-associated image)
   isHintActive: boolean;
-  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant'; // Add cardType prop to distinguish cards
+  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food'; // Add cardType prop to distinguish cards
 }
 
 const GameCard: React.FC<GameCardProps> = ({
@@ -58,7 +58,7 @@ const GameCard: React.FC<GameCardProps> = ({
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
         // Hint logic based on language or cardType
-      if (language === 'en') { // English text (verb, adj, or animal/plant name)
+      if (language === 'en') { // English text (verb, adj, or name)
         return 'bg-blue-200';
       } else if (language === 'es') { // Spanish text (verb, adj) or image (associated with Spanish name)
         if (cardType === 'image') {
@@ -91,7 +91,7 @@ const GameCard: React.FC<GameCardProps> = ({
   );
 
   // Determine font style based on card content (Spanish text is italic)
-  const fontStyle = (cardType === 'name' || cardType === 'verb' || cardType === 'adjective') && language === 'es' ? 'italic' : '';
+  const fontStyle = (cardType === 'name' || cardType === 'verb' || cardType === 'adjective' || cardType === 'plant' || cardType === 'food') && language === 'es' ? 'italic' : '';
   const spanishNameStyle = cardType === 'image' ? 'italic text-xs mt-1' : ''; // Specific style for Spanish name under image
 
   return (

@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf } from 'lucide-react'; // Import Leaf icon
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils } from 'lucide-react'; // Import Utensils icon
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -45,16 +45,22 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>Adjectives</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem> {/* New Item for Animals */}
+      <SidebarMenuItem> {/* Animal Item */}
         <SidebarMenuButton onClick={() => handleSelectGame('animals')} tooltip="Play Animal Game">
            <PawPrint />
           <span>Animals</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem> {/* New Item for Plants */}
+      <SidebarMenuItem> {/* Plant Item */}
         <SidebarMenuButton onClick={() => handleSelectGame('plants')} tooltip="Play Plant Game">
            <Leaf />
           <span>Plants</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+       <SidebarMenuItem> {/* Food Item */}
+        <SidebarMenuButton onClick={() => handleSelectGame('food')} tooltip="Play Food/Candy/Drink Game">
+           <Utensils />
+          <span>Food Items</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
