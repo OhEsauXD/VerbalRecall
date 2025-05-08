@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building } from 'lucide-react'; // Import Building icon
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock } from 'lucide-react'; // Import Clock icon
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -36,6 +36,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         <SidebarMenuButton onClick={() => handleSelectGame('verbs')} tooltip="Play Verb Game">
           <BookText />
           <span>Verbs</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+       <SidebarMenuItem> {/* Past Tense Item */}
+        <SidebarMenuButton onClick={() => handleSelectGame('pastTense')} tooltip="Play Past Tense Game">
+           <Clock />
+          <span>Past Tense</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>

@@ -12,11 +12,12 @@ import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives'
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
 import { generateFoodGameBoard, FoodCardData } from '@/lib/food';
-import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@/lib/transportBuildings'; // Import transport/buildings game logic
+import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@/lib/transportBuildings';
+import { generatePastTenseGameBoard, PastTenseCardData } from '@/lib/pastTense'; // Import Past Tense game logic
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings'; // Add 'transportBuildings'
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense'; // Add 'pastTense'
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
@@ -89,6 +90,17 @@ export default function Home() {
   const [showTransportBuildingCompletionDialog, setShowTransportBuildingCompletionDialog] = useState(false);
   const [transportBuildingFinalTime, setTransportBuildingFinalTime] = useState(0);
 
+  // Past Tense Game State
+  const [pastTenseDifficulty, setPastTenseDifficulty] = useState<Difficulty | null>(null);
+  const [pastTenseCards, setPastTenseCards] = useState<PastTenseCardData[]>([]);
+  const [pastTenseFlippedCards, setPastTenseFlippedCards] = useState<string[]>([]);
+  const [pastTenseMatchedPairs, setPastTenseMatchedPairs] = useState<number[]>([]);
+  const [pastTenseMoves, setPastTenseMoves] = useState(0);
+  const [isPastTenseGameActive, setIsPastTenseGameActive] = useState(false);
+  const [isPastTenseChecking, setIsPastTenseChecking] = useState(false);
+  const [showPastTenseCompletionDialog, setShowPastTenseCompletionDialog] = useState(false);
+  const [pastTenseFinalTime, setPastTenseFinalTime] = useState(0);
+
 
   // Hint State
   const [isHintActive, setIsHintActive] = useState(false);
@@ -129,6 +141,9 @@ export default function Home() {
     if (type !== 'transportBuildings') {
         resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
     }
+    if (type !== 'pastTense') {
+        resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
+    }
   };
 
   const handleGoBackToSelection = () => {
@@ -140,6 +155,7 @@ export default function Home() {
     resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
     resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
     resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
+    resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
   };
 
     const handleGoBackToDifficulty = () => {
@@ -156,6 +172,8 @@ export default function Home() {
             resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
         } else if (currentGameType === 'transportBuildings') {
             resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
+        } else if (currentGameType === 'pastTense') {
+             resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
         }
     };
 
@@ -168,6 +186,7 @@ export default function Home() {
     resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
     resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
     resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
+    resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
   };
 
 
@@ -579,6 +598,73 @@ export default function Home() {
     }
   }, [transportBuildingMatchedPairs, transportBuildingCards.length, isTransportBuildingGameActive]);
 
+    // --- Past Tense Game Logic ---
+    const startPastTenseGame = useCallback((selectedDifficulty: Difficulty) => {
+        setPastTenseDifficulty(selectedDifficulty);
+        const newBoard = generatePastTenseGameBoard(selectedDifficulty);
+        setPastTenseCards(newBoard);
+        setPastTenseFlippedCards([]);
+        setPastTenseMatchedPairs([]);
+        setPastTenseMoves(0);
+        setIsPastTenseGameActive(true);
+        setShowPastTenseCompletionDialog(false);
+        setPastTenseFinalTime(0);
+        setView('game');
+        setIsHintActive(false);
+    }, []);
+
+    const handlePastTenseCardClick = (cardId: string) => {
+        if (isPastTenseChecking || pastTenseFlippedCards.length >= 2 || pastTenseCards.find(c => c.id === cardId)?.isFlipped) {
+            return;
+        }
+        const newFlippedCards = [...pastTenseFlippedCards, cardId];
+        setPastTenseFlippedCards(newFlippedCards);
+        setPastTenseMoves((prevMoves) => prevMoves + 1);
+        setPastTenseCards((prevCards) => prevCards.map((card) => card.id === cardId ? { ...card, isFlipped: true } : card));
+
+        if (newFlippedCards.length === 2) {
+            setIsPastTenseChecking(true);
+            const [firstCardId, secondCardId] = newFlippedCards;
+            const firstCard = pastTenseCards.find((card) => card.id === firstCardId);
+            const secondCard = pastTenseCards.find((card) => card.id === secondCardId);
+
+            if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+                setPastTenseMatchedPairs((prevMatched) => [...prevMatched, firstCard.pairId]);
+                setPastTenseCards((prevCards) => prevCards.map((card) => card.pairId === firstCard.pairId ? { ...card, isMatched: true } : card));
+                setPastTenseFlippedCards([]);
+                setIsPastTenseChecking(false);
+            } else {
+                setTimeout(() => {
+                    setPastTenseCards((prevCards) => prevCards.map((card) => newFlippedCards.includes(card.id) ? { ...card, isFlipped: false } : card));
+                    setPastTenseFlippedCards([]);
+                    setIsPastTenseChecking(false);
+                }, 1000);
+            }
+        }
+    };
+
+    const handlePastTenseTimerUpdate = (currentTime: number) => {
+        if (!isPastTenseGameActive && showPastTenseCompletionDialog) {
+            if (pastTenseFinalTime === 0) setPastTenseFinalTime(currentTime);
+        } else if (isPastTenseGameActive) {
+            setPastTenseFinalTime(currentTime);
+        }
+    };
+
+    const handlePastTensePlayAgain = () => {
+        setShowPastTenseCompletionDialog(false);
+        setView('selection');
+        setCurrentGameType(null);
+        resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
+    };
+
+    useEffect(() => {
+        if (isPastTenseGameActive && pastTenseCards.length > 0 && pastTenseMatchedPairs.length === pastTenseCards.length / 2) {
+            setIsPastTenseGameActive(false);
+            setShowPastTenseCompletionDialog(true);
+        }
+    }, [pastTenseMatchedPairs, pastTenseCards.length, isPastTenseGameActive]);
+
 
   // --- Difficulty Selection ---
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
@@ -594,6 +680,8 @@ export default function Home() {
         startFoodGame(selectedDifficulty);
     } else if (currentGameType === 'transportBuildings') {
         startTransportBuildingGame(selectedDifficulty);
+    } else if (currentGameType === 'pastTense') {
+        startPastTenseGame(selectedDifficulty);
     }
   };
 
@@ -613,13 +701,15 @@ export default function Home() {
                          currentGameType === 'animals' ? 'Animals' :
                          currentGameType === 'plants' ? 'Plants' :
                          currentGameType === 'food' ? 'Food Items' :
-                         'Transport/Buildings'; // Add Transport/Buildings type text
+                         currentGameType === 'transportBuildings' ? 'Transport/Buildings' :
+                         'Past Tense Verbs'; // Add Past Tense type text
         const currentDifficulty = currentGameType === 'verbs' ? verbDifficulty :
                                 currentGameType === 'adjectives' ? adjectiveDifficulty :
                                 currentGameType === 'animals' ? animalDifficulty :
                                 currentGameType === 'plants' ? plantDifficulty :
                                 currentGameType === 'food' ? foodDifficulty :
-                                transportBuildingDifficulty; // Add Transport/Buildings difficulty
+                                currentGameType === 'transportBuildings' ? transportBuildingDifficulty :
+                                pastTenseDifficulty; // Add Past Tense difficulty
         return (
           <div className="flex flex-col items-center w-full">
             <h2 className="text-2xl font-semibold text-center my-4 text-foreground">
@@ -793,7 +883,7 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'transportBuildings') { // Add Transport/Buildings case
+        } else if (currentGameType === 'transportBuildings') {
            return (
              <>
               <GameStatus
@@ -818,6 +908,36 @@ export default function Home() {
                     language={card.language}
                     isHintActive={isHintActive}
                     cardType={card.type}
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
+        } else if (currentGameType === 'pastTense') { // Add Past Tense case
+           return (
+             <>
+              <GameStatus
+                moves={pastTenseMoves}
+                isGameActive={isPastTenseGameActive}
+                onTimerUpdate={handlePastTenseTimerUpdate}
+                isHintActive={isHintActive}
+                onToggleHint={toggleHint}
+              />
+              <div className={`grid ${getGridColsClass(pastTenseDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {pastTenseCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.text}
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handlePastTenseCardClick}
+                    language={card.tense as 'en' | 'es'} // Cast tense to language for hint color
+                    isHintActive={isHintActive}
+                    cardType='pastTense' // Specific type for hint logic if needed
                   />
                 ))}
               </div>
@@ -883,6 +1003,13 @@ export default function Home() {
         time={transportBuildingFinalTime}
         onPlayAgain={handleTransportBuildingPlayAgain}
         itemType="transportBuilding"
+      />
+       <CompletionDialog
+        isOpen={showPastTenseCompletionDialog}
+        moves={pastTenseMoves}
+        time={pastTenseFinalTime}
+        onPlayAgain={handlePastTensePlayAgain}
+        itemType="pastTense"
       />
     </DashboardLayout>
   );

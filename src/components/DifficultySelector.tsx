@@ -10,7 +10,7 @@ interface DifficultySelectorProps {
   onSelectDifficulty: (difficulty: Difficulty) => void;
   onGoBack: () => void; // Function to go back to game selection
   currentDifficulty: Difficulty | null;
-  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items' | 'Transport/Buildings'; // Add 'Transport/Buildings'
+  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items' | 'Transport/Buildings' | 'Past Tense Verbs'; // Add 'Past Tense Verbs'
 }
 
 const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficulty, onGoBack, currentDifficulty, itemType }) => {
@@ -22,7 +22,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
   };
 
   // Adjust pluralization based on itemType
-  const pluralItemType = itemType === 'Plants' || itemType === 'Food Items' || itemType === 'Transport/Buildings' ? 'items' : itemType;
+  const pluralItemType = itemType === 'Plants' || itemType === 'Food Items' || itemType === 'Transport/Buildings' || itemType === 'Past Tense Verbs' ? 'items' : itemType;
 
 
   return (

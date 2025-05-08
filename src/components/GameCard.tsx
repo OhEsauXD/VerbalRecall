@@ -14,9 +14,9 @@ interface GameCardProps {
   isFlipped: boolean;
   isMatched: boolean;
   onClick: (cardId: string) => void;
-  language: 'en' | 'es'; // Language now reflects the content (en name, es-associated image)
+  language: 'en' | 'es' | 'infinitive' | 'past'; // Language now reflects the content (en name, es-associated image, infinitive verb, past tense verb)
   isHintActive: boolean;
-  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding'; // Add cardType prop to distinguish cards
+  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense'; // Add cardType prop to distinguish cards
 }
 
 const GameCard: React.FC<GameCardProps> = ({
@@ -57,13 +57,13 @@ const GameCard: React.FC<GameCardProps> = ({
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
         // Hint logic based on language or cardType
-      if (language === 'en') { // English text (verb, adj, or name)
+      if (language === 'en' || language === 'infinitive') { // English text or infinitive verb
         return 'bg-blue-200';
-      } else if (language === 'es') { // Spanish text (verb, adj) or image (associated with Spanish name)
+      } else if (language === 'es' || language === 'past') { // Spanish text, image, or past tense verb
         if (cardType === 'image') {
             return 'bg-yellow-200'; // Distinct hint for image cards
         }
-        return 'bg-green-200';
+        return 'bg-green-200'; // Hint for Spanish or Past Tense
       }
     }
     return 'bg-secondary text-secondary-foreground'; // Default back face
@@ -89,8 +89,8 @@ const GameCard: React.FC<GameCardProps> = ({
     isFlipped || isMatched ? 'rotate-y-180' : '' // Rotate container when flipped/matched
   );
 
-  // Determine font style based on card content (Spanish text is italic)
-  const fontStyle = (cardType === 'name' || cardType === 'verb' || cardType === 'adjective' || cardType === 'plant' || cardType === 'food' || cardType === 'transportBuilding') && language === 'es' ? 'italic' : '';
+  // Determine font style based on card content (Spanish text and Past Tense are italic)
+  const fontStyle = (language === 'es' || language === 'past') ? 'italic' : '';
   const spanishNameStyle = cardType === 'image' ? 'italic text-xs mt-1' : ''; // Specific style for Spanish name under image
 
   return (

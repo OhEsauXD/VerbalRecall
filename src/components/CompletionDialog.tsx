@@ -16,7 +16,7 @@ interface CompletionDialogProps {
   moves: number;
   time: number;
   onPlayAgain: () => void;
-  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding'; // Add 'transportBuilding'
+  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense'; // Add 'pastTense'
 }
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
@@ -35,7 +35,8 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
                    itemType === 'animal' ? 'animal name/picture' :
                    itemType === 'plant' ? 'plant name/picture' :
                    itemType === 'food' ? 'food/candy/drink name/picture' :
-                   'transport/building name/picture'; // Add transport/building text
+                   itemType === 'transportBuilding' ? 'transport/building name/picture' :
+                   'past tense verb'; // Add past tense text
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onPlayAgain}> {/* Use onOpenChange to handle closing */}

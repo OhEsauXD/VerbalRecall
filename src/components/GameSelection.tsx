@@ -39,6 +39,32 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         </CardFooter>
       </Card>
 
+      {/* Past Tense Game Card */}
+      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+        <CardHeader className="p-0">
+          <Image
+            src="https://picsum.photos/400/200?random=7" // New random seed
+            alt="Abstract representation of past tense verbs"
+            width={400}
+            height={200}
+            className="w-full h-48 object-cover"
+            data-ai-hint="time clock" // AI Hint for past tense image
+          />
+        </CardHeader>
+        <CardContent className="p-6 flex-grow">
+          <CardTitle className="mb-2 text-xl font-semibold text-primary">Past Tense Matching Game</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Match infinitive verbs with their simple past/past participle forms. Sharpen your grammar skills!
+          </CardDescription>
+        </CardContent>
+        <CardFooter className="p-6 pt-0 mt-auto">
+          <Button onClick={() => onSelectGame('pastTense')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+            Play Past Tense
+          </Button>
+        </CardFooter>
+      </Card>
+
+
        {/* Adjective Game Card */}
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
