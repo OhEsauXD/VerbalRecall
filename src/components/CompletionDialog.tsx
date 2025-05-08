@@ -17,7 +17,7 @@ interface CompletionDialogProps {
   moves: number;
   time: number;
   onPlayAgain: () => void;
-  itemType: 'verb' | 'adjective' | 'animal'; // Add 'animal'
+  itemType: 'verb' | 'adjective' | 'animal' | 'plant'; // Add 'plant'
 }
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
@@ -31,7 +31,10 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
   if (!isOpen) return null;
 
   // Customize message based on itemType
-  const itemText = itemType === 'verb' ? 'verb' : itemType === 'adjective' ? 'adjective' : 'animal name/picture';
+  const itemText = itemType === 'verb' ? 'verb' :
+                   itemType === 'adjective' ? 'adjective' :
+                   itemType === 'animal' ? 'animal name/picture' :
+                   'plant name/picture'; // Add plant text
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onPlayAgain}> {/* Use onOpenChange to handle closing */}
@@ -53,5 +56,3 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
 };
 
 export default CompletionDialog;
-
-    

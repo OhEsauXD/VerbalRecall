@@ -1,7 +1,8 @@
+
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint } from 'lucide-react'; // Import PawPrint
+import { BookText, SpellCheck, Home, PawPrint, Leaf } from 'lucide-react'; // Import Leaf icon
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -50,10 +51,14 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>Animals</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
+      <SidebarMenuItem> {/* New Item for Plants */}
+        <SidebarMenuButton onClick={() => handleSelectGame('plants')} tooltip="Play Plant Game">
+           <Leaf />
+          <span>Plants</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     </SidebarMenu>
   );
 };
 
 export default SidebarNav;
-
-    
