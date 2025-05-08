@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,11 +11,12 @@ import { generateGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
-import { generateFoodGameBoard, FoodCardData } from '@/lib/food'; // Import food game logic
+import { generateFoodGameBoard, FoodCardData } from '@/lib/food';
+import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@/lib/transportBuildings'; // Import transport/buildings game logic
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food'; // Add 'food'
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings'; // Add 'transportBuildings'
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
@@ -78,6 +78,17 @@ export default function Home() {
   const [showFoodCompletionDialog, setShowFoodCompletionDialog] = useState(false);
   const [foodFinalTime, setFoodFinalTime] = useState(0);
 
+  // Transport/Buildings Game State
+  const [transportBuildingDifficulty, setTransportBuildingDifficulty] = useState<Difficulty | null>(null);
+  const [transportBuildingCards, setTransportBuildingCards] = useState<TransportBuildingCardData[]>([]);
+  const [transportBuildingFlippedCards, setTransportBuildingFlippedCards] = useState<string[]>([]);
+  const [transportBuildingMatchedPairs, setTransportBuildingMatchedPairs] = useState<number[]>([]);
+  const [transportBuildingMoves, setTransportBuildingMoves] = useState(0);
+  const [isTransportBuildingGameActive, setIsTransportBuildingGameActive] = useState(false);
+  const [isTransportBuildingChecking, setIsTransportBuildingChecking] = useState(false);
+  const [showTransportBuildingCompletionDialog, setShowTransportBuildingCompletionDialog] = useState(false);
+  const [transportBuildingFinalTime, setTransportBuildingFinalTime] = useState(0);
+
 
   // Hint State
   const [isHintActive, setIsHintActive] = useState(false);
@@ -115,6 +126,9 @@ export default function Home() {
     if (type !== 'food') {
         resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
     }
+    if (type !== 'transportBuildings') {
+        resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
+    }
   };
 
   const handleGoBackToSelection = () => {
@@ -125,6 +139,7 @@ export default function Home() {
     resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
     resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
     resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
+    resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
   };
 
     const handleGoBackToDifficulty = () => {
@@ -139,6 +154,8 @@ export default function Home() {
             resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
         } else if (currentGameType === 'food') {
             resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
+        } else if (currentGameType === 'transportBuildings') {
+            resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
         }
     };
 
@@ -150,6 +167,7 @@ export default function Home() {
     resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
     resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
     resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
+    resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
   };
 
 
@@ -494,6 +512,73 @@ export default function Home() {
     }
   }, [foodMatchedPairs, foodCards.length, isFoodGameActive]);
 
+  // --- Transport/Buildings Game Logic ---
+  const startTransportBuildingGame = useCallback((selectedDifficulty: Difficulty) => {
+    setTransportBuildingDifficulty(selectedDifficulty);
+    const newBoard = generateTransportBuildingGameBoard(selectedDifficulty);
+    setTransportBuildingCards(newBoard);
+    setTransportBuildingFlippedCards([]);
+    setTransportBuildingMatchedPairs([]);
+    setTransportBuildingMoves(0);
+    setIsTransportBuildingGameActive(true);
+    setShowTransportBuildingCompletionDialog(false);
+    setTransportBuildingFinalTime(0);
+    setView('game');
+    setIsHintActive(false);
+  }, []);
+
+  const handleTransportBuildingCardClick = (cardId: string) => {
+    if (isTransportBuildingChecking || transportBuildingFlippedCards.length >= 2 || transportBuildingCards.find(c => c.id === cardId)?.isFlipped) {
+      return;
+    }
+    const newFlippedCards = [...transportBuildingFlippedCards, cardId];
+    setTransportBuildingFlippedCards(newFlippedCards);
+    setTransportBuildingMoves((prevMoves) => prevMoves + 1);
+    setTransportBuildingCards((prevCards) => prevCards.map((card) => card.id === cardId ? { ...card, isFlipped: true } : card));
+
+    if (newFlippedCards.length === 2) {
+      setIsTransportBuildingChecking(true);
+      const [firstCardId, secondCardId] = newFlippedCards;
+      const firstCard = transportBuildingCards.find((card) => card.id === firstCardId);
+      const secondCard = transportBuildingCards.find((card) => card.id === secondCardId);
+
+      if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+        setTransportBuildingMatchedPairs((prevMatched) => [...prevMatched, firstCard.pairId]);
+        setTransportBuildingCards((prevCards) => prevCards.map((card) => card.pairId === firstCard.pairId ? { ...card, isMatched: true } : card));
+        setTransportBuildingFlippedCards([]);
+        setIsTransportBuildingChecking(false);
+      } else {
+        setTimeout(() => {
+          setTransportBuildingCards((prevCards) => prevCards.map((card) => newFlippedCards.includes(card.id) ? { ...card, isFlipped: false } : card));
+          setTransportBuildingFlippedCards([]);
+          setIsTransportBuildingChecking(false);
+        }, 1000);
+      }
+    }
+  };
+
+   const handleTransportBuildingTimerUpdate = (currentTime: number) => {
+    if (!isTransportBuildingGameActive && showTransportBuildingCompletionDialog) {
+       if (transportBuildingFinalTime === 0) setTransportBuildingFinalTime(currentTime);
+    } else if (isTransportBuildingGameActive) {
+        setTransportBuildingFinalTime(currentTime);
+    }
+  };
+
+  const handleTransportBuildingPlayAgain = () => {
+    setShowTransportBuildingCompletionDialog(false);
+    setView('selection');
+    setCurrentGameType(null);
+    resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
+  };
+
+   useEffect(() => {
+    if (isTransportBuildingGameActive && transportBuildingCards.length > 0 && transportBuildingMatchedPairs.length === transportBuildingCards.length / 2) {
+      setIsTransportBuildingGameActive(false);
+      setShowTransportBuildingCompletionDialog(true);
+    }
+  }, [transportBuildingMatchedPairs, transportBuildingCards.length, isTransportBuildingGameActive]);
+
 
   // --- Difficulty Selection ---
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
@@ -507,6 +592,8 @@ export default function Home() {
         startPlantGame(selectedDifficulty);
     } else if (currentGameType === 'food') {
         startFoodGame(selectedDifficulty);
+    } else if (currentGameType === 'transportBuildings') {
+        startTransportBuildingGame(selectedDifficulty);
     }
   };
 
@@ -525,12 +612,14 @@ export default function Home() {
                          currentGameType === 'adjectives' ? 'Adjectives' :
                          currentGameType === 'animals' ? 'Animals' :
                          currentGameType === 'plants' ? 'Plants' :
-                         'Food Items'; // Add Food type text
+                         currentGameType === 'food' ? 'Food Items' :
+                         'Transport/Buildings'; // Add Transport/Buildings type text
         const currentDifficulty = currentGameType === 'verbs' ? verbDifficulty :
                                 currentGameType === 'adjectives' ? adjectiveDifficulty :
                                 currentGameType === 'animals' ? animalDifficulty :
                                 currentGameType === 'plants' ? plantDifficulty :
-                                foodDifficulty; // Add Food difficulty
+                                currentGameType === 'food' ? foodDifficulty :
+                                transportBuildingDifficulty; // Add Transport/Buildings difficulty
         return (
           <div className="flex flex-col items-center w-full">
             <h2 className="text-2xl font-semibold text-center my-4 text-foreground">
@@ -671,7 +760,7 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'food') { // Add Food case
+        } else if (currentGameType === 'food') {
            return (
              <>
               <GameStatus
@@ -693,6 +782,39 @@ export default function Home() {
                     isFlipped={card.isFlipped}
                     isMatched={card.isMatched}
                     onClick={handleFoodCardClick}
+                    language={card.language}
+                    isHintActive={isHintActive}
+                    cardType={card.type}
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
+        } else if (currentGameType === 'transportBuildings') { // Add Transport/Buildings case
+           return (
+             <>
+              <GameStatus
+                moves={transportBuildingMoves}
+                isGameActive={isTransportBuildingGameActive}
+                onTimerUpdate={handleTransportBuildingTimerUpdate}
+                isHintActive={isHintActive}
+                onToggleHint={toggleHint}
+              />
+              <div className={`grid ${getGridColsClass(transportBuildingDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {transportBuildingCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.type === 'name' ? card.name : undefined}
+                    imageUrl={card.type === 'image' ? card.imageUrl : undefined}
+                    spanishName={card.type === 'image' ? card.spanishName : undefined}
+                    dataAiHint={card.dataAiHint}
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handleTransportBuildingCardClick}
                     language={card.language}
                     isHintActive={isHintActive}
                     cardType={card.type}
@@ -754,6 +876,13 @@ export default function Home() {
         time={foodFinalTime}
         onPlayAgain={handleFoodPlayAgain}
         itemType="food"
+      />
+      <CompletionDialog
+        isOpen={showTransportBuildingCompletionDialog}
+        moves={transportBuildingMoves}
+        time={transportBuildingFinalTime}
+        onPlayAgain={handleTransportBuildingPlayAgain}
+        itemType="transportBuilding"
       />
     </DashboardLayout>
   );

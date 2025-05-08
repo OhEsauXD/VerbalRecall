@@ -1,8 +1,7 @@
-
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils } from 'lucide-react'; // Import Utensils icon
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building } from 'lucide-react'; // Import Building icon
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -61,6 +60,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         <SidebarMenuButton onClick={() => handleSelectGame('food')} tooltip="Play Food/Candy/Drink Game">
            <Utensils />
           <span>Food Items</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem> {/* Transport/Buildings Item */}
+        <SidebarMenuButton onClick={() => handleSelectGame('transportBuildings')} tooltip="Play Transport/Buildings Game">
+           <Building />
+          <span>Transport/Buildings</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

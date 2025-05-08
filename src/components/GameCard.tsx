@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -17,7 +16,7 @@ interface GameCardProps {
   onClick: (cardId: string) => void;
   language: 'en' | 'es'; // Language now reflects the content (en name, es-associated image)
   isHintActive: boolean;
-  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food'; // Add cardType prop to distinguish cards
+  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding'; // Add cardType prop to distinguish cards
 }
 
 const GameCard: React.FC<GameCardProps> = ({
@@ -91,7 +90,7 @@ const GameCard: React.FC<GameCardProps> = ({
   );
 
   // Determine font style based on card content (Spanish text is italic)
-  const fontStyle = (cardType === 'name' || cardType === 'verb' || cardType === 'adjective' || cardType === 'plant' || cardType === 'food') && language === 'es' ? 'italic' : '';
+  const fontStyle = (cardType === 'name' || cardType === 'verb' || cardType === 'adjective' || cardType === 'plant' || cardType === 'food' || cardType === 'transportBuilding') && language === 'es' ? 'italic' : '';
   const spanishNameStyle = cardType === 'image' ? 'italic text-xs mt-1' : ''; // Specific style for Spanish name under image
 
   return (

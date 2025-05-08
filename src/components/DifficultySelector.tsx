@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -11,7 +10,7 @@ interface DifficultySelectorProps {
   onSelectDifficulty: (difficulty: Difficulty) => void;
   onGoBack: () => void; // Function to go back to game selection
   currentDifficulty: Difficulty | null;
-  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items'; // Add 'Food Items'
+  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items' | 'Transport/Buildings'; // Add 'Transport/Buildings'
 }
 
 const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficulty, onGoBack, currentDifficulty, itemType }) => {
@@ -23,7 +22,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
   };
 
   // Adjust pluralization based on itemType
-  const pluralItemType = itemType === 'Plants' || itemType === 'Food Items' ? 'items' : itemType;
+  const pluralItemType = itemType === 'Plants' || itemType === 'Food Items' || itemType === 'Transport/Buildings' ? 'items' : itemType;
 
 
   return (

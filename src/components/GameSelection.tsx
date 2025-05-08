@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -14,7 +13,7 @@ interface GameSelectionProps {
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-4 md:p-8 w-full"> {/* Adjusted grid for 5 items */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-4 md:p-8 w-full"> {/* Adjusted grid for more items */}
        {/* Verb Game Card */}
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
@@ -136,6 +135,31 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
             <CardFooter className="p-6 pt-0 mt-auto">
             <Button onClick={() => onSelectGame('food')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                 Play Food Items
+            </Button>
+            </CardFooter>
+        </Card>
+
+        {/* Transport/Buildings Game Card */}
+        <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+            <CardHeader className="p-0">
+            <Image
+                src="https://picsum.photos/400/200?random=6" // Added random query
+                alt="Abstract representation of transport and buildings"
+                width={400}
+                height={200}
+                className="w-full h-48 object-cover"
+                data-ai-hint="city transport" // AI Hint for transport/buildings image
+            />
+            </CardHeader>
+            <CardContent className="p-6 flex-grow">
+            <CardTitle className="mb-2 text-xl font-semibold text-primary">Transport/Buildings Game</CardTitle>
+            <CardDescription className="text-muted-foreground">
+                Match transportation methods and building types in English and Spanish with their pictures. Explore the city!
+            </CardDescription>
+            </CardContent>
+            <CardFooter className="p-6 pt-0 mt-auto">
+            <Button onClick={() => onSelectGame('transportBuildings')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                Play Transport/Buildings
             </Button>
             </CardFooter>
         </Card>

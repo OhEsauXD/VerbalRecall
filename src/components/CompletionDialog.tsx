@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -17,7 +16,7 @@ interface CompletionDialogProps {
   moves: number;
   time: number;
   onPlayAgain: () => void;
-  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food'; // Add 'food'
+  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding'; // Add 'transportBuilding'
 }
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
@@ -35,7 +34,8 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
                    itemType === 'adjective' ? 'adjective' :
                    itemType === 'animal' ? 'animal name/picture' :
                    itemType === 'plant' ? 'plant name/picture' :
-                   'food/candy/drink name/picture'; // Add food text
+                   itemType === 'food' ? 'food/candy/drink name/picture' :
+                   'transport/building name/picture'; // Add transport/building text
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onPlayAgain}> {/* Use onOpenChange to handle closing */}
