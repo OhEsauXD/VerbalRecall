@@ -16,7 +16,7 @@ interface GameCardProps {
   onClick: (cardId: string) => void;
   language: 'en' | 'es' | 'infinitive' | 'past'; // Language now reflects the content (en name, es-associated image, infinitive verb, past tense verb)
   isHintActive: boolean;
-  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense'; // Add cardType prop to distinguish cards
+  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense'; // Add regularPastTense
 }
 
 const GameCard: React.FC<GameCardProps> = ({
@@ -57,13 +57,14 @@ const GameCard: React.FC<GameCardProps> = ({
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
         // Hint logic based on language or cardType
-      if (language === 'en' || language === 'infinitive') { // English text or infinitive verb
+      if (language === 'en' || language === 'infinitive') { // English text, infinitive verb, or name card
         return 'bg-blue-200';
       } else if (language === 'es' || language === 'past') { // Spanish text, image, or past tense verb
         if (cardType === 'image') {
             return 'bg-yellow-200'; // Distinct hint for image cards
         }
-        return 'bg-green-200'; // Hint for Spanish or Past Tense
+        // Hint for Spanish text or either Past Tense type
+        return 'bg-green-200';
       }
     }
     return 'bg-secondary text-secondary-foreground'; // Default back face

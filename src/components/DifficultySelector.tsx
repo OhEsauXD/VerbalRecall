@@ -11,7 +11,7 @@ interface DifficultySelectorProps {
   onSelectDifficulty: (difficulty: Difficulty) => void;
   onGoBack: () => void; // Function to go back to game selection
   currentDifficulty: Difficulty | null;
-  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items' | 'Transport/Buildings' | 'Past Tense Verbs';
+  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items' | 'Transport/Buildings' | 'Irregular Past Tense Verbs' | 'Regular Past Tense Verbs'; // Added Regular Past Tense
   itemCounts: { easy: number; medium: number; hard: number }; // Accept item counts as prop
 }
 
@@ -19,7 +19,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
   const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
 
   // Adjust pluralization based on itemType
-  const pluralItemType = itemType === 'Plants' || itemType === 'Food Items' || itemType === 'Transport/Buildings' || itemType === 'Past Tense Verbs' ? 'items' : itemType;
+  const pluralItemType = itemType.endsWith('s') ? 'items' : itemType; // Simplified pluralization
 
   return (
     <div className="flex flex-col items-center space-y-4 my-8 w-full">

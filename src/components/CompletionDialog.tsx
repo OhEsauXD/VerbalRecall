@@ -16,7 +16,7 @@ interface CompletionDialogProps {
   moves: number;
   time: number;
   onPlayAgain: () => void;
-  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense'; // Add 'pastTense'
+  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense'; // Add 'regularPastTense'
 }
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
@@ -36,7 +36,8 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
                    itemType === 'plant' ? 'plant name/picture' :
                    itemType === 'food' ? 'food/candy/drink name/picture' :
                    itemType === 'transportBuilding' ? 'transport/building name/picture' :
-                   'past tense verb'; // Add past tense text
+                   itemType === 'pastTense' ? 'irregular past tense verb' : // Specify irregular
+                   'regular past tense verb'; // Add regular past tense text
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onPlayAgain}> {/* Use onOpenChange to handle closing */}

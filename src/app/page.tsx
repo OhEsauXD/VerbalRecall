@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -14,11 +15,12 @@ import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
 import { generateFoodGameBoard, FoodCardData } from '@/lib/food';
 import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@/lib/transportBuildings';
-import { generatePastTenseGameBoard, PastTenseCardData, pastTensePairs } from '@/lib/pastTense'; // Import Past Tense game logic and pairs
+import { generatePastTenseGameBoard, PastTenseCardData, pastTensePairs } from '@/lib/pastTense'; // Irregular
+import { generateRegularPastTenseGameBoard, RegularPastTenseCardData, regularPastTensePairs } from '@/lib/regularPastTense'; // Regular
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense'; // Add 'pastTense'
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense'; // Add 'regularPastTense'
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 export default function Home() {
@@ -91,7 +93,7 @@ export default function Home() {
   const [showTransportBuildingCompletionDialog, setShowTransportBuildingCompletionDialog] = useState(false);
   const [transportBuildingFinalTime, setTransportBuildingFinalTime] = useState(0);
 
-  // Past Tense Game State
+  // Irregular Past Tense Game State
   const [pastTenseDifficulty, setPastTenseDifficulty] = useState<Difficulty | null>(null);
   const [pastTenseCards, setPastTenseCards] = useState<PastTenseCardData[]>([]);
   const [pastTenseFlippedCards, setPastTenseFlippedCards] = useState<string[]>([]);
@@ -101,6 +103,17 @@ export default function Home() {
   const [isPastTenseChecking, setIsPastTenseChecking] = useState(false);
   const [showPastTenseCompletionDialog, setShowPastTenseCompletionDialog] = useState(false);
   const [pastTenseFinalTime, setPastTenseFinalTime] = useState(0);
+
+  // Regular Past Tense Game State
+  const [regularPastTenseDifficulty, setRegularPastTenseDifficulty] = useState<Difficulty | null>(null);
+  const [regularPastTenseCards, setRegularPastTenseCards] = useState<RegularPastTenseCardData[]>([]);
+  const [regularPastTenseFlippedCards, setRegularPastTenseFlippedCards] = useState<string[]>([]);
+  const [regularPastTenseMatchedPairs, setRegularPastTenseMatchedPairs] = useState<number[]>([]);
+  const [regularPastTenseMoves, setRegularPastTenseMoves] = useState(0);
+  const [isRegularPastTenseGameActive, setIsRegularPastTenseGameActive] = useState(false);
+  const [isRegularPastTenseChecking, setIsRegularPastTenseChecking] = useState(false);
+  const [showRegularPastTenseCompletionDialog, setShowRegularPastTenseCompletionDialog] = useState(false);
+  const [regularPastTenseFinalTime, setRegularPastTenseFinalTime] = useState(0);
 
 
   // Hint State
@@ -124,27 +137,14 @@ export default function Home() {
     setCurrentGameType(type);
     setView('difficulty');
     // Reset other game states
-    if (type !== 'verbs') {
-        resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive, setVerbFlippedCards, setVerbMatchedPairs, setVerbMoves);
-    }
-    if (type !== 'adjectives') {
-         resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
-    }
-     if (type !== 'animals') {
-         resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
-    }
-    if (type !== 'plants') {
-        resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
-    }
-    if (type !== 'food') {
-        resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
-    }
-    if (type !== 'transportBuildings') {
-        resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
-    }
-    if (type !== 'pastTense') {
-        resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
-    }
+    if (type !== 'verbs') resetGameState(setVerbDifficulty, setVerbCards, setIsVerbGameActive, setVerbFlippedCards, setVerbMatchedPairs, setVerbMoves);
+    if (type !== 'adjectives') resetGameState(setAdjectiveDifficulty, setAdjectiveCards, setIsAdjectiveGameActive, setAdjectiveFlippedCards, setAdjectiveMatchedPairs, setAdjectiveMoves);
+    if (type !== 'animals') resetGameState(setAnimalDifficulty, setAnimalCards, setIsAnimalGameActive, setAnimalFlippedCards, setAnimalMatchedPairs, setAnimalMoves);
+    if (type !== 'plants') resetGameState(setPlantDifficulty, setPlantCards, setIsPlantGameActive, setPlantFlippedCards, setPlantMatchedPairs, setPlantMoves);
+    if (type !== 'food') resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
+    if (type !== 'transportBuildings') resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
+    if (type !== 'pastTense') resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
+    if (type !== 'regularPastTense') resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
   };
 
   const handleGoBackToSelection = () => {
@@ -157,6 +157,7 @@ export default function Home() {
     resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
     resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
     resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
+    resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
   };
 
     const handleGoBackToDifficulty = () => {
@@ -175,6 +176,8 @@ export default function Home() {
             resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
         } else if (currentGameType === 'pastTense') {
              resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
+        } else if (currentGameType === 'regularPastTense') {
+             resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
         }
     };
 
@@ -188,6 +191,7 @@ export default function Home() {
     resetGameState(setFoodDifficulty, setFoodCards, setIsFoodGameActive, setFoodFlippedCards, setFoodMatchedPairs, setFoodMoves);
     resetGameState(setTransportBuildingDifficulty, setTransportBuildingCards, setIsTransportBuildingGameActive, setTransportBuildingFlippedCards, setTransportBuildingMatchedPairs, setTransportBuildingMoves);
     resetGameState(setPastTenseDifficulty, setPastTenseCards, setIsPastTenseGameActive, setPastTenseFlippedCards, setPastTenseMatchedPairs, setPastTenseMoves);
+    resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
   };
 
 
@@ -599,7 +603,7 @@ export default function Home() {
     }
   }, [transportBuildingMatchedPairs, transportBuildingCards.length, isTransportBuildingGameActive]);
 
-    // --- Past Tense Game Logic ---
+    // --- Irregular Past Tense Game Logic ---
     const startPastTenseGame = useCallback((selectedDifficulty: Difficulty) => {
         setPastTenseDifficulty(selectedDifficulty);
         const newBoard = generatePastTenseGameBoard(selectedDifficulty);
@@ -666,24 +670,84 @@ export default function Home() {
         }
     }, [pastTenseMatchedPairs, pastTenseCards.length, isPastTenseGameActive]);
 
+    // --- Regular Past Tense Game Logic ---
+    const startRegularPastTenseGame = useCallback((selectedDifficulty: Difficulty) => {
+        setRegularPastTenseDifficulty(selectedDifficulty);
+        const newBoard = generateRegularPastTenseGameBoard(selectedDifficulty);
+        setRegularPastTenseCards(newBoard);
+        setRegularPastTenseFlippedCards([]);
+        setRegularPastTenseMatchedPairs([]);
+        setRegularPastTenseMoves(0);
+        setIsRegularPastTenseGameActive(true);
+        setShowRegularPastTenseCompletionDialog(false);
+        setRegularPastTenseFinalTime(0);
+        setView('game');
+        setIsHintActive(false);
+    }, []);
+
+    const handleRegularPastTenseCardClick = (cardId: string) => {
+        if (isRegularPastTenseChecking || regularPastTenseFlippedCards.length >= 2 || regularPastTenseCards.find(c => c.id === cardId)?.isFlipped) {
+            return;
+        }
+        const newFlippedCards = [...regularPastTenseFlippedCards, cardId];
+        setRegularPastTenseFlippedCards(newFlippedCards);
+        setRegularPastTenseMoves((prevMoves) => prevMoves + 1);
+        setRegularPastTenseCards((prevCards) => prevCards.map((card) => card.id === cardId ? { ...card, isFlipped: true } : card));
+
+        if (newFlippedCards.length === 2) {
+            setIsRegularPastTenseChecking(true);
+            const [firstCardId, secondCardId] = newFlippedCards;
+            const firstCard = regularPastTenseCards.find((card) => card.id === firstCardId);
+            const secondCard = regularPastTenseCards.find((card) => card.id === secondCardId);
+
+            if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+                setRegularPastTenseMatchedPairs((prevMatched) => [...prevMatched, firstCard.pairId]);
+                setRegularPastTenseCards((prevCards) => prevCards.map((card) => card.pairId === firstCard.pairId ? { ...card, isMatched: true } : card));
+                setRegularPastTenseFlippedCards([]);
+                setIsRegularPastTenseChecking(false);
+            } else {
+                setTimeout(() => {
+                    setRegularPastTenseCards((prevCards) => prevCards.map((card) => newFlippedCards.includes(card.id) ? { ...card, isFlipped: false } : card));
+                    setRegularPastTenseFlippedCards([]);
+                    setIsRegularPastTenseChecking(false);
+                }, 1000);
+            }
+        }
+    };
+
+    const handleRegularPastTenseTimerUpdate = (currentTime: number) => {
+        if (!isRegularPastTenseGameActive && showRegularPastTenseCompletionDialog) {
+            if (regularPastTenseFinalTime === 0) setRegularPastTenseFinalTime(currentTime);
+        } else if (isRegularPastTenseGameActive) {
+            setRegularPastTenseFinalTime(currentTime);
+        }
+    };
+
+    const handleRegularPastTensePlayAgain = () => {
+        setShowRegularPastTenseCompletionDialog(false);
+        setView('selection');
+        setCurrentGameType(null);
+        resetGameState(setRegularPastTenseDifficulty, setRegularPastTenseCards, setIsRegularPastTenseGameActive, setRegularPastTenseFlippedCards, setRegularPastTenseMatchedPairs, setRegularPastTenseMoves);
+    };
+
+    useEffect(() => {
+        if (isRegularPastTenseGameActive && regularPastTenseCards.length > 0 && regularPastTenseMatchedPairs.length === regularPastTenseCards.length / 2) {
+            setIsRegularPastTenseGameActive(false);
+            setShowRegularPastTenseCompletionDialog(true);
+        }
+    }, [regularPastTenseMatchedPairs, regularPastTenseCards.length, isRegularPastTenseGameActive]);
+
 
   // --- Difficulty Selection ---
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
-    if (currentGameType === 'verbs') {
-      startVerbGame(selectedDifficulty);
-    } else if (currentGameType === 'adjectives') {
-      startAdjectiveGame(selectedDifficulty);
-    } else if (currentGameType === 'animals') {
-        startAnimalGame(selectedDifficulty);
-    } else if (currentGameType === 'plants') {
-        startPlantGame(selectedDifficulty);
-    } else if (currentGameType === 'food') {
-        startFoodGame(selectedDifficulty);
-    } else if (currentGameType === 'transportBuildings') {
-        startTransportBuildingGame(selectedDifficulty);
-    } else if (currentGameType === 'pastTense') {
-        startPastTenseGame(selectedDifficulty);
-    }
+    if (currentGameType === 'verbs') startVerbGame(selectedDifficulty);
+    else if (currentGameType === 'adjectives') startAdjectiveGame(selectedDifficulty);
+    else if (currentGameType === 'animals') startAnimalGame(selectedDifficulty);
+    else if (currentGameType === 'plants') startPlantGame(selectedDifficulty);
+    else if (currentGameType === 'food') startFoodGame(selectedDifficulty);
+    else if (currentGameType === 'transportBuildings') startTransportBuildingGame(selectedDifficulty);
+    else if (currentGameType === 'pastTense') startPastTenseGame(selectedDifficulty);
+    else if (currentGameType === 'regularPastTense') startRegularPastTenseGame(selectedDifficulty);
   };
 
   // --- Grid Columns ---
@@ -703,18 +767,24 @@ export default function Home() {
                          currentGameType === 'plants' ? 'Plants' :
                          currentGameType === 'food' ? 'Food Items' :
                          currentGameType === 'transportBuildings' ? 'Transport/Buildings' :
-                         'Past Tense Verbs'; // Add Past Tense type text
+                         currentGameType === 'pastTense' ? 'Irregular Past Tense Verbs' :
+                         'Regular Past Tense Verbs';
+
         const currentDifficulty = currentGameType === 'verbs' ? verbDifficulty :
                                 currentGameType === 'adjectives' ? adjectiveDifficulty :
                                 currentGameType === 'animals' ? animalDifficulty :
                                 currentGameType === 'plants' ? plantDifficulty :
                                 currentGameType === 'food' ? foodDifficulty :
                                 currentGameType === 'transportBuildings' ? transportBuildingDifficulty :
-                                pastTenseDifficulty; // Add Past Tense difficulty
-        // Dynamically calculate the hard difficulty count for Past Tense
+                                currentGameType === 'pastTense' ? pastTenseDifficulty :
+                                regularPastTenseDifficulty;
+
+        // Dynamically calculate the hard difficulty count based on the available pairs
         const itemCounts = currentGameType === 'pastTense'
             ? { easy: 15, medium: 30, hard: pastTensePairs.length }
-            : { easy: 15, medium: 30, hard: 60 };
+            : currentGameType === 'regularPastTense'
+            ? { easy: 15, medium: 30, hard: regularPastTensePairs.length }
+            : { easy: 15, medium: 30, hard: 60 }; // Default for other games
 
         return (
           <div className="flex flex-col items-center w-full">
@@ -731,6 +801,7 @@ export default function Home() {
           </div>
         );
       case 'game':
+        // --- Verb Game Rendering ---
         if (currentGameType === 'verbs') {
           return (
             <>
@@ -761,7 +832,9 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'adjectives') {
+        }
+        // --- Adjective Game Rendering ---
+        else if (currentGameType === 'adjectives') {
           return (
              <>
               <GameStatus
@@ -791,7 +864,9 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'animals') {
+        }
+        // --- Animal Game Rendering ---
+        else if (currentGameType === 'animals') {
            return (
              <>
               <GameStatus
@@ -824,7 +899,9 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'plants') {
+        }
+        // --- Plant Game Rendering ---
+        else if (currentGameType === 'plants') {
            return (
              <>
               <GameStatus
@@ -857,7 +934,9 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'food') {
+        }
+        // --- Food Game Rendering ---
+        else if (currentGameType === 'food') {
            return (
              <>
               <GameStatus
@@ -890,7 +969,9 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'transportBuildings') {
+        }
+        // --- Transport/Buildings Game Rendering ---
+        else if (currentGameType === 'transportBuildings') {
            return (
              <>
               <GameStatus
@@ -923,7 +1004,9 @@ export default function Home() {
               </Button>
             </>
           );
-        } else if (currentGameType === 'pastTense') { // Add Past Tense case
+        }
+         // --- Irregular Past Tense Game Rendering ---
+        else if (currentGameType === 'pastTense') {
            return (
              <>
               <GameStatus
@@ -945,6 +1028,38 @@ export default function Home() {
                     language={card.tense as 'en' | 'es'} // Cast tense to language for hint color
                     isHintActive={isHintActive}
                     cardType='pastTense' // Specific type for hint logic if needed
+                  />
+                ))}
+              </div>
+              <Button onClick={handleGoBackToDifficulty} variant="outline" className="mt-8">
+                Back to Difficulty
+              </Button>
+            </>
+          );
+        }
+         // --- Regular Past Tense Game Rendering ---
+        else if (currentGameType === 'regularPastTense') {
+           return (
+             <>
+              <GameStatus
+                moves={regularPastTenseMoves}
+                isGameActive={isRegularPastTenseGameActive}
+                onTimerUpdate={handleRegularPastTenseTimerUpdate}
+                isHintActive={isHintActive}
+                onToggleHint={toggleHint}
+              />
+              <div className={`grid ${getGridColsClass(regularPastTenseDifficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
+                {regularPastTenseCards.map((card) => (
+                  <GameCard
+                    key={card.id}
+                    cardId={card.id}
+                    text={card.text}
+                    isFlipped={card.isFlipped}
+                    isMatched={card.isMatched}
+                    onClick={handleRegularPastTenseCardClick}
+                    language={card.tense as 'en' | 'es'} // Cast tense to language for hint color
+                    isHintActive={isHintActive}
+                    cardType='pastTense' // Use same cardType for hint logic
                   />
                 ))}
               </div>
@@ -1017,6 +1132,13 @@ export default function Home() {
         time={pastTenseFinalTime}
         onPlayAgain={handlePastTensePlayAgain}
         itemType="pastTense"
+      />
+        <CompletionDialog
+        isOpen={showRegularPastTenseCompletionDialog}
+        moves={regularPastTenseMoves}
+        time={regularPastTenseFinalTime}
+        onPlayAgain={handleRegularPastTensePlayAgain}
+        itemType="regularPastTense"
       />
     </DashboardLayout>
   );

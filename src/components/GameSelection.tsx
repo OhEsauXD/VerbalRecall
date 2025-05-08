@@ -13,7 +13,7 @@ interface GameSelectionProps {
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-4 md:p-8 w-full"> {/* Adjusted grid for more items */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-4 md:p-8 w-full"> {/* Adjusted grid for more items */}
        {/* Verb Game Card */}
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
@@ -39,7 +39,7 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         </CardFooter>
       </Card>
 
-      {/* Past Tense Game Card */}
+      {/* Irregular Past Tense Game Card */}
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
           <Image
@@ -52,14 +52,39 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
           />
         </CardHeader>
         <CardContent className="p-6 flex-grow">
-          <CardTitle className="mb-2 text-xl font-semibold text-primary">Past Tense Matching Game</CardTitle>
+          <CardTitle className="mb-2 text-xl font-semibold text-primary">Irregular Past Tense</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Match infinitive verbs with their simple past/past participle forms. Sharpen your grammar skills!
+            Match infinitive verbs with their irregular simple past/past participle forms. Sharpen your grammar skills!
           </CardDescription>
         </CardContent>
         <CardFooter className="p-6 pt-0 mt-auto">
           <Button onClick={() => onSelectGame('pastTense')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-            Play Past Tense
+            Play Irregular Past
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Regular Past Tense Game Card */}
+      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+        <CardHeader className="p-0">
+          <Image
+            src="https://picsum.photos/400/200?random=8" // Another new random seed
+            alt="Abstract representation of regular past tense verbs"
+            width={400}
+            height={200}
+            className="w-full h-48 object-cover"
+            data-ai-hint="rules gears" // AI Hint for regular past tense image
+          />
+        </CardHeader>
+        <CardContent className="p-6 flex-grow">
+          <CardTitle className="mb-2 text-xl font-semibold text-primary">Regular Past Tense</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Practice matching infinitive verbs with their regular simple past/past participle forms ending in "-ed".
+          </CardDescription>
+        </CardContent>
+        <CardFooter className="p-6 pt-0 mt-auto">
+          <Button onClick={() => onSelectGame('regularPastTense')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+            Play Regular Past
           </Button>
         </CardFooter>
       </Card>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock } from 'lucide-react'; // Import Clock icon
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog } from 'lucide-react'; // Import Cog icon for regular verbs
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -38,10 +38,16 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>Verbs</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-       <SidebarMenuItem> {/* Past Tense Item */}
-        <SidebarMenuButton onClick={() => handleSelectGame('pastTense')} tooltip="Play Past Tense Game">
+       <SidebarMenuItem> {/* Irregular Past Tense Item */}
+        <SidebarMenuButton onClick={() => handleSelectGame('pastTense')} tooltip="Play Irregular Past Tense Game">
            <Clock />
-          <span>Past Tense</span>
+          <span>Irregular Past</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem> {/* Regular Past Tense Item */}
+        <SidebarMenuButton onClick={() => handleSelectGame('regularPastTense')} tooltip="Play Regular Past Tense Game">
+           <Cog /> {/* Using Cog icon as an example */}
+          <span>Regular Past</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
