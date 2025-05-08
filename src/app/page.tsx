@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,7 +14,7 @@ import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
 import { generateFoodGameBoard, FoodCardData } from '@/lib/food';
 import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@/lib/transportBuildings';
-import { generatePastTenseGameBoard, PastTenseCardData } from '@/lib/pastTense'; // Import Past Tense game logic
+import { generatePastTenseGameBoard, PastTenseCardData, pastTensePairs } from '@/lib/pastTense'; // Import Past Tense game logic and pairs
 import { Button } from '@/components/ui/button';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
@@ -710,6 +711,11 @@ export default function Home() {
                                 currentGameType === 'food' ? foodDifficulty :
                                 currentGameType === 'transportBuildings' ? transportBuildingDifficulty :
                                 pastTenseDifficulty; // Add Past Tense difficulty
+        // Dynamically calculate the hard difficulty count for Past Tense
+        const itemCounts = currentGameType === 'pastTense'
+            ? { easy: 15, medium: 30, hard: pastTensePairs.length }
+            : { easy: 15, medium: 30, hard: 60 };
+
         return (
           <div className="flex flex-col items-center w-full">
             <h2 className="text-2xl font-semibold text-center my-4 text-foreground">
@@ -720,6 +726,7 @@ export default function Home() {
               onSelectDifficulty={handleSelectDifficulty}
               onGoBack={handleGoBackToSelection}
               currentDifficulty={currentDifficulty}
+              itemCounts={itemCounts} // Pass dynamic counts
             />
           </div>
         );

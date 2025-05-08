@@ -2,15 +2,13 @@
 export type PastTensePair = {
   id: number;
   infinitive: string; // Base form of the verb
-  past: string; // Simple past / past participle (can be the same for regular verbs)
+  past: string; // Simple past / past participle (can be the same for irregular verbs)
 };
 
-// List of 60 common irregular and regular verbs with their past forms
+// List of 50 common irregular verbs with their past forms
 // Note: For some irregular verbs, simple past and past participle are the same.
 // For simplicity in this game, we'll use one common past form.
-// For regular verbs, the simple past and past participle are the same (-ed).
 export const pastTensePairs: PastTensePair[] = [
-  // Irregular Verbs
   { id: 181, infinitive: 'be', past: 'was/were' }, // (been) - simplified
   { id: 182, infinitive: 'have', past: 'had' },
   { id: 183, infinitive: 'do', past: 'did' }, // (done)
@@ -61,19 +59,8 @@ export const pastTensePairs: PastTensePair[] = [
   { id: 228, infinitive: 'eat', past: 'ate' }, // (eaten)
   { id: 229, infinitive: 'drink', past: 'drank' }, // (drunk)
   { id: 230, infinitive: 'sleep', past: 'slept' },
-
-  // Regular Verbs (added for variety, all end in -ed)
-  { id: 231, infinitive: 'walk', past: 'walked' },
-  { id: 232, infinitive: 'talk', past: 'talked' },
-  { id: 233, infinitive: 'play', past: 'played' },
-  { id: 234, infinitive: 'work', past: 'worked' },
-  { id: 235, infinitive: 'start', past: 'started' },
-  { id: 236, infinitive: 'help', past: 'helped' },
-  { id: 237, infinitive: 'use', past: 'used' },
-  { id: 238, infinitive: 'want', past: 'wanted' },
-  { id: 239, infinitive: 'look', past: 'looked' },
-  { id: 240, infinitive: 'ask', past: 'asked' },
 ];
+
 
 // Function to shuffle an array
 function shuffle<T>(array: T[]): T[] {
@@ -105,11 +92,15 @@ export function generatePastTenseGameBoard(difficulty: 'easy' | 'medium' | 'hard
       numberOfPairs = 30;
       break;
     case 'hard':
-      numberOfPairs = 60;
+      // Use the actual number of available irregular verb pairs for hard difficulty
+      numberOfPairs = pastTensePairs.length;
       break;
     default:
       numberOfPairs = 15; // Default to easy
   }
+
+   // Ensure numberOfPairs does not exceed the available pairs
+  numberOfPairs = Math.min(numberOfPairs, pastTensePairs.length);
 
   const selectedPairs = shuffle(pastTensePairs).slice(0, numberOfPairs);
 
