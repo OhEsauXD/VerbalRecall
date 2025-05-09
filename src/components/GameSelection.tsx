@@ -131,12 +131,12 @@ const gameCategories: Record<string, GameCardData[]> = {
 };
 
 const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onSelectGame: (type: GameType) => void }> = ({ title, games, onSelectGame }) => (
-  <div className="mb-12 w-full">
+  <div className="mb-12 w-full max-w-6xl mx-auto">
     <h2 className="text-3xl font-bold mb-6 text-center text-primary">{title}</h2>
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 3, // Loop if more than 3 items generally
+        loop: games.length > 3, 
       }}
       className="w-full"
     >
@@ -192,4 +192,3 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
 };
 
 export default GameSelection;
-
