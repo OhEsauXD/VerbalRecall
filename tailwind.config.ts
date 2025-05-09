@@ -12,60 +12,57 @@ export default {
   theme: {
     extend: {
         fontFamily: {
-            sans: ["var(--font-geist-sans)", ...fontFamily.sans],
-            mono: ["var(--font-geist-mono)", ...fontFamily.mono],
+            sans: ["var(--font-lato)", ...fontFamily.sans], // Use Lato for sans-serif
+            mono: [...fontFamily.mono], // Fallback to default mono stack
         },
   		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
-  			},
-  			sidebar: {
-  				DEFAULT: 'hsl(var(--sidebar-background))',
-  				foreground: 'hsl(var(--sidebar-foreground))',
-  				primary: 'hsl(var(--sidebar-primary))',
-  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-  				accent: 'hsl(var(--sidebar-accent))',
-  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-  				border: 'hsl(var(--sidebar-border))',
-  				ring: 'hsl(var(--sidebar-ring))'
-  			}
+        /* Dark Theme based on user specification and palette */
+        background: 'hsl(var(--background))', /* #001d3d (User specified) */
+        foreground: 'hsl(var(--foreground))', /* #ffc300 (User specified for primary text) */
+
+        card: 'hsl(var(--card))', /* #003559 (From palette, darker medium blue) */
+        'card-foreground': 'hsl(var(--card-foreground))', /* #FFFFFF (User specified for secondary text on cards) */
+
+        popover: 'hsl(var(--popover))', /* #000814 (From palette, darkest blue) - corrected */
+        'popover-foreground': 'hsl(var(--popover-foreground))', /* #ffc300 (Main text color) */
+
+        primary: 'hsl(var(--primary))', /* #0353a4 (From palette, medium blue for buttons, interactive elements) */
+        'primary-foreground': 'hsl(var(--primary-foreground))', /* #FFFFFF (White text on primary blue buttons) */
+
+        secondary: 'hsl(var(--secondary))', /* #006daa (From palette, bright medium blue for other elements) */
+        'secondary-foreground': 'hsl(var(--secondary-foreground))', /* #FFFFFF (White text on secondary blue elements) */
+
+        muted: 'hsl(var(--muted))', /* #061a40 (From palette, very dark blue for less emphasis backgrounds) */
+        'muted-foreground': 'hsl(var(--muted-foreground))', /* #b9d6f2 (Light blue text on muted) */
+
+        accent: 'hsl(var(--accent))', /* #b9d6f2 (From palette, light blue for highlights or alternative accents) */
+        'accent-foreground': 'hsl(var(--accent-foreground))', /* #061a40 (Very dark blue text on light blue accent) */
+
+        destructive: 'hsl(var(--destructive))', /* Standard Red */
+        'destructive-foreground': 'hsl(var(--destructive-foreground))', /* White */
+
+        border: 'hsl(var(--border))', /* #00416e (Slightly lighter variant of #003559 for borders) - corrected */
+        input: 'hsl(var(--input))', /* Same as border */
+        ring: 'hsl(var(--ring))', /* #ffd60a (Brighter version of #ffc300 for focus rings) - corrected */
+         /* Chart Colors */
+        chart: {
+          '1': 'hsl(var(--chart-1))', /* #0353a4 */
+          '2': 'hsl(var(--chart-2))', /* #006daa */
+          '3': 'hsl(var(--chart-3))', /* #b9d6f2 */
+          '4': 'hsl(var(--chart-4))', /* #003559 */
+          '5': 'hsl(var(--chart-5))',    /* #FFFFFF */
+        },
+         /* Sidebar colors */
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar-background))', /* #000814 (Darkest blue, matches popover) */
+          foreground: 'hsl(var(--sidebar-foreground))', /* #b9d6f2 (Light blue text) */
+          primary: 'hsl(var(--sidebar-primary))',    /* #ffc300 (Matches main foreground) */
+          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))', /* #000814 (Text on sidebar primary button) */
+          accent: 'hsl(var(--sidebar-accent))',    /* #003559 (Card color for hover states) */
+          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))', /* #ffc300 (Text on hover) */
+          border: 'hsl(var(--sidebar-border))',    /* #00416e (Matches main border) */
+          ring: 'hsl(var(--sidebar-ring))',       /* #ffd60a (Matches main ring) */
+        },
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
