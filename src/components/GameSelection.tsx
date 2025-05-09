@@ -136,13 +136,13 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 3, // Loop only if enough items to make sense for the largest view
+        loop: games.length > 3, // Loop if more than 3 items generally
       }}
       className="w-full"
     >
       <CarouselContent className="-ml-4">
         {games.map((game) => (
-          <CarouselItem key={game.type} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+          <CarouselItem key={game.type} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
             <div className="p-1 h-full">
               <Card className="w-full h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
                 <CardHeader className="p-0">
@@ -171,10 +171,10 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
           </CarouselItem>
         ))}
       </CarouselContent>
-      {games.length > 1 && ( // Show controls only if there's more than one item to scroll through
+      {games.length > 1 && (
         <>
-            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground" />
-            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground" />
+            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
+            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
         </>
       )}
     </Carousel>
