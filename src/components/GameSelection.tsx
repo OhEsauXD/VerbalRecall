@@ -131,18 +131,18 @@ const gameCategories: Record<string, GameCardData[]> = {
 };
 
 const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onSelectGame: (type: GameType) => void }> = ({ title, games, onSelectGame }) => (
-  <div className="mb-12 w-full max-w-4xl mx-auto"> {/* Increased max-width for better large screen layout */}
-    <h2 className="text-3xl font-bold mb-6 text-center text-primary">{title}</h2>
+  <div className="mb-12 w-full max-w-4xl mx-auto">
+    <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-primary">{title}</h2>
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 3, // Loop if more than 3 items, adjust as needed
+        loop: games.length > 3,
       }}
       className="w-full"
     >
-      <CarouselContent className="-ml-2 md:-ml-4"> {/* Adjust margin for spacing */}
+      <CarouselContent className="-ml-2 md:-ml-4">
         {games.map((game) => (
-          <CarouselItem key={game.type} className="pl-2 md:pl-4 w-full max-w-[360px] sm:max-w-none basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3">
+          <CarouselItem key={game.type} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3 max-w-[360px] sm:max-w-none">
             <div className="p-1 h-full">
               <Card className="w-full h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
                 <CardHeader className="p-0">
@@ -183,7 +183,8 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
   return (
-    <div className="flex flex-col items-center w-full p-4 md:p-8">
+    // Removed padding from here, relies on DashboardLayout's padding
+    <div className="flex flex-col items-center w-full">
       <GameCategoryCarousel title="Trivia Games" games={gameCategories.trivia} onSelectGame={onSelectGame} />
       <GameCategoryCarousel title="Combination Lock Games" games={gameCategories.lock} onSelectGame={onSelectGame} />
       <GameCategoryCarousel title="Memory Matching Games" games={gameCategories.memory} onSelectGame={onSelectGame} />
@@ -192,4 +193,3 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
 };
 
 export default GameSelection;
-

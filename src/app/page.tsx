@@ -92,7 +92,7 @@ export default function Home() {
         dialogMoves = result.questionsAttempted || 0;
         dialogTime = result.score || 0;
       } else if (currentGameType === 'verbLock') {
-        dialogMoves = result.locksSolved || 0; // Or total locks if that's more relevant
+        dialogMoves = result.locksSolved || 0; 
         dialogTime = result.score || 0;
       }
       else {
@@ -208,10 +208,11 @@ export default function Home() {
       onSelectGameTypeFromSidebar={handleSelectGameType}
       onGoHome={handleGoHome}
     >
-      <div className="flex flex-col items-center justify-start p-4 w-full h-full">
-        {renderContent()}
-      </div>
-
+      {/* The DashboardLayout's main tag already provides padding. 
+          The GameSelection component and other view components will fill this space.
+      */}
+      {renderContent()}
+      
       {completionDialog.isOpen && completionDialog.itemType && (
         <CompletionDialog
           isOpen={completionDialog.isOpen}
@@ -224,4 +225,3 @@ export default function Home() {
     </DashboardLayout>
   );
 }
-
