@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
-import { GeistSans } from "geist/font/sans"; // Import the font object
-import { GeistMono } from "geist/font/mono";  // Import the font object
+import { Lato } from 'next/font/google'; // Import Lato
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
-// The GeistSans and GeistMono objects already contain the necessary info,
-// including the CSS variable name. We don't call them as functions.
+// Instantiate Lato
+const lato = Lato({
+  subsets: ['latin'],
+  weight: ['400', '700'], // Common weights
+  variable: '--font-lato', // CSS variable name for Tailwind
+});
 
 export const metadata: Metadata = {
   title: 'Verbal Recall',
@@ -19,13 +22,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-       {/* Apply the font variables directly to the body className */}
-      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
+    // Apply the Lato font CSS variable to the html tag
+    <html lang="en" className={lato.variable} suppressHydrationWarning>
+      {/* The font-sans class on body (from globals.css or here) will now use Lato via Tailwind config */}
+      <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark" // Set dark as default
-          enableSystem={false} // Disable system theme detection if dark is default
+          defaultTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           {children}
