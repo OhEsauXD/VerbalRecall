@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -55,13 +56,14 @@ type GenericCard = {
 
 export interface TriviaQuestion {
   id: number;
-  clue: string; // For original trivia: Spanish verb; For new trivia: English infinitive
-  answer: string; // For original trivia: Cleaned English verb; For new trivia: Cleaned English Past Participle
+  clue: string; 
+  answer: string; 
   answerLetters: string[];
   userGuess: string[];
   revealedIndices: Set<number>;
   isAttempted: boolean;
   isCorrect: boolean | null;
+  clueLanguage?: 'en' | 'es'; // Optional to specify clue language
 }
 
 
@@ -105,7 +107,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     return verb.replace(/^to[\s_]*/, '').replace(/[\s_]/g, '').toLowerCase();
   };
 
- const generateTriviaGameData = useCallback((diff: Difficulty): TriviaQuestion[] => {
+ const generateTriviaGameData = useCallback((gameType: GameType, diff: Difficulty): TriviaQuestion[] => {
     let numQuestions: number;
     switch (diff) {
       case 'easy': numQuestions = 10; break;
@@ -114,18 +116,32 @@ const GameEngine: React.FC<GameEngineProps> = ({
       default: numQuestions = 10;
     }
 
-    // Use verbLockSources for English verb forms
-    const availableSources = verbLockSources.filter(source => source.englishBase.correct && source.englishPastParticiple.correct);
+    const availableSources = verbLockSources.filter(source => 
+        source.englishBase.correct && 
+        (gameType === 'trivia' ? source.englishPastParticiple.correct : true) && // For Past Participle Trivia
+        (gameType === 'spanishEnglishTrivia' ? source.spanishInfinitive.correct : true) // For Spanish to English Trivia
+    );
     const shuffledSources = [...availableSources].sort(() => 0.5 - Math.random());
     
-    // Ensure we don't try to slice more than available
     const actualNumQuestions = Math.min(numQuestions, shuffledSources.length);
 
     return shuffledSources.slice(0, actualNumQuestions).map(source => {
-      const clue = source.englishBase.correct; // English infinitive without "to"
-      const answer = cleanVerb(source.englishPastParticiple.correct); // Cleaned English past participle
+      let clue = '';
+      let answer = '';
+      let clueLanguage: 'en' | 'es' = 'en';
+
+      if (gameType === 'trivia') { // Past Participle Trivia
+        clue = source.englishBase.correct; 
+        answer = cleanVerb(source.englishPastParticiple.correct);
+        clueLanguage = 'en';
+      } else if (gameType === 'spanishEnglishTrivia') { // Spanish to English Trivia
+        clue = source.spanishInfinitive.correct;
+        answer = cleanVerb(source.englishBase.correct);
+        clueLanguage = 'es';
+      }
+
       return {
-        id: source.id, // Use the ID from verbLockSources
+        id: source.id, 
         clue: clue,
         answer: answer,
         answerLetters: answer.split(''),
@@ -133,6 +149,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         revealedIndices: new Set<number>(),
         isAttempted: false,
         isCorrect: null,
+        clueLanguage: clueLanguage,
       };
     });
   }, []);
@@ -252,8 +269,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
     setIsGameActive(false);
     setTime(0);
 
-    if (gameType === 'trivia') {
-      setTriviaQuestions(generateTriviaGameData(difficulty));
+    if (gameType === 'trivia' || gameType === 'spanishEnglishTrivia') {
+      setTriviaQuestions(generateTriviaGameData(gameType, difficulty));
       setCurrentTriviaQuestionIndex(0);
       setTriviaScore(0);
       setIsTriviaHintActive(false);
@@ -278,7 +295,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
 
   const handleCardClick = (cardId: string) => {
-    if (gameType === 'trivia' || gameType === 'verbLock' || isChecking || flippedCards.length >= 2) return;
+    if (gameType === 'trivia' || gameType === 'verbLock' || gameType === 'spanishEnglishTrivia' || isChecking || flippedCards.length >= 2) return;
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
 
@@ -309,7 +326,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
   };
 
   useEffect(() => {
-    if (gameType !== 'trivia' && gameType !== 'verbLock' && isGameActive && cards.length > 0 && matchedPairs.length === cards.length / 2) {
+    if (gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && isGameActive && cards.length > 0 && matchedPairs.length === cards.length / 2) {
       setIsGameActive(false);
       onGameComplete({ moves, time });
     }
@@ -414,13 +431,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
   };
 
   const renderActiveGame = () => {
-    if (gameType === 'trivia' && triviaQuestions.length > 0 && currentTriviaQuestionIndex < triviaQuestions.length) {
+    if ((gameType === 'trivia' || gameType === 'spanishEnglishTrivia') && triviaQuestions.length > 0 && currentTriviaQuestionIndex < triviaQuestions.length) {
       return (
         <TriviaGame
           question={triviaQuestions[currentTriviaQuestionIndex]}
           questionIndex={currentTriviaQuestionIndex}
           onInputChange={handleTriviaInputChange}
           onSubmit={handleTriviaSubmit}
+          gameType={gameType}
         />
       );
     } else if (gameType === 'verbLock' && verbLockChallenges.length > 0 && currentVerbLockQuestIndex < verbLockChallenges.length) {
@@ -432,7 +450,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         />
       );
     }
-    else if (gameType !== 'trivia' && gameType !== 'verbLock') {
+    else if (gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia') {
       return (
         <div className={`grid ${getGridColsClass(difficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
           {cards.map((card) => {
@@ -443,7 +461,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             if (card.text) cardProps.text = card.text;
             if (card.verb) cardProps.text = card.verb;
             if (card.language) cardProps.language = card.language;
-            if (card.tense) cardProps.language = card.tense as 'infinitive' | 'past'; // Explicitly cast
+            if (card.tense) cardProps.language = card.tense as 'infinitive' | 'past'; 
             if (card.type === 'image' || (gameType === 'animals' && card.type === 'image') || (gameType === 'plants' && card.type === 'image') || (gameType === 'food' && card.type === 'image') || (gameType === 'transportBuildings' && card.type === 'image')) {
               cardProps.imageUrl = card.imageUrl; cardProps.spanishName = card.spanishName; cardProps.dataAiHint = card.dataAiHint;
             } else if (card.type === 'name') { cardProps.text = card.name; }
@@ -464,15 +482,15 @@ const GameEngine: React.FC<GameEngineProps> = ({
     <div className="flex flex-col items-center w-full">
       <GameStatus
         moves={moves}
-        score={gameType === 'trivia' ? triviaScore : gameType === 'verbLock' ? verbLockScore : undefined}
+        score={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaScore : gameType === 'verbLock' ? verbLockScore : undefined}
         isGameActive={isGameActive}
         onTimerUpdate={handleTimerUpdate}
-        isHintActive={gameType === 'trivia' ? isTriviaHintActive : (gameType === 'verbLock' ? false : isMatchingHintActive) }
-        onToggleHint={gameType === 'trivia' ? handleTriviaHint : (gameType === 'verbLock' ? () => {} : onToggleMatchingHint)}
+        isHintActive={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? isTriviaHintActive : (gameType === 'verbLock' ? false : isMatchingHintActive) }
+        onToggleHint={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? handleTriviaHint : (gameType === 'verbLock' ? () => {} : onToggleMatchingHint)}
         gameType={gameType}
-        canUseHint={gameType === 'trivia' ? triviaScore > 0 : gameType !== 'verbLock'}
-        totalItems={gameType === 'verbLock' ? verbLockChallenges.length : (gameType === 'trivia' ? triviaQuestions.length : undefined)}
-        currentItemIndex={gameType === 'verbLock' ? currentVerbLockQuestIndex : (gameType === 'trivia' ? currentTriviaQuestionIndex : undefined)}
+        canUseHint={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaScore > 0 : gameType !== 'verbLock'}
+        totalItems={(gameType === 'verbLock' || gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaQuestions.length : undefined}
+        currentItemIndex={(gameType === 'verbLock' || gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? currentTriviaQuestionIndex : undefined}
       />
       {renderActiveGame()}
       <Button onClick={onBackToDifficulty} variant="outline" className="mt-8">
@@ -483,4 +501,5 @@ const GameEngine: React.FC<GameEngineProps> = ({
 };
 
 export default GameEngine;
+
 

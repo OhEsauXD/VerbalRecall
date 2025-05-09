@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -15,8 +16,8 @@ import type { GameType } from '@/app/page';
 
 interface CompletionDialogProps {
   isOpen: boolean;
-  moves: number; // For matching: moves; For trivia: questions attempted/correct; For verbLock: locks solved
-  time: number;  // For matching: time in seconds; For trivia/verbLock: final score
+  moves: number; 
+  time: number;  
   onPlayAgain: () => void;
   itemType: GameType;
 }
@@ -35,7 +36,12 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
   let description = "";
 
   if (itemType === 'trivia') {
-    title = "Past Participle Trivia Complete!"; // Updated title
+    title = "Past Participle Trivia Complete!"; 
+    description = `You finished the trivia!
+                   <br />
+                   You attempted <strong>${moves} questions</strong> and your final score is <strong>${time}</strong>.`;
+  } else if (itemType === 'spanishEnglishTrivia') {
+    title = "Spanish to English Verb Trivia Complete!";
     description = `You finished the trivia!
                    <br />
                    You attempted <strong>${moves} questions</strong> and your final score is <strong>${time}</strong>.`;
@@ -46,7 +52,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
                    You solved <strong>${moves} locks</strong> and your final score is <strong>${time}</strong>.`;
   }
    else {
-    const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword' | 'verbLock'>, string> = {
+    const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword' | 'verbLock' | 'spanishEnglishTrivia'>, string> = {
         'verbs': 'verb',
         'adjectives': 'adjective',
         'animals': 'animal name/picture',
@@ -57,7 +63,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
         'regularPastTense': 'regular past tense verb',
         'nations': 'nation/nationality',
     };
-    const itemText = itemTextMap[itemType as Exclude<GameType, 'trivia' | 'crossword' | 'verbLock'>] || 'item';
+    const itemText = itemTextMap[itemType as Exclude<GameType, 'trivia' | 'crossword' | 'verbLock' | 'spanishEnglishTrivia'>] || 'item';
     description = `You matched all the ${itemText} pairs!
                    <br />
                    You completed the game in <strong>${moves} moves</strong> and <strong>${formatTime(time)}</strong>.`;

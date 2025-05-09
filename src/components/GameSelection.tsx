@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -26,12 +27,21 @@ const gameCategories: Record<string, GameCardData[]> = {
   trivia: [
     {
       type: 'trivia',
-      title: 'Past Participle Trivia', // Updated title
-      description: 'Enter the Past Participle for the given English verb. Test your knowledge of verb forms!', // Updated description
+      title: 'Past Participle Trivia',
+      description: 'Enter the Past Participle for the given English verb. Test your knowledge of verb forms!',
       imageSrc: 'https://picsum.photos/400/200?random=10',
       imageAlt: 'Abstract representation of verb forms or grammar books',
       aiHint: 'grammar books',
-      buttonText: 'Play Trivia',
+      buttonText: 'Play Past Participle Trivia',
+    },
+    {
+      type: 'spanishEnglishTrivia',
+      title: 'Spanish to English Verb Trivia',
+      description: 'Translate Spanish infinitive verbs to their English base form. ¡Buena suerte!',
+      imageSrc: 'https://picsum.photos/400/200?random=12', // New random seed
+      imageAlt: 'Abstract representation of language translation',
+      aiHint: 'translation dictionary',
+      buttonText: 'Play ES to EN Trivia',
     },
   ],
   lock: [
@@ -136,7 +146,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 1, // Loop only if more than 1 item
+        loop: games.length > 1, 
       }}
       className="w-full"
     >
@@ -171,7 +181,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
           </CarouselItem>
         ))}
       </CarouselContent>
-      {games.length > 1 && ( // Show controls only if more than 1 item
+      {games.length > 1 && ( 
         <>
             <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
             <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />

@@ -21,13 +21,13 @@ import { verbLockSources } from '@/lib/verbLock';
 
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock';
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia';
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 interface CompletionDialogState {
   isOpen: boolean;
-  moves: number; // For matching: moves; For trivia: questions attempted/correct; For verbLock: locks attempted
-  time: number;  // For matching: time in seconds; For trivia/verbLock: final score
+  moves: number; 
+  time: number;  
   itemType: GameType | null;
 }
 
@@ -88,7 +88,7 @@ export default function Home() {
       let dialogMoves = 0; 
       let dialogTime = 0; 
 
-      if (currentGameType === 'trivia') {
+      if (currentGameType === 'trivia' || currentGameType === 'spanishEnglishTrivia') {
         dialogMoves = result.questionsAttempted || 0;
         dialogTime = result.score || 0;
       } else if (currentGameType === 'verbLock') {
@@ -136,9 +136,10 @@ export default function Home() {
       case 'nations':
         return { easy: 15, medium: 30, hard: nationPairs.length };
       case 'trivia':
-        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; // Number of questions, limited by verbLockSources
+      case 'spanishEnglishTrivia':
+        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) };
       case 'verbLock':
-        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; // Number of locks
+        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; 
       default:
         return { easy: 15, medium: 30, hard: 60 };
     }
@@ -155,7 +156,8 @@ export default function Home() {
       case 'pastTense': return 'Irregular Past Tense Verbs';
       case 'regularPastTense': return 'Regular Past Tense Verbs';
       case 'nations': return 'Nations & Nationalities';
-      case 'trivia': return 'Past Participle Trivia'; // Updated name
+      case 'trivia': return 'Past Participle Trivia';
+      case 'spanishEnglishTrivia': return 'Spanish to English Verb Trivia';
       case 'verbLock': return 'Verb Combination Lock';
       default: return 'Items';
     }
@@ -179,7 +181,7 @@ export default function Home() {
               onGoBack={handleGoBackToSelection}
               currentDifficulty={currentDifficulty}
               itemCounts={getItemTypeCounts(currentGameType)}
-              isTrivia={currentGameType === 'trivia' || currentGameType === 'verbLock'}
+              isTrivia={currentGameType === 'trivia' || currentGameType === 'verbLock' || currentGameType === 'spanishEnglishTrivia'}
             />
           </div>
         );

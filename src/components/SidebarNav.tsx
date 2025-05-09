@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock } from 'lucide-react';
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages } from 'lucide-react'; // Added Languages icon
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -42,6 +43,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         <SidebarMenuButton onClick={() => handleSelectGame('trivia')} tooltip="Play Past Participle Trivia Game">
           <HelpCircle />
           <span>Past Participle Trivia</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => handleSelectGame('spanishEnglishTrivia')} tooltip="Play Spanish to English Verb Trivia">
+          <Languages />
+          <span>Spanish to English Trivia</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useRef, useEffect } from 'react';
@@ -6,12 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TriviaQuestion } from '@/components/GameEngine'; 
 import { cn } from '@/lib/utils';
+import type { GameType } from '@/app/page';
 
 interface TriviaGameProps {
   question: TriviaQuestion;
   questionIndex: number; 
   onInputChange: (questionIndex: number, letterIndex: number, value: string) => void;
   onSubmit: () => void;
+  gameType: GameType; // Added to determine clue display
 }
 
 const TriviaGame: React.FC<TriviaGameProps> = ({
@@ -19,6 +22,7 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
   questionIndex,
   onInputChange,
   onSubmit,
+  gameType,
 }) => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -63,13 +67,27 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
     }
   };
 
+  const getTriviaTitle = () => {
+    if (gameType === 'spanishEnglishTrivia') {
+      return "What is the English base form of:";
+    }
+    return "What is the Past Participle of:";
+  };
+
+  const getClueText = () => {
+    if (gameType === 'spanishEnglishTrivia' || question.clueLanguage === 'es') {
+      return question.clue; // Spanish clue is already infinitive
+    }
+    return `to ${question.clue}`; // English clue, add "to"
+  }
+
   return (
     <div className="flex flex-col items-center p-4 md:p-8 bg-card text-card-foreground rounded-lg shadow-lg w-full max-w-2xl">
       <h3 className="text-xl md:text-2xl font-semibold text-primary mb-2 text-center">
-        What is the Past Participle of:
+        {getTriviaTitle()}
       </h3>
       <p className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">
-        to {question.clue}
+        {getClueText()}
       </p>
 
       <div className="flex justify-center gap-1 md:gap-2 mb-6 flex-wrap">
@@ -114,4 +132,3 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
 };
 
 export default TriviaGame;
-

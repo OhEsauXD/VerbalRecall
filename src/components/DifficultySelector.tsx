@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -11,9 +12,9 @@ interface DifficultySelectorProps {
   onSelectDifficulty: (difficulty: Difficulty) => void;
   onGoBack: () => void;
   currentDifficulty: Difficulty | null;
-  itemType: string; // Generic enough for all game types
+  itemType: string; 
   itemCounts: { easy: number; medium: number; hard: number };
-  isTrivia?: boolean; // Optional flag for trivia game or verb lock
+  isTrivia?: boolean; 
 }
 
 const DifficultySelector: React.FC<DifficultySelectorProps> = ({
@@ -27,10 +28,10 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({
   const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
 
   const getItemText = (level: Difficulty) => {
-    if (itemType === 'Verb Trivia') { // Specifically for Verb Trivia
+    if (itemType === 'Past Participle Trivia' || itemType === 'Spanish to English Verb Trivia') { 
       return `${itemCounts[level]} Questions`;
     }
-    if (itemType === 'Verb Combination Lock') { // Specifically for Verb Lock
+    if (itemType === 'Verb Combination Lock') { 
         return `${itemCounts[level]} Locks`;
     }
     // Default for matching games
