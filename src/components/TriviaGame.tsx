@@ -87,7 +87,7 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
             onChange={(e) => handleInputChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             className={cn(
-              "w-10 h-12 md:w-12 md:h-14 text-2xl md:text-3xl text-center uppercase font-bold rounded-md border-2 focus:border-primary focus:ring-primary",
+              "w-12 h-14 md:w-14 md:h-16 text-2xl md:text-3xl text-center uppercase font-bold rounded-md border-2 focus:border-primary focus:ring-primary",
               question.revealedIndices.has(index) ? "bg-muted text-muted-foreground border-muted-foreground cursor-not-allowed" : "bg-input text-foreground border-input",
               question.isAttempted && !question.revealedIndices.has(index) && (question.userGuess[index] === question.answerLetters[index] ? "border-green-500" : "border-destructive"),
             )}
@@ -118,3 +118,4 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
 };
 
 export default TriviaGame;
+
