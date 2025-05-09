@@ -11,13 +11,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import type { GameType } from '@/app/page';
 
 interface CompletionDialogProps {
   isOpen: boolean;
-  moves: number;
-  time: number;
+  moves: number; // For matching: moves; For trivia: questions attempted/correct
+  time: number;  // For matching: time in seconds; For trivia: final score
   onPlayAgain: () => void;
-  itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nations'; // Add 'nations'
+  itemType: GameType;
 }
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
@@ -30,27 +31,39 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
 
   if (!isOpen) return null;
 
-  // Customize message based on itemType
-  const itemText = itemType === 'verb' ? 'verb' :
-                   itemType === 'adjective' ? 'adjective' :
-                   itemType === 'animal' ? 'animal name/picture' :
-                   itemType === 'plant' ? 'plant name/picture' :
-                   itemType === 'food' ? 'food/candy/drink name/picture' :
-                   itemType === 'transportBuilding' ? 'transport/building name/picture' :
-                   itemType === 'pastTense' ? 'irregular past tense verb' :
-                   itemType === 'regularPastTense' ? 'regular past tense verb' :
-                   'nation/nationality'; // Add nation text
+  let title = "Congratulations!";
+  let description = "";
+
+  if (itemType === 'trivia') {
+    title = "Trivia Game Complete!";
+    description = `You finished the trivia!
+                   <br />
+                   You attempted <strong>${moves} questions</strong> and your final score is <strong>${time}</strong>.`;
+  } else {
+    const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword'>, string> = {
+        'verbs': 'verb',
+        'adjectives': 'adjective',
+        'animals': 'animal name/picture',
+        'plants': 'plant name/picture',
+        'food': 'food/candy/drink name/picture',
+        'transportBuildings': 'transport/building name/picture',
+        'pastTense': 'irregular past tense verb',
+        'regularPastTense': 'regular past tense verb',
+        'nations': 'nation/nationality',
+    };
+    const itemText = itemTextMap[itemType as Exclude<GameType, 'trivia' | 'crossword'>] || 'item';
+    description = `You matched all the ${itemText} pairs!
+                   <br />
+                   You completed the game in <strong>${moves} moves</strong> and <strong>${formatTime(time)}</strong>.`;
+  }
+
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onPlayAgain}> {/* Use onOpenChange to handle closing */}
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onPlayAgain()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Congratulations!</AlertDialogTitle>
-          <AlertDialogDescription>
-            You matched all the {itemText} pairs!
-            <br />
-            You completed the game in <strong>{moves} moves</strong> and <strong>{formatTime(time)}</strong>.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription dangerouslySetInnerHTML={{ __html: description }} />
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogAction onClick={onPlayAgain}>Play Again</AlertDialogAction>
@@ -61,5 +74,3 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
 };
 
 export default CompletionDialog;
-
-    

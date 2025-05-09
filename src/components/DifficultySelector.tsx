@@ -1,26 +1,47 @@
 
-
 'use client';
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react'; // Import back icon
+import { ArrowLeft } from 'lucide-react';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 
 interface DifficultySelectorProps {
   onSelectDifficulty: (difficulty: Difficulty) => void;
-  onGoBack: () => void; // Function to go back to game selection
+  onGoBack: () => void;
   currentDifficulty: Difficulty | null;
-  itemType: 'Verbs' | 'Adjectives' | 'Animals' | 'Plants' | 'Food Items' | 'Transport/Buildings' | 'Irregular Past Tense Verbs' | 'Regular Past Tense Verbs' | 'Nations & Nationalities'; // Added Nations
-  itemCounts: { easy: number; medium: number; hard: number }; // Accept item counts as prop
+  itemType: string; // Generic enough for all game types
+  itemCounts: { easy: number; medium: number; hard: number };
+  isTrivia?: boolean; // Optional flag for trivia game
 }
 
-const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficulty, onGoBack, currentDifficulty, itemType, itemCounts }) => {
+const DifficultySelector: React.FC<DifficultySelectorProps> = ({
+  onSelectDifficulty,
+  onGoBack,
+  currentDifficulty,
+  itemType,
+  itemCounts,
+  isTrivia = false,
+}) => {
   const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
 
-  // Adjust pluralization based on itemType
-  const pluralItemType = itemType.endsWith('s') || itemType === 'Nations & Nationalities' ? 'items' : itemType; // Adjust for Nations
+  const getItemText = (level: Difficulty) => {
+    if (isTrivia) {
+      return `${itemCounts[level]} Questions`;
+    }
+    const pluralItemType = itemCounts[level] !== 1 && !itemType.endsWith('s') && itemType !== 'Nations & Nationalities'
+      ? itemType + 's'
+      : itemType.endsWith('s') || itemType === 'Nations & Nationalities'
+      ? itemType
+      : itemType + 's'; // Fallback pluralization
+    
+    // Adjust "items" specifically for Nations & Nationalities to "pairs" for matching
+    const displayItemType = itemType === 'Nations & Nationalities' && !isTrivia ? 'pairs' : pluralItemType;
+
+    return `${itemCounts[level]} ${displayItemType}`;
+  };
+
 
   return (
     <div className="flex flex-col items-center space-y-4 my-8 w-full">
@@ -33,7 +54,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
             className="capitalize px-6 py-2 rounded-md shadow-sm"
             aria-pressed={currentDifficulty === level}
           >
-            {level} ({itemCounts[level]} {pluralItemType})
+            {level} ({getItemText(level)})
           </Button>
         ))}
       </div>
@@ -45,5 +66,3 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
 };
 
 export default DifficultySelector;
-
-    

@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe } from 'lucide-react'; // Import Globe icon for nations
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle } from 'lucide-react'; // Added HelpCircle for Trivia
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -34,20 +34,26 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton onClick={() => handleSelectGame('verbs')} tooltip="Play Verb Game">
+        <SidebarMenuButton onClick={() => handleSelectGame('verbs')} tooltip="Play Verb Matching Game">
           <BookText />
-          <span>Verbs</span>
+          <span>Verb Matching</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-       <SidebarMenuItem> {/* Irregular Past Tense Item */}
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => handleSelectGame('trivia')} tooltip="Play Verb Trivia Game">
+          <HelpCircle /> {/* Icon for Trivia */}
+          <span>Verb Trivia</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+       <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('pastTense')} tooltip="Play Irregular Past Tense Game">
            <Clock />
           <span>Irregular Past</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem> {/* Regular Past Tense Item */}
+      <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('regularPastTense')} tooltip="Play Regular Past Tense Game">
-           <Cog /> {/* Using Cog icon as an example */}
+           <Cog />
           <span>Regular Past</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -57,31 +63,31 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>Adjectives</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem> {/* Animal Item */}
+      <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('animals')} tooltip="Play Animal Game">
            <PawPrint />
           <span>Animals</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem> {/* Plant Item */}
+      <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('plants')} tooltip="Play Plant Game">
            <Leaf />
           <span>Plants</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-       <SidebarMenuItem> {/* Food Item */}
+       <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('food')} tooltip="Play Food/Candy/Drink Game">
            <Utensils />
           <span>Food Items</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem> {/* Transport/Buildings Item */}
+      <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('transportBuildings')} tooltip="Play Transport/Buildings Game">
            <Building />
           <span>Transport/Buildings</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-       <SidebarMenuItem> {/* Nations & Nationalities Item */}
+       <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('nations')} tooltip="Play Nations & Nationalities Game">
            <Globe />
           <span>Nations</span>
@@ -92,5 +98,3 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
 };
 
 export default SidebarNav;
-
-    

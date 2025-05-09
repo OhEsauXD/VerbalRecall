@@ -6,7 +6,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import DifficultySelector from '@/components/DifficultySelector';
 import CompletionDialog from '@/components/CompletionDialog';
 import GameSelection from '@/components/GameSelection';
-import GameEngine from '@/components/GameEngine'; // Import the new GameEngine component
+import GameEngine from '@/components/GameEngine';
 import { pastTensePairs } from '@/lib/pastTense';
 import { regularPastTensePairs } from '@/lib/regularPastTense';
 import { nationPairs } from '@/lib/nations';
@@ -19,13 +19,13 @@ import { transportBuildingPairs } from '@/lib/transportBuildings';
 
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations';
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia';
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 interface CompletionDialogState {
   isOpen: boolean;
-  moves: number;
-  time: number;
+  moves: number; // For matching: moves; For trivia: questions attempted/correct
+  time: number;  // For matching: time in seconds; For trivia: final score
   itemType: GameType | null;
 }
 
@@ -47,12 +47,11 @@ export default function Home() {
 
   const resetAllGameStates = () => {
     setIsHintActive(false);
-    // No need to reset individual game card/move states as GameEngine handles them
   };
 
   const handleSelectGameType = (type: GameType) => {
     setCurrentGameType(type);
-    setCurrentDifficulty(null); // Reset difficulty when game type changes
+    setCurrentDifficulty(null);
     setView('difficulty');
     resetAllGameStates();
   };
@@ -66,7 +65,6 @@ export default function Home() {
 
   const handleGoBackToDifficulty = () => {
     setView('difficulty');
-    // GameEngine will re-initialize, no need to reset its internal state here
     setIsHintActive(false);
   };
 
@@ -80,23 +78,35 @@ export default function Home() {
   const handleSelectDifficulty = (selectedDifficulty: Difficulty) => {
     setCurrentDifficulty(selectedDifficulty);
     setView('game');
-    setIsHintActive(false); // Reset hint when starting a new game
+    setIsHintActive(false);
   };
 
-  const handleGameComplete = (moves: number, time: number) => {
+  const handleGameComplete = (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number }) => {
     if (currentGameType) {
+      let dialogMoves = 0;
+      let dialogTime = 0; // Represents score for trivia
+
+      if (currentGameType === 'trivia') {
+        dialogMoves = result.questionsAttempted || 0;
+        dialogTime = result.score || 0;
+      } else {
+        dialogMoves = result.moves || 0;
+        dialogTime = result.time || 0;
+      }
+
       setCompletionDialog({
         isOpen: true,
-        moves,
-        time,
+        moves: dialogMoves,
+        time: dialogTime,
         itemType: currentGameType,
       });
     }
   };
 
+
   const handlePlayAgainFromDialog = () => {
     setCompletionDialog({ isOpen: false, moves: 0, time: 0, itemType: null });
-    handleGoHome(); // Or handleGoBackToSelection to allow choosing a new game
+    handleGoHome();
   };
 
   const getItemTypeCounts = (gameType: GameType | null) => {
@@ -119,6 +129,8 @@ export default function Home() {
         return { easy: 15, medium: 30, hard: regularPastTensePairs.length };
       case 'nations':
         return { easy: 15, medium: 30, hard: nationPairs.length };
+      case 'trivia': // Trivia game uses verbs, counts are question numbers
+        return { easy: 10, medium: 15, hard: 20 }; // Number of questions
       default:
         return { easy: 15, medium: 30, hard: 60 };
     }
@@ -135,6 +147,7 @@ export default function Home() {
       case 'pastTense': return 'Irregular Past Tense Verbs';
       case 'regularPastTense': return 'Regular Past Tense Verbs';
       case 'nations': return 'Nations & Nationalities';
+      case 'trivia': return 'Verb Trivia';
       default: return 'Items';
     }
   }
@@ -145,7 +158,7 @@ export default function Home() {
       case 'selection':
         return <GameSelection onSelectGame={handleSelectGameType} />;
       case 'difficulty':
-        if (!currentGameType) return <GameSelection onSelectGame={handleSelectGameType} />; // Fallback
+        if (!currentGameType) return <GameSelection onSelectGame={handleSelectGameType} />;
         return (
           <div className="flex flex-col items-center w-full">
             <h2 className="text-2xl font-semibold text-center my-4 text-foreground">
@@ -157,6 +170,7 @@ export default function Home() {
               onGoBack={handleGoBackToSelection}
               currentDifficulty={currentDifficulty}
               itemCounts={getItemTypeCounts(currentGameType)}
+              isTrivia={currentGameType === 'trivia'}
             />
           </div>
         );
@@ -173,7 +187,6 @@ export default function Home() {
             />
           );
         }
-        // Fallback if game type or difficulty is not set
         setView('selection');
         return <GameSelection onSelectGame={handleSelectGameType} />;
       default:

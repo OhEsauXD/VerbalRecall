@@ -5,7 +5,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import type { GameType } from '@/app/page'; // Import GameType
+import type { GameType } from '@/app/page';
 
 
 interface GameSelectionProps {
@@ -14,12 +14,12 @@ interface GameSelectionProps {
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-4 md:p-8 w-full"> {/* Adjusted grid for more items */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-4 md:p-8 w-full">
        {/* Verb Game Card */}
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
           <Image
-            src="https://picsum.photos/400/200?random=1" // Added random query
+            src="https://picsum.photos/400/200?random=1"
             alt="Abstract representation of verbs"
             width={400}
             height={200}
@@ -40,16 +40,41 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         </CardFooter>
       </Card>
 
+      {/* Verb Trivia Game Card */}
+      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+        <CardHeader className="p-0">
+          <Image
+            src="https://picsum.photos/400/200?random=10" // New random seed
+            alt="Abstract representation of trivia or question marks"
+            width={400}
+            height={200}
+            className="w-full h-48 object-cover"
+            data-ai-hint="quiz brain"
+          />
+        </CardHeader>
+        <CardContent className="p-6 flex-grow">
+          <CardTitle className="mb-2 text-xl font-semibold text-primary">Verb Trivia Challenge</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Translate Spanish verbs to English by typing the correct letters. Use hints wisely and test your recall!
+          </CardDescription>
+        </CardContent>
+        <CardFooter className="p-6 pt-0 mt-auto">
+          <Button onClick={() => onSelectGame('trivia')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+            Play Verb Trivia
+          </Button>
+        </CardFooter>
+      </Card>
+
       {/* Irregular Past Tense Game Card */}
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
           <Image
-            src="https://picsum.photos/400/200?random=7" // New random seed
+            src="https://picsum.photos/400/200?random=7"
             alt="Abstract representation of past tense verbs"
             width={400}
             height={200}
             className="w-full h-48 object-cover"
-            data-ai-hint="time clock" // AI Hint for past tense image
+            data-ai-hint="time clock"
           />
         </CardHeader>
         <CardContent className="p-6 flex-grow">
@@ -69,12 +94,12 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
           <Image
-            src="https://picsum.photos/400/200?random=8" // Another new random seed
+            src="https://picsum.photos/400/200?random=8"
             alt="Abstract representation of regular past tense verbs"
             width={400}
             height={200}
             className="w-full h-48 object-cover"
-            data-ai-hint="rules gears" // AI Hint for regular past tense image
+            data-ai-hint="rules gears"
           />
         </CardHeader>
         <CardContent className="p-6 flex-grow">
@@ -95,7 +120,7 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
           <Image
-            src="https://picsum.photos/400/200?random=2" // Added random query
+            src="https://picsum.photos/400/200?random=2"
             alt="Abstract representation of adjectives"
             width={400}
             height={200}
@@ -120,12 +145,12 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
           <Image
-            src="https://picsum.photos/400/200?random=3" // Added random query
+            src="https://picsum.photos/400/200?random=3"
             alt="Abstract representation of animals"
             width={400}
             height={200}
             className="w-full h-48 object-cover"
-            data-ai-hint="animals nature" // AI Hint for animal image
+            data-ai-hint="animals nature"
           />
         </CardHeader>
         <CardContent className="p-6 flex-grow">
@@ -145,12 +170,12 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
             <CardHeader className="p-0">
             <Image
-                src="https://picsum.photos/400/200?random=4" // Added random query
+                src="https://picsum.photos/400/200?random=4"
                 alt="Abstract representation of plants"
                 width={400}
                 height={200}
                 className="w-full h-48 object-cover"
-                data-ai-hint="plants garden" // AI Hint for plant image
+                data-ai-hint="plants garden"
             />
             </CardHeader>
             <CardContent className="p-6 flex-grow">
@@ -170,12 +195,12 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
             <CardHeader className="p-0">
             <Image
-                src="https://picsum.photos/400/200?random=5" // Added random query
+                src="https://picsum.photos/400/200?random=5"
                 alt="Abstract representation of food, candy, and drinks"
                 width={400}
                 height={200}
                 className="w-full h-48 object-cover"
-                data-ai-hint="food drink" // AI Hint for food/drink image
+                data-ai-hint="food drink"
             />
             </CardHeader>
             <CardContent className="p-6 flex-grow">
@@ -195,12 +220,12 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
             <CardHeader className="p-0">
             <Image
-                src="https://picsum.photos/400/200?random=6" // Added random query
+                src="https://picsum.photos/400/200?random=6"
                 alt="Abstract representation of transport and buildings"
                 width={400}
                 height={200}
                 className="w-full h-48 object-cover"
-                data-ai-hint="city transport" // AI Hint for transport/buildings image
+                data-ai-hint="city transport"
             />
             </CardHeader>
             <CardContent className="p-6 flex-grow">
@@ -220,12 +245,12 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
             <CardHeader className="p-0">
             <Image
-                src="https://picsum.photos/400/200?random=9" // New random seed
+                src="https://picsum.photos/400/200?random=9"
                 alt="Abstract representation of nations and flags"
                 width={400}
                 height={200}
                 className="w-full h-48 object-cover"
-                data-ai-hint="flags world" // AI Hint for nations image
+                data-ai-hint="flags world"
             />
             </CardHeader>
             <CardContent className="p-6 flex-grow">
@@ -245,5 +270,3 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
 };
 
 export default GameSelection;
-
-    
