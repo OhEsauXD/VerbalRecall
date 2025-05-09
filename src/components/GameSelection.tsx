@@ -131,18 +131,18 @@ const gameCategories: Record<string, GameCardData[]> = {
 };
 
 const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onSelectGame: (type: GameType) => void }> = ({ title, games, onSelectGame }) => (
-  <div className="mb-12 w-full max-w-3xl mx-auto">
+  <div className="mb-12 w-full max-w-4xl mx-auto"> {/* Increased max-width for better large screen layout */}
     <h2 className="text-3xl font-bold mb-6 text-center text-primary">{title}</h2>
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 3,
+        loop: games.length > 3, // Loop if more than 3 items, adjust as needed
       }}
       className="w-full"
     >
-      <CarouselContent className="-ml-4">
+      <CarouselContent className="-ml-2 md:-ml-4"> {/* Adjust margin for spacing */}
         {games.map((game) => (
-          <CarouselItem key={game.type} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+          <CarouselItem key={game.type} className="pl-2 md:pl-4 w-full max-w-[360px] sm:max-w-none basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3">
             <div className="p-1 h-full">
               <Card className="w-full h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
                 <CardHeader className="p-0">
@@ -171,7 +171,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
           </CarouselItem>
         ))}
       </CarouselContent>
-      {games.length > 1 && ( // Show arrows only if there's more than one item, or adjust threshold (e.g., games.length > 3 for lg screens)
+      {games.length > 1 && (
         <>
             <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
             <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
@@ -192,3 +192,4 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
 };
 
 export default GameSelection;
+
