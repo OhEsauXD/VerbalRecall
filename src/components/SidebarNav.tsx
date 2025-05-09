@@ -2,8 +2,8 @@
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock } from 'lucide-react'; // Added Lock for VerbLock
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock } from 'lucide-react';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
 
@@ -17,22 +17,38 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
 
   const handleSelectGame = (type: GameType) => {
     onSelectGameType(type);
-    setOpenMobile(false);
+    setOpenMobile(false); // Close mobile sidebar on selection
   };
 
   const handleGoHomeClick = () => {
     onGoHome();
-    setOpenMobile(false);
+    setOpenMobile(false); // Close mobile sidebar on selection
   };
 
   return (
     <SidebarMenu>
-       <SidebarMenuItem>
+      <SidebarMenuItem>
         <SidebarMenuButton onClick={handleGoHomeClick} tooltip="Go Home">
           <Home />
           <span>Home</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
+
+      <SidebarSeparator />
+      <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+         <span className="group-data-[collapsible=icon]:hidden">Trivia Games</span>
+      </SidebarGroupLabel>
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => handleSelectGame('trivia')} tooltip="Play Verb Trivia Game">
+          <HelpCircle />
+          <span>Verb Trivia</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarSeparator />
+       <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+         <span className="group-data-[collapsible=icon]:hidden">Memory Games</span>
+      </SidebarGroupLabel>
       <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('verbs')} tooltip="Play Verb Matching Game">
           <BookText />
@@ -40,18 +56,6 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton onClick={() => handleSelectGame('trivia')} tooltip="Play Verb Trivia Game">
-          <HelpCircle /> {/* Icon for Trivia */}
-          <span>Verb Trivia</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton onClick={() => handleSelectGame('verbLock')} tooltip="Play Verb Combination Lock Game">
-          <Lock />
-          <span>Verb Lock</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-       <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('pastTense')} tooltip="Play Irregular Past Tense Game">
            <Clock />
           <span>Irregular Past</span>
@@ -97,6 +101,17 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         <SidebarMenuButton onClick={() => handleSelectGame('nations')} tooltip="Play Nations & Nationalities Game">
            <Globe />
           <span>Nations</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarSeparator />
+      <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+         <span className="group-data-[collapsible=icon]:hidden">Lock Games</span>
+      </SidebarGroupLabel>
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => handleSelectGame('verbLock')} tooltip="Play Verb Combination Lock Game">
+          <Lock />
+          <span>Verb Lock</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
