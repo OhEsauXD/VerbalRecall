@@ -131,12 +131,12 @@ const gameCategories: Record<string, GameCardData[]> = {
 };
 
 const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onSelectGame: (type: GameType) => void }> = ({ title, games, onSelectGame }) => (
-  <div className="mb-12 w-full max-w-6xl mx-auto">
+  <div className="mb-12 w-full max-w-3xl mx-auto">
     <h2 className="text-3xl font-bold mb-6 text-center text-primary">{title}</h2>
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 3, 
+        loop: games.length > 3,
       }}
       className="w-full"
     >
@@ -171,7 +171,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
           </CarouselItem>
         ))}
       </CarouselContent>
-      {games.length > 1 && (
+      {games.length > 1 && ( // Show arrows only if there's more than one item, or adjust threshold (e.g., games.length > 3 for lg screens)
         <>
             <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
             <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
