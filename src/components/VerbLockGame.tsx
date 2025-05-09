@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronUp, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
-import { VerbLock, VerbLockOptionKey, verbLocks as allVerbLocks } from '@/lib/verbLock';
+import { VerbLock, VerbLockOptionKey } from '@/lib/verbLock';
 import { cn } from '@/lib/utils';
 import type { Difficulty } from '@/app/page';
 
@@ -66,11 +66,16 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
 
   const keyLabels: VerbLockOptionKey[] = ['key1', 'key2', 'key3', 'key4'];
   const displayLabels = ['Spanish Infinitive', 'English Base', 'Past Simple', 'Past Participle'];
+  
+  // Get the English infinitive for the title
+  // The English base form is in options.key2 at the correctIndices[1]
+  const englishInfinitive = verbLock.options.key2[verbLock.correctIndices[1]];
+
 
   return (
     <div className="flex flex-col items-center p-4 md:p-6 bg-card text-card-foreground rounded-lg shadow-xl w-full max-w-2xl">
       <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">
-        Unlock the Verb: <span className="italic text-accent">{verbLock.spanish}</span>
+        Unlock the Verb: <span className="italic text-accent">to {englishInfinitive}</span>
       </h2>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 w-full">
@@ -127,3 +132,4 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
 };
 
 export default VerbLockGame;
+
