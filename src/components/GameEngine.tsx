@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -9,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import TriviaGame from '@/components/TriviaGame';
 import VerbLockGame from '@/components/VerbLockGame';
-import CombinationLockGame from '@/components/CombinationLockGame'; // Import new game
+import CombinationLockGame from '@/components/CombinationLockGame';
 import { generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
@@ -20,7 +18,7 @@ import { generatePastTenseGameBoard, PastTenseCardData } from '@/lib/pastTense';
 import { generateRegularPastTenseGameBoard, RegularPastTenseCardData } from '@/lib/regularPastTense';
 import { generateNationGameBoard, NationCardData } from '@/lib/nations';
 import { verbLockSources, VerbLockSource, VerbLockChallenge, globalDistractorPools, DistractorPools } from '@/lib/verbLock';
-import { combinationLockSubjects, CombinationLockChallenge as LibCombinationLockChallenge, shuffleArray as shuffleCombinationLockArray } from '@/lib/combinationLock'; // Import new lib
+import { combinationLockSubjects, CombinationLockChallenge as LibCombinationLockChallenge, shuffleArray as shuffleCombinationLockArray } from '@/lib/combinationLock';
 import type { GameType as PageGameType, Difficulty as PageDifficulty } from '@/app/page';
 
 export type GameType = PageGameType;
@@ -94,17 +92,21 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const [triviaQuestions, setTriviaQuestions] = useState<TriviaQuestion[]>([]);
   const [currentTriviaQuestionIndex, setCurrentTriviaQuestionIndex] = useState(0);
   const [triviaScore, setTriviaScore] = useState(0);
-  const [isTriviaHintActive, setIsTriviaHintActive] = useState(false);
+  const [isTriviaHintActive, setIsTriviaHintActive] = useState(false); // Specific for trivia game's own hint button state
 
   const [verbLockChallenges, setVerbLockChallenges] = useState<VerbLockChallenge[]>([]);
   const [currentVerbLockQuestIndex, setCurrentVerbLockQuestIndex] = useState(0);
   const [verbLockScore, setVerbLockScore] = useState(0);
+  const [verbLocksSolvedCount, setVerbLocksSolvedCount] = useState(0);
+
 
   const [combinationLockChallenges, setCombinationLockChallenges] = useState<LibCombinationLockChallenge[]>([]);
   const [currentCombinationLockIndex, setCurrentCombinationLockIndex] = useState(0);
   const [combinationLockScore, setCombinationLockScore] = useState(0);
+  const [combinationLocksSolvedCount, setCombinationLocksSolvedCount] = useState(0);
 
 
+  // General game state
   const [isGameActive, setIsGameActive] = useState(false);
   const [isChecking, setIsChecking] = useState(false); // For matching game card check delay
   const [time, setTime] = useState(0);
@@ -285,7 +287,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
         const keyName = `key${itemIndex + 1}` as keyof LibCombinationLockChallenge['options'];
         let currentTumblerOptions: string[] = [correctItem];
         
-        // Get distractors from the same subject, excluding the correct items for this lock
         const subjectDistractors = subject.items.filter(
           item => !correctItemsForLock.includes(item) && item !== correctItem
         );
@@ -297,7 +298,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
           }
         }
 
-        // If not enough from the same subject, get from global pool (all items from other subjects)
         if (currentTumblerOptions.length < 5) {
           const globalDistractorItems: string[] = [];
           combinationLockSubjects.forEach(s => {
@@ -316,7 +316,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
             }
           }
         }
-         // Fallback if still not enough unique options
         const genericFillers = ["Option A", "Option B", "Option C", "Option D", "Option E"];
         let fillerIdx = 0;
         while (currentTumblerOptions.length < 5) {
@@ -376,10 +375,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setVerbLockChallenges(generateVerbLockChallenges(difficulty));
       setCurrentVerbLockQuestIndex(0);
       setVerbLockScore(0);
+      setVerbLocksSolvedCount(0);
     } else if (gameType === 'combinationLock') {
       setCombinationLockChallenges(generateCombinationLockChallenges(difficulty));
       setCurrentCombinationLockIndex(0);
       setCombinationLockScore(0);
+      setCombinationLocksSolvedCount(0);
     }
      else {
       const generator = getBoardGenerator();
@@ -469,21 +470,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
     if (currentTriviaQuestionIndex >= triviaQuestions.length) return;
 
     const currentQ = triviaQuestions[currentTriviaQuestionIndex];
-    let questionScore = 0;
-    let allCorrect = true;
+    const userAnswer = currentQ.userGuess.join('').toLowerCase();
+    const correctAnswer = currentQ.answer.toLowerCase();
+    const isCorrect = userAnswer === correctAnswer;
 
-    for (let i = 0; i < currentQ.answerLetters.length; i++) {
-      if (currentQ.userGuess[i] === currentQ.answerLetters[i] && !currentQ.revealedIndices.has(i)) {
-        questionScore++;
-      }
-      if (currentQ.userGuess[i] !== currentQ.answerLetters[i]) {
-        allCorrect = false;
-      }
+    let finalScore = triviaScore;
+    if (isCorrect) {
+      finalScore += 1;
+    } else {
+      finalScore = Math.max(0, finalScore - 1);
     }
-    setTriviaScore(prev => prev + questionScore);
+    setTriviaScore(finalScore);
 
     setTriviaQuestions(prev => prev.map((q, i) =>
-      i === currentTriviaQuestionIndex ? { ...q, isAttempted: true, isCorrect: allCorrect } : q
+      i === currentTriviaQuestionIndex ? { ...q, isAttempted: true, isCorrect: isCorrect } : q
     ));
 
     setTimeout(() => {
@@ -491,7 +491,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             setCurrentTriviaQuestionIndex(prev => prev + 1);
           } else {
             setIsGameActive(false);
-            onGameComplete({ questionsAttempted: triviaQuestions.length, score: triviaScore + questionScore });
+            onGameComplete({ questionsAttempted: triviaQuestions.length, score: finalScore });
           }
     }, 1500);
   };
@@ -499,7 +499,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const handleTriviaHint = () => {
     if (currentTriviaQuestionIndex >= triviaQuestions.length || triviaScore <= 0) return;
 
-    setTriviaScore(prev => prev - 1);
+    setTriviaScore(prev => Math.max(0, prev - 1)); // Deduct point for hint
+    setIsTriviaHintActive(true); // Indicate hint was used for this question
+
     setTriviaQuestions(prev => prev.map((q, i) => {
       if (i === currentTriviaQuestionIndex) {
         const unrevealedIndices = q.answerLetters
@@ -517,33 +519,53 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
       return q;
     }));
+     setTimeout(() => setIsTriviaHintActive(false), 1000); // Reset hint active state after a short delay
   };
+
 
   const handleVerbLockSolved = (isCorrect: boolean) => {
     if (currentVerbLockQuestIndex >= verbLockChallenges.length) return;
 
+    let newScore = verbLockScore;
+    let solvedCount = verbLocksSolvedCount;
+
     if (isCorrect) {
-      setVerbLockScore(prev => prev + 1);
+      newScore += 1;
+      solvedCount +=1;
+    } else {
+      newScore = Math.max(0, newScore - 1);
     }
+    setVerbLockScore(newScore);
+    setVerbLocksSolvedCount(solvedCount);
+
     if (currentVerbLockQuestIndex < verbLockChallenges.length - 1) {
       setCurrentVerbLockQuestIndex(prev => prev + 1);
     } else {
       setIsGameActive(false);
-      onGameComplete({ locksSolved: currentVerbLockQuestIndex + (isCorrect ? 1: 0), score: verbLockScore + (isCorrect ? 1: 0) });
+      onGameComplete({ locksSolved: solvedCount, score: newScore });
     }
   };
 
    const handleCombinationLockSolved = (isCorrect: boolean) => {
     if (currentCombinationLockIndex >= combinationLockChallenges.length) return;
+    
+    let newScore = combinationLockScore;
+    let solvedCount = combinationLocksSolvedCount;
 
     if (isCorrect) {
-      setCombinationLockScore(prev => prev + 1);
+      newScore += 1;
+      solvedCount += 1;
+    } else {
+      newScore = Math.max(0, newScore - 1);
     }
+    setCombinationLockScore(newScore);
+    setCombinationLocksSolvedCount(solvedCount);
+
     if (currentCombinationLockIndex < combinationLockChallenges.length - 1) {
       setCurrentCombinationLockIndex(prev => prev + 1);
     } else {
       setIsGameActive(false);
-      onGameComplete({ locksSolved: currentCombinationLockIndex + (isCorrect ? 1 : 0), score: combinationLockScore + (isCorrect ? 1 : 0) });
+      onGameComplete({ locksSolved: solvedCount, score: newScore });
     }
   };
 
@@ -609,7 +631,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
         moves={moves}
         score={
           (gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaScore :
-          (gameType === 'verbLock' || gameType === 'combinationLock') ? (gameType === 'verbLock' ? verbLockScore : combinationLockScore) :
+          (gameType === 'verbLock') ? verbLockScore :
+          (gameType === 'combinationLock') ? combinationLockScore :
           undefined
         }
         isGameActive={isGameActive}
@@ -636,4 +659,3 @@ const GameEngine: React.FC<GameEngineProps> = ({
 };
 
 export default GameEngine;
-

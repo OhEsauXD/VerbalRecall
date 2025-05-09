@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React from 'react';
@@ -16,8 +14,8 @@ import type { GameType } from '@/app/page';
 
 interface CompletionDialogProps {
   isOpen: boolean;
-  moves: number; 
-  time: number;  
+  moves: number; // For memory games: actual moves. For trivia/lock: attempts/items solved.
+  time: number;  // For memory games: time in seconds. For trivia/lock: final score.
   onPlayAgain: () => void;
   itemType: GameType;
 }
@@ -37,24 +35,24 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
 
   if (itemType === 'trivia') {
     title = "Past Participle Trivia Complete!"; 
-    description = `You finished the trivia!
+    description = `You attempted <strong>${moves} questions</strong>.
                    <br />
-                   You attempted <strong>${moves} questions</strong> and your final score is <strong>${time}</strong>.`;
+                   Your final score is <strong>${time}</strong>.`;
   } else if (itemType === 'spanishEnglishTrivia') {
     title = "Spanish to English Verb Trivia Complete!";
-    description = `You finished the trivia!
+    description = `You attempted <strong>${moves} questions</strong>.
                    <br />
-                   You attempted <strong>${moves} questions</strong> and your final score is <strong>${time}</strong>.`;
+                   Your final score is <strong>${time}</strong>.`;
   } else if (itemType === 'verbLock') {
     title = "Verb Lock Challenge Complete!";
-    description = `You successfully unlocked all combinations!
+    description = `You attempted <strong>${verbLockSources.length} locks</strong> and successfully solved <strong>${moves}</strong>.
                    <br />
-                   You solved <strong>${moves} locks</strong> and your final score is <strong>${time}</strong>.`;
+                   Your final score is <strong>${time}</strong>.`;
   } else if (itemType === 'combinationLock') {
     title = "Thematic Lock Challenge Complete!";
-    description = `You successfully unlocked all thematic combinations!
+    description = `You attempted <strong>${combinationLockSubjects.length} locks</strong> and successfully solved <strong>${moves}</strong>.
                    <br />
-                   You solved <strong>${moves} locks</strong> and your final score is <strong>${time}</strong>.`;
+                   Your final score is <strong>${time}</strong>.`;
   }
    else {
     const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock'>, string> = {
