@@ -85,14 +85,14 @@ export default function Home() {
 
   const handleGameComplete = (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number; locksSolved?: number }) => {
     if (currentGameType) {
-      let dialogMoves = 0; // Represents moves/questions attempted/locks attempted
-      let dialogTime = 0; // Represents time for matching, score for others
+      let dialogMoves = 0; 
+      let dialogTime = 0; 
 
       if (currentGameType === 'trivia') {
         dialogMoves = result.questionsAttempted || 0;
         dialogTime = result.score || 0;
       } else if (currentGameType === 'verbLock') {
-        dialogMoves = result.locksSolved || 0; 
+        dialogMoves = result.locksSolved || 0;
         dialogTime = result.score || 0;
       }
       else {
@@ -136,7 +136,7 @@ export default function Home() {
       case 'nations':
         return { easy: 15, medium: 30, hard: nationPairs.length };
       case 'trivia':
-        return { easy: 10, medium: 15, hard: 20 }; // Number of questions
+        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; // Number of questions, limited by verbLockSources
       case 'verbLock':
         return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; // Number of locks
       default:
@@ -155,7 +155,7 @@ export default function Home() {
       case 'pastTense': return 'Irregular Past Tense Verbs';
       case 'regularPastTense': return 'Regular Past Tense Verbs';
       case 'nations': return 'Nations & Nationalities';
-      case 'trivia': return 'Verb Trivia';
+      case 'trivia': return 'Past Participle Trivia'; // Updated name
       case 'verbLock': return 'Verb Combination Lock';
       default: return 'Items';
     }
@@ -208,9 +208,6 @@ export default function Home() {
       onSelectGameTypeFromSidebar={handleSelectGameType}
       onGoHome={handleGoHome}
     >
-      {/* The DashboardLayout's main tag already provides padding. 
-          The GameSelection component and other view components will fill this space.
-      */}
       {renderContent()}
       
       {completionDialog.isOpen && completionDialog.itemType && (

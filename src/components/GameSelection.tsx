@@ -4,7 +4,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image'; // Import next/image
+import Image from 'next/image'; 
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import type { GameType } from '@/app/page';
 
@@ -26,12 +26,12 @@ const gameCategories: Record<string, GameCardData[]> = {
   trivia: [
     {
       type: 'trivia',
-      title: 'Verb Trivia Challenge',
-      description: 'Translate Spanish verbs to English by typing the correct letters. Use hints wisely and test your recall!',
+      title: 'Past Participle Trivia', // Updated title
+      description: 'Enter the Past Participle for the given English verb. Test your knowledge of verb forms!', // Updated description
       imageSrc: 'https://picsum.photos/400/200?random=10',
-      imageAlt: 'Abstract representation of trivia or question marks',
-      aiHint: 'quiz brain',
-      buttonText: 'Play Verb Trivia',
+      imageAlt: 'Abstract representation of verb forms or grammar books',
+      aiHint: 'grammar books',
+      buttonText: 'Play Trivia',
     },
   ],
   lock: [
@@ -136,7 +136,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 3,
+        loop: games.length > 1, // Loop only if more than 1 item
       }}
       className="w-full"
     >
@@ -171,7 +171,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
           </CarouselItem>
         ))}
       </CarouselContent>
-      {games.length > 1 && (
+      {games.length > 1 && ( // Show controls only if more than 1 item
         <>
             <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
             <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
@@ -183,7 +183,6 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
   return (
-    // Removed padding from here, relies on DashboardLayout's padding
     <div className="flex flex-col items-center w-full">
       <GameCategoryCarousel title="Trivia Games" games={gameCategories.trivia} onSelectGame={onSelectGame} />
       <GameCategoryCarousel title="Combination Lock Games" games={gameCategories.lock} onSelectGame={onSelectGame} />

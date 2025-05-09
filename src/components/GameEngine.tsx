@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import TriviaGame from '@/components/TriviaGame';
 import VerbLockGame from '@/components/VerbLockGame';
-import { verbPairs, generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
+import { generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
@@ -55,13 +55,13 @@ type GenericCard = {
 
 export interface TriviaQuestion {
   id: number;
-  clue: string; // Spanish verb
-  answer: string; // Cleaned English verb
+  clue: string; // For original trivia: Spanish verb; For new trivia: English infinitive
+  answer: string; // For original trivia: Cleaned English verb; For new trivia: Cleaned English Past Participle
   answerLetters: string[];
   userGuess: string[];
   revealedIndices: Set<number>;
-  isAttempted: boolean; 
-  isCorrect: boolean | null; 
+  isAttempted: boolean;
+  isCorrect: boolean | null;
 }
 
 
@@ -70,8 +70,8 @@ interface GameEngineProps {
   difficulty: Difficulty;
   onGameComplete: (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number; locksSolved?: number }) => void;
   onBackToDifficulty: () => void;
-  isHintActive: boolean; 
-  onToggleHint: () => void; 
+  isHintActive: boolean;
+  onToggleHint: () => void;
 }
 
 const GameEngine: React.FC<GameEngineProps> = ({
@@ -97,7 +97,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const [verbLockScore, setVerbLockScore] = useState(0);
 
   const [isGameActive, setIsGameActive] = useState(false);
-  const [isChecking, setIsChecking] = useState(false); 
+  const [isChecking, setIsChecking] = useState(false);
   const [time, setTime] = useState(0);
 
 
@@ -105,7 +105,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     return verb.replace(/^to[\s_]*/, '').replace(/[\s_]/g, '').toLowerCase();
   };
 
-  const generateTriviaGameData = useCallback((diff: Difficulty): TriviaQuestion[] => {
+ const generateTriviaGameData = useCallback((diff: Difficulty): TriviaQuestion[] => {
     let numQuestions: number;
     switch (diff) {
       case 'easy': numQuestions = 10; break;
@@ -113,21 +113,30 @@ const GameEngine: React.FC<GameEngineProps> = ({
       case 'hard': numQuestions = 20; break;
       default: numQuestions = 10;
     }
-    const shuffledVerbs = [...verbPairs].sort(() => 0.5 - Math.random());
-    return shuffledVerbs.slice(0, numQuestions).map(pair => {
-      const cleanedAnswer = cleanVerb(pair.en);
+
+    // Use verbLockSources for English verb forms
+    const availableSources = verbLockSources.filter(source => source.englishBase.correct && source.englishPastParticiple.correct);
+    const shuffledSources = [...availableSources].sort(() => 0.5 - Math.random());
+    
+    // Ensure we don't try to slice more than available
+    const actualNumQuestions = Math.min(numQuestions, shuffledSources.length);
+
+    return shuffledSources.slice(0, actualNumQuestions).map(source => {
+      const clue = source.englishBase.correct; // English infinitive without "to"
+      const answer = cleanVerb(source.englishPastParticiple.correct); // Cleaned English past participle
       return {
-        id: pair.id,
-        clue: pair.es,
-        answer: cleanedAnswer,
-        answerLetters: cleanedAnswer.split(''),
-        userGuess: Array(cleanedAnswer.length).fill(''),
+        id: source.id, // Use the ID from verbLockSources
+        clue: clue,
+        answer: answer,
+        answerLetters: answer.split(''),
+        userGuess: Array(answer.length).fill(''),
         revealedIndices: new Set<number>(),
         isAttempted: false,
         isCorrect: null,
       };
     });
   }, []);
+
 
   const shuffleArray = <T,>(array: T[]): T[] => {
     const newArray = [...array];
@@ -137,11 +146,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
     return newArray;
   };
-  
+
   const generateSingleVerbLockChallenge = useCallback((source: VerbLockSource): VerbLockChallenge => {
     const challengeOptions: VerbLockChallenge['options'] = { key1: [], key2: [], key3: [], key4: [] };
     const challengeCorrectIndices: [number, number, number, number] = [0, 0, 0, 0];
-  
+
     const formDetails = [
       source.spanishInfinitive,
       source.englishBase,
@@ -154,18 +163,18 @@ const GameEngine: React.FC<GameEngineProps> = ({
       'englishPastSimples',
       'englishPastParticiples',
     ];
-  
+
     formDetails.forEach((detail, index) => {
       const keyName = `key${index + 1}` as keyof VerbLockChallenge['options'];
       let currentKeyDisplayOptions: string[] = [detail.correct];
-  
+
       if (detail.commonMistake && detail.commonMistake !== detail.correct) {
         currentKeyDisplayOptions.push(detail.commonMistake);
       }
-  
+
       const pool = globalDistractorPools[distractorCategories[index]];
       const shuffledPool = shuffleArray([...pool]);
-      
+
       let distractorIdx = 0;
       while (currentKeyDisplayOptions.length < 5 && distractorIdx < shuffledPool.length) {
         const distractor = shuffledPool[distractorIdx];
@@ -174,21 +183,18 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
         distractorIdx++;
       }
-      
-      // Fallback to ensure 5 options, even if it means repeating distractors from the pool
-      // or using generic fillers if the pool is exhausted.
-      distractorIdx = 0; 
+
+      distractorIdx = 0;
       while (currentKeyDisplayOptions.length < 5 && pool.length > 0) {
           currentKeyDisplayOptions.push(shuffledPool[distractorIdx % shuffledPool.length]);
           distractorIdx++;
-          if (distractorIdx > pool.length * 2 && currentKeyDisplayOptions.length < 5) break; // Safety break
+          if (distractorIdx > pool.length * 2 && currentKeyDisplayOptions.length < 5) break;
       }
-      
+
       const genericFillers = ["Option A", "Option B", "Option C", "Option D", "Option E", "Option F", "Option G"];
       let fillerIdx = 0;
       while (currentKeyDisplayOptions.length < 5) {
           let filler = genericFillers[fillerIdx % genericFillers.length];
-          // Ensure filler is somewhat unique if possible, or append index to make it unique for display
           if (!currentKeyDisplayOptions.includes(filler)) {
             currentKeyDisplayOptions.push(filler);
           } else {
@@ -200,9 +206,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const finalShuffledOptions = shuffleArray(currentKeyDisplayOptions.slice(0,5));
       challengeOptions[keyName] = Object.freeze(finalShuffledOptions as readonly string[]);
       const correctIdx = finalShuffledOptions.indexOf(detail.correct);
-      challengeCorrectIndices[index] = correctIdx !== -1 ? correctIdx : 0; // Fallback to 0 if not found (should not happen)
+      challengeCorrectIndices[index] = correctIdx !== -1 ? correctIdx : 0;
     });
-  
+
     return {
       id: source.id,
       spanishDisplayTitle: source.spanishInfinitive.correct,
@@ -316,14 +322,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   const getGridColsClass = (diff: Difficulty | null) => {
     switch (diff) {
-      case 'easy': // Max 30 cards (15 pairs)
+      case 'easy':
         return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6';
-      case 'medium': // Max 60 cards (30 pairs)
+      case 'medium':
         return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10';
-      case 'hard': // Max 120 cards (60 pairs), some games less
+      case 'hard':
         return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10';
       default:
-        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5'; // Fallback
+        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5';
     }
   };
 
@@ -355,7 +361,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
     }
     setTriviaScore(prev => prev + questionScore);
-    
+
     setTriviaQuestions(prev => prev.map((q, i) =>
       i === currentTriviaQuestionIndex ? { ...q, isAttempted: true, isCorrect: allCorrect } : q
     ));
@@ -397,7 +403,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     if (currentVerbLockQuestIndex >= verbLockChallenges.length) return;
 
     if (isCorrect) {
-      setVerbLockScore(prev => prev + 1); 
+      setVerbLockScore(prev => prev + 1);
     }
     if (currentVerbLockQuestIndex < verbLockChallenges.length - 1) {
       setCurrentVerbLockQuestIndex(prev => prev + 1);
@@ -426,7 +432,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         />
       );
     }
-    else if (gameType !== 'trivia' && gameType !== 'verbLock') { // Existing matching games
+    else if (gameType !== 'trivia' && gameType !== 'verbLock') {
       return (
         <div className={`grid ${getGridColsClass(difficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
           {cards.map((card) => {
@@ -437,7 +443,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             if (card.text) cardProps.text = card.text;
             if (card.verb) cardProps.text = card.verb;
             if (card.language) cardProps.language = card.language;
-            if (card.tense) cardProps.language = card.tense as 'en' | 'es';
+            if (card.tense) cardProps.language = card.tense as 'infinitive' | 'past'; // Explicitly cast
             if (card.type === 'image' || (gameType === 'animals' && card.type === 'image') || (gameType === 'plants' && card.type === 'image') || (gameType === 'food' && card.type === 'image') || (gameType === 'transportBuildings' && card.type === 'image')) {
               cardProps.imageUrl = card.imageUrl; cardProps.spanishName = card.spanishName; cardProps.dataAiHint = card.dataAiHint;
             } else if (card.type === 'name') { cardProps.text = card.name; }

@@ -4,12 +4,12 @@
 import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { TriviaQuestion } from '@/components/GameEngine'; // Assuming TriviaQuestion is exported from GameEngine
+import { TriviaQuestion } from '@/components/GameEngine'; 
 import { cn } from '@/lib/utils';
 
 interface TriviaGameProps {
   question: TriviaQuestion;
-  questionIndex: number; // To manage focus and unique IDs for inputs
+  questionIndex: number; 
   onInputChange: (questionIndex: number, letterIndex: number, value: string) => void;
   onSubmit: () => void;
 }
@@ -23,40 +23,36 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    // Initialize refs array
     inputRefs.current = inputRefs.current.slice(0, question.answerLetters.length);
   }, [question.answerLetters.length]);
 
   useEffect(() => {
-    // Focus the first non-revealed, non-filled input when the question changes
     if (question) {
       const firstEmptyOrFocusableInputIndex = question.userGuess.findIndex(
         (guess, idx) => guess === '' && !question.revealedIndices.has(idx)
       );
       if (firstEmptyOrFocusableInputIndex !== -1 && inputRefs.current[firstEmptyOrFocusableInputIndex]) {
         inputRefs.current[firstEmptyOrFocusableInputIndex]?.focus();
-      } else if (inputRefs.current[0]) { // Fallback to first input if all are filled/revealed
+      } else if (inputRefs.current[0]) { 
         inputRefs.current[0]?.focus();
       }
     }
   }, [question]);
 
   const handleInputChange = (index: number, value: string) => {
-    const char = value.slice(-1).toUpperCase(); // Take last char, uppercase
-    if (/^[A-Z]*$/.test(char)) { // Allow only letters or empty string (for backspace)
+    const char = value.slice(-1).toUpperCase(); 
+    if (/^[A-Z]*$/.test(char)) { 
       onInputChange(questionIndex, index, char);
-      // Move focus to next input if a character is entered
       if (char && index < question.answerLetters.length - 1 && inputRefs.current[index + 1]) {
         inputRefs.current[index + 1]?.focus();
       }
-    } else if (value === '') { // Handle backspace leading to empty value
+    } else if (value === '') { 
         onInputChange(questionIndex, index, '');
     }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && question.userGuess[index] === '' && index > 0 && inputRefs.current[index - 1]) {
-      // If current is empty and backspace is pressed, move to previous
       inputRefs.current[index - 1]?.focus();
     } else if (e.key === 'ArrowLeft' && index > 0 && inputRefs.current[index - 1]) {
       inputRefs.current[index - 1]?.focus();
@@ -70,10 +66,10 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
   return (
     <div className="flex flex-col items-center p-4 md:p-8 bg-card text-card-foreground rounded-lg shadow-lg w-full max-w-2xl">
       <h3 className="text-xl md:text-2xl font-semibold text-primary mb-2 text-center">
-        Translate the Spanish Verb:
+        What is the Past Participle of:
       </h3>
       <p className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">
-        {question.clue}
+        to {question.clue}
       </p>
 
       <div className="flex justify-center gap-1 md:gap-2 mb-6 flex-wrap">

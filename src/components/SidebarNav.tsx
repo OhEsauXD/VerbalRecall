@@ -17,12 +17,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
 
   const handleSelectGame = (type: GameType) => {
     onSelectGameType(type);
-    setOpenMobile(false); // Close mobile sidebar on selection
+    setOpenMobile(false); 
   };
 
   const handleGoHomeClick = () => {
     onGoHome();
-    setOpenMobile(false); // Close mobile sidebar on selection
+    setOpenMobile(false); 
   };
 
   return (
@@ -39,9 +39,9 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
          <span className="group-data-[collapsible=icon]:hidden">Trivia Games</span>
       </SidebarGroupLabel>
       <SidebarMenuItem>
-        <SidebarMenuButton onClick={() => handleSelectGame('trivia')} tooltip="Play Verb Trivia Game">
+        <SidebarMenuButton onClick={() => handleSelectGame('trivia')} tooltip="Play Past Participle Trivia Game">
           <HelpCircle />
-          <span>Verb Trivia</span>
+          <span>Past Participle Trivia</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
 

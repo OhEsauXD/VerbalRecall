@@ -35,7 +35,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
   let description = "";
 
   if (itemType === 'trivia') {
-    title = "Trivia Game Complete!";
+    title = "Past Participle Trivia Complete!"; // Updated title
     description = `You finished the trivia!
                    <br />
                    You attempted <strong>${moves} questions</strong> and your final score is <strong>${time}</strong>.`;
