@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { GameType } from \'../games/utils/types\';\n
 
 interface CompletionDialogProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface CompletionDialogProps {
   onPlayAgain: () => void;
   itemType: 'verb' | 'adjective' | 'animal' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nations'; // Add 'nations'
 }
+  itemType: GameType | undefined; // Updated to use GameType enum\n
 
 const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time, onPlayAgain, itemType }) => {
 
