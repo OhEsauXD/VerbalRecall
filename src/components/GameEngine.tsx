@@ -314,9 +314,18 @@ const GameEngine: React.FC<GameEngineProps> = ({
     setTime(currentTime);
   };
 
-  const getGridColsClass = (diff: Difficulty | null) => diff === 'easy' ? 'grid-cols-5 sm:grid-cols-6' :
-                       diff === 'medium' ? 'grid-cols-6 sm:grid-cols-8 md:grid-cols-10' :
-                       'grid-cols-8 sm:grid-cols-10 md:grid-cols-12';
+  const getGridColsClass = (diff: Difficulty | null) => {
+    switch (diff) {
+      case 'easy': // Max 30 cards (15 pairs)
+        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6';
+      case 'medium': // Max 60 cards (30 pairs)
+        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10';
+      case 'hard': // Max 120 cards (60 pairs), some games less
+        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10';
+      default:
+        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5'; // Fallback
+    }
+  };
 
 
   const handleTriviaInputChange = (questionIndex: number, letterIndex: number, value: string) => {
