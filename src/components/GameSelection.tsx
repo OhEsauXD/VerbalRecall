@@ -54,6 +54,15 @@ const gameCategories: Record<string, GameCardData[]> = {
       aiHint: 'lock combination',
       buttonText: 'Play Verb Lock',
     },
+    {
+      type: 'combinationLock',
+      title: 'Thematic Combination Lock',
+      description: 'Guess four related items from a given category. Rotate the tumblers to find the correct words!',
+      imageSrc: 'https://picsum.photos/400/200?random=13', 
+      imageAlt: 'Abstract representation of a thematic combination lock',
+      aiHint: 'themed lock',
+      buttonText: 'Play Thematic Lock',
+    },
   ],
   memory: [
     {

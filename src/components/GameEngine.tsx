@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import TriviaGame from '@/components/TriviaGame';
 import VerbLockGame from '@/components/VerbLockGame';
-import { generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
+import CombinationLockGame from '@/components/CombinationLockGame'; // Import new game
+import { generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
@@ -19,6 +20,7 @@ import { generatePastTenseGameBoard, PastTenseCardData } from '@/lib/pastTense';
 import { generateRegularPastTenseGameBoard, RegularPastTenseCardData } from '@/lib/regularPastTense';
 import { generateNationGameBoard, NationCardData } from '@/lib/nations';
 import { verbLockSources, VerbLockSource, VerbLockChallenge, globalDistractorPools, DistractorPools } from '@/lib/verbLock';
+import { combinationLockSubjects, CombinationLockChallenge as LibCombinationLockChallenge, LockSubject, LockItem, shuffleArray as shuffleCombinationLockArray } from '@/lib/combinationLock'; // Import new lib
 import type { GameType as PageGameType, Difficulty as PageDifficulty } from '@/app/page';
 
 export type GameType = PageGameType;
@@ -63,7 +65,7 @@ export interface TriviaQuestion {
   revealedIndices: Set<number>;
   isAttempted: boolean;
   isCorrect: boolean | null;
-  clueLanguage?: 'en' | 'es'; // Optional to specify clue language
+  clueLanguage?: 'en' | 'es'; 
 }
 
 
@@ -98,6 +100,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const [currentVerbLockQuestIndex, setCurrentVerbLockQuestIndex] = useState(0);
   const [verbLockScore, setVerbLockScore] = useState(0);
 
+  const [combinationLockChallenges, setCombinationLockChallenges] = useState<LibCombinationLockChallenge[]>([]);
+  const [currentCombinationLockIndex, setCurrentCombinationLockIndex] = useState(0);
+  const [combinationLockScore, setCombinationLockScore] = useState(0);
+
+
   const [isGameActive, setIsGameActive] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [time, setTime] = useState(0);
@@ -118,8 +125,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
     const availableSources = verbLockSources.filter(source => 
         source.englishBase.correct && 
-        (gameType === 'trivia' ? source.englishPastParticiple.correct : true) && // For Past Participle Trivia
-        (gameType === 'spanishEnglishTrivia' ? source.spanishInfinitive.correct : true) // For Spanish to English Trivia
+        (gameType === 'trivia' ? source.englishPastParticiple.correct : true) && 
+        (gameType === 'spanishEnglishTrivia' ? source.spanishInfinitive.correct : true) 
     );
     const shuffledSources = [...availableSources].sort(() => 0.5 - Math.random());
     
@@ -130,11 +137,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
       let answer = '';
       let clueLanguage: 'en' | 'es' = 'en';
 
-      if (gameType === 'trivia') { // Past Participle Trivia
+      if (gameType === 'trivia') { 
         clue = source.englishBase.correct; 
         answer = cleanVerb(source.englishPastParticiple.correct);
         clueLanguage = 'en';
-      } else if (gameType === 'spanishEnglishTrivia') { // Spanish to English Trivia
+      } else if (gameType === 'spanishEnglishTrivia') { 
         clue = source.spanishInfinitive.correct;
         answer = cleanVerb(source.englishBase.correct);
         clueLanguage = 'es';
@@ -249,6 +256,97 @@ const GameEngine: React.FC<GameEngineProps> = ({
     return selectedSources.map(sourceItem => generateSingleVerbLockChallenge(sourceItem));
   }, [generateSingleVerbLockChallenge]);
 
+  const generateCombinationLockChallenges = useCallback((diff: Difficulty): LibCombinationLockChallenge[] => {
+    let numLocksToGenerate: number;
+    switch (diff) {
+      case 'easy': numLocksToGenerate = 3; break;
+      case 'medium': numLocksToGenerate = 5; break;
+      case 'hard': numLocksToGenerate = Math.min(7, combinationLockSubjects.length); break;
+      default: numLocksToGenerate = 3;
+    }
+
+    const shuffledSubjects = shuffleCombinationLockArray([...combinationLockSubjects]);
+    const selectedSubjects = shuffledSubjects.slice(0, numLocksToGenerate);
+    
+    const challenges: LibCombinationLockChallenge[] = [];
+
+    selectedSubjects.forEach((subject, lockIndex) => {
+      if (subject.items.length < 4) {
+        console.warn(`Subject "${subject.name}" has fewer than 4 items. Skipping for Combination Lock.`);
+        return;
+      }
+      const shuffledItems = shuffleCombinationLockArray([...subject.items]);
+      const correctItemsForLock = shuffledItems.slice(0, 4) as [LockItem, LockItem, LockItem, LockItem];
+      
+      const challengeOptions: LibCombinationLockChallenge['options'] = { key1: [], key2: [], key3: [], key4: [] };
+      const challengeCorrectIndices: [number, number, number, number] = [0, 0, 0, 0];
+
+      correctItemsForLock.forEach((correctItem, itemIndex) => {
+        const keyName = `key${itemIndex + 1}` as keyof LibCombinationLockChallenge['options'];
+        let currentTumblerOptions: string[] = [correctItem];
+        
+        // Get distractors from the same subject, excluding the correct items for this lock
+        const subjectDistractors = subject.items.filter(
+          item => !correctItemsForLock.includes(item) && item !== correctItem
+        );
+        const shuffledSubjectDistractors = shuffleCombinationLockArray([...subjectDistractors]);
+
+        for (let i = 0; currentTumblerOptions.length < 5 && i < shuffledSubjectDistractors.length; i++) {
+          if (!currentTumblerOptions.includes(shuffledSubjectDistractors[i])) {
+            currentTumblerOptions.push(shuffledSubjectDistractors[i]);
+          }
+        }
+
+        // If not enough from the same subject, get from global pool (all items from other subjects)
+        if (currentTumblerOptions.length < 5) {
+          const globalDistractorItems: LockItem[] = [];
+          combinationLockSubjects.forEach(s => {
+            if (s.id !== subject.id) {
+              s.items.forEach(item => {
+                if (!correctItemsForLock.includes(item) && !currentTumblerOptions.includes(item)) {
+                  globalDistractorItems.push(item);
+                }
+              });
+            }
+          });
+          const shuffledGlobalDistractors = shuffleCombinationLockArray(globalDistractorItems);
+          for (let i = 0; currentTumblerOptions.length < 5 && i < shuffledGlobalDistractors.length; i++) {
+             if (!currentTumblerOptions.includes(shuffledGlobalDistractors[i])) {
+                currentTumblerOptions.push(shuffledGlobalDistractors[i]);
+            }
+          }
+        }
+         // Fallback if still not enough unique options
+        const genericFillers = ["Option A", "Option B", "Option C", "Option D", "Option E"];
+        let fillerIdx = 0;
+        while (currentTumblerOptions.length < 5) {
+            let filler = genericFillers[fillerIdx % genericFillers.length];
+             if (!currentTumblerOptions.includes(filler)) {
+                currentTumblerOptions.push(filler);
+            } else {
+                 currentTumblerOptions.push(`${filler} ${fillerIdx + 1}`);
+            }
+            fillerIdx++;
+        }
+
+
+        const finalShuffledOptions = shuffleCombinationLockArray(currentTumblerOptions.slice(0, 5));
+        challengeOptions[keyName] = Object.freeze(finalShuffledOptions as readonly string[]);
+        const correctIdx = finalShuffledOptions.indexOf(correctItem);
+        challengeCorrectIndices[itemIndex] = correctIdx !== -1 ? correctIdx : 0;
+      });
+
+      challenges.push({
+        id: `${subject.id}_lock${lockIndex}`,
+        subjectName: subject.name,
+        correctItems: Object.freeze(correctItemsForLock),
+        options: challengeOptions,
+        correctIndices: Object.freeze(challengeCorrectIndices),
+      });
+    });
+    return challenges;
+  }, []);
+
 
   const getBoardGenerator = useCallback(() => {
     switch (gameType) {
@@ -278,7 +376,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setVerbLockChallenges(generateVerbLockChallenges(difficulty));
       setCurrentVerbLockQuestIndex(0);
       setVerbLockScore(0);
-    } else {
+    } else if (gameType === 'combinationLock') {
+      setCombinationLockChallenges(generateCombinationLockChallenges(difficulty));
+      setCurrentCombinationLockIndex(0);
+      setCombinationLockScore(0);
+    }
+     else {
       const generator = getBoardGenerator();
       if (generator) {
         const newBoard = generator(difficulty);
@@ -291,11 +394,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setMoves(0);
     }
     setIsGameActive(true);
-  }, [gameType, difficulty, getBoardGenerator, generateTriviaGameData, generateVerbLockChallenges]);
+  }, [gameType, difficulty, getBoardGenerator, generateTriviaGameData, generateVerbLockChallenges, generateCombinationLockChallenges]);
 
 
   const handleCardClick = (cardId: string) => {
-    if (gameType === 'trivia' || gameType === 'verbLock' || gameType === 'spanishEnglishTrivia' || isChecking || flippedCards.length >= 2) return;
+    if (gameType === 'trivia' || gameType === 'verbLock' || gameType === 'spanishEnglishTrivia' || gameType === 'combinationLock' || isChecking || flippedCards.length >= 2) return;
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
 
@@ -326,7 +429,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
   };
 
   useEffect(() => {
-    if (gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && isGameActive && cards.length > 0 && matchedPairs.length === cards.length / 2) {
+    if (gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock' && isGameActive && cards.length > 0 && matchedPairs.length === cards.length / 2) {
       setIsGameActive(false);
       onGameComplete({ moves, time });
     }
@@ -430,6 +533,21 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
   };
 
+   const handleCombinationLockSolved = (isCorrect: boolean) => {
+    if (currentCombinationLockIndex >= combinationLockChallenges.length) return;
+
+    if (isCorrect) {
+      setCombinationLockScore(prev => prev + 1);
+    }
+    if (currentCombinationLockIndex < combinationLockChallenges.length - 1) {
+      setCurrentCombinationLockIndex(prev => prev + 1);
+    } else {
+      setIsGameActive(false);
+      onGameComplete({ locksSolved: currentCombinationLockIndex + (isCorrect ? 1 : 0), score: combinationLockScore + (isCorrect ? 1 : 0) });
+    }
+  };
+
+
   const renderActiveGame = () => {
     if ((gameType === 'trivia' || gameType === 'spanishEnglishTrivia') && triviaQuestions.length > 0 && currentTriviaQuestionIndex < triviaQuestions.length) {
       return (
@@ -449,8 +567,15 @@ const GameEngine: React.FC<GameEngineProps> = ({
           difficulty={difficulty}
         />
       );
+    } else if (gameType === 'combinationLock' && combinationLockChallenges.length > 0 && currentCombinationLockIndex < combinationLockChallenges.length) {
+      return (
+        <CombinationLockGame
+          challenge={combinationLockChallenges[currentCombinationLockIndex]}
+          onCombinationSubmit={handleCombinationLockSolved}
+        />
+      );
     }
-    else if (gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia') {
+    else if (gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock') {
       return (
         <div className={`grid ${getGridColsClass(difficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
           {cards.map((card) => {
@@ -482,15 +607,25 @@ const GameEngine: React.FC<GameEngineProps> = ({
     <div className="flex flex-col items-center w-full">
       <GameStatus
         moves={moves}
-        score={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaScore : gameType === 'verbLock' ? verbLockScore : undefined}
+        score={
+          (gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaScore :
+          (gameType === 'verbLock' || gameType === 'combinationLock') ? (gameType === 'verbLock' ? verbLockScore : combinationLockScore) :
+          undefined
+        }
         isGameActive={isGameActive}
         onTimerUpdate={handleTimerUpdate}
-        isHintActive={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? isTriviaHintActive : (gameType === 'verbLock' ? false : isMatchingHintActive) }
-        onToggleHint={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? handleTriviaHint : (gameType === 'verbLock' ? () => {} : onToggleMatchingHint)}
+        isHintActive={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? isTriviaHintActive : (gameType === 'verbLock' || gameType === 'combinationLock' ? false : isMatchingHintActive) }
+        onToggleHint={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? handleTriviaHint : (gameType === 'verbLock' || gameType === 'combinationLock' ? () => {} : onToggleMatchingHint)}
         gameType={gameType}
-        canUseHint={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaScore > 0 : gameType !== 'verbLock'}
-        totalItems={(gameType === 'verbLock' || gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaQuestions.length : undefined}
-        currentItemIndex={(gameType === 'verbLock' || gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? currentTriviaQuestionIndex : undefined}
+        canUseHint={(gameType === 'trivia' || gameType === 'spanishEnglishTrivia') ? triviaScore > 0 : gameType !== 'verbLock' && gameType !== 'combinationLock'}
+        totalItems={(gameType === 'verbLock' || gameType === 'trivia' || gameType === 'spanishEnglishTrivia' || gameType === 'combinationLock') ? 
+            (gameType === 'verbLock' ? verbLockChallenges.length : gameType === 'combinationLock' ? combinationLockChallenges.length : triviaQuestions.length) 
+            : undefined}
+        currentItemIndex={
+            (gameType === 'verbLock' || gameType === 'trivia' || gameType === 'spanishEnglishTrivia' || gameType === 'combinationLock') ? 
+            (gameType === 'verbLock' ? currentVerbLockQuestIndex : gameType === 'combinationLock' ? currentCombinationLockIndex : currentTriviaQuestionIndex) 
+            : undefined
+        }
       />
       {renderActiveGame()}
       <Button onClick={onBackToDifficulty} variant="outline" className="mt-8">
@@ -501,5 +636,3 @@ const GameEngine: React.FC<GameEngineProps> = ({
 };
 
 export default GameEngine;
-
-

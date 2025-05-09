@@ -50,9 +50,14 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
     description = `You successfully unlocked all combinations!
                    <br />
                    You solved <strong>${moves} locks</strong> and your final score is <strong>${time}</strong>.`;
+  } else if (itemType === 'combinationLock') {
+    title = "Thematic Lock Challenge Complete!";
+    description = `You successfully unlocked all thematic combinations!
+                   <br />
+                   You solved <strong>${moves} locks</strong> and your final score is <strong>${time}</strong>.`;
   }
    else {
-    const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword' | 'verbLock' | 'spanishEnglishTrivia'>, string> = {
+    const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock'>, string> = {
         'verbs': 'verb',
         'adjectives': 'adjective',
         'animals': 'animal name/picture',
@@ -63,7 +68,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
         'regularPastTense': 'regular past tense verb',
         'nations': 'nation/nationality',
     };
-    const itemText = itemTextMap[itemType as Exclude<GameType, 'trivia' | 'crossword' | 'verbLock' | 'spanishEnglishTrivia'>] || 'item';
+    const itemText = itemTextMap[itemType as Exclude<GameType, 'trivia' | 'crossword' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock'>] || 'item';
     description = `You matched all the ${itemText} pairs!
                    <br />
                    You completed the game in <strong>${moves} moves</strong> and <strong>${formatTime(time)}</strong>.`;

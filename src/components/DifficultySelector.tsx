@@ -31,7 +31,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({
     if (itemType === 'Past Participle Trivia' || itemType === 'Spanish to English Verb Trivia') { 
       return `${itemCounts[level]} Questions`;
     }
-    if (itemType === 'Verb Combination Lock') { 
+    if (itemType === 'Verb Combination Lock' || itemType === 'Combination Lock') { 
         return `${itemCounts[level]} Locks`;
     }
     // Default for matching games

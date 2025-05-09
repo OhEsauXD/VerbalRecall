@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -68,7 +69,7 @@ const GameStatus: React.FC<GameStatusProps> = ({
   return (
     <div className="flex flex-col items-center my-4 p-4 bg-muted rounded-lg shadow w-full max-w-md">
       <div className="flex justify-around w-full">
-        {gameType === 'trivia' ? (
+        {gameType === 'trivia' || gameType === 'spanishEnglishTrivia' ? (
           <>
             <div className="text-center">
               <div className="text-sm text-muted-foreground">Question</div>
@@ -79,7 +80,7 @@ const GameStatus: React.FC<GameStatusProps> = ({
               <div className="text-xl font-semibold">{score ?? 0}</div>
             </div>
           </>
-        ) : gameType === 'verbLock' ? (
+        ) : gameType === 'verbLock' || gameType === 'combinationLock' ? (
           <>
             <div className="text-center">
               <div className="text-sm text-muted-foreground">Lock</div>
@@ -101,7 +102,7 @@ const GameStatus: React.FC<GameStatusProps> = ({
           <div className="text-xl font-semibold">{formatTime(time)}</div>
         </div>
       </div>
-      {gameType !== 'verbLock' && ( // Hint button not applicable for verb lock in current design
+      {gameType !== 'verbLock' && gameType !== 'combinationLock' && ( // Hint button not applicable for lock games
         <Button
           onClick={onToggleHint}
           variant={isHintActive && gameType !== 'trivia' ? "default" : "outline"}

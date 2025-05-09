@@ -3,7 +3,7 @@
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages } from 'lucide-react'; // Added Languages icon
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages, KeyRound } from 'lucide-react'; // Added KeyRound icon
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -119,6 +119,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         <SidebarMenuButton onClick={() => handleSelectGame('verbLock')} tooltip="Play Verb Combination Lock Game">
           <Lock />
           <span>Verb Lock</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => handleSelectGame('combinationLock')} tooltip="Play Thematic Combination Lock Game">
+          <KeyRound /> 
+          <span>Thematic Lock</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

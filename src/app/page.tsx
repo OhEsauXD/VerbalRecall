@@ -18,10 +18,11 @@ import { plantPairs } from '@/lib/plants';
 import { foodPairs } from '@/lib/food';
 import { transportBuildingPairs } from '@/lib/transportBuildings';
 import { verbLockSources } from '@/lib/verbLock';
+import { combinationLockSubjects } from '@/lib/combinationLock';
 
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia';
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock';
 type ViewState = 'selection' | 'difficulty' | 'game';
 
 interface CompletionDialogState {
@@ -91,7 +92,7 @@ export default function Home() {
       if (currentGameType === 'trivia' || currentGameType === 'spanishEnglishTrivia') {
         dialogMoves = result.questionsAttempted || 0;
         dialogTime = result.score || 0;
-      } else if (currentGameType === 'verbLock') {
+      } else if (currentGameType === 'verbLock' || currentGameType === 'combinationLock') {
         dialogMoves = result.locksSolved || 0;
         dialogTime = result.score || 0;
       }
@@ -140,6 +141,8 @@ export default function Home() {
         return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) };
       case 'verbLock':
         return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; 
+      case 'combinationLock':
+        return { easy: 3, medium: 5, hard: Math.min(7, combinationLockSubjects.length) };
       default:
         return { easy: 15, medium: 30, hard: 60 };
     }
@@ -159,6 +162,7 @@ export default function Home() {
       case 'trivia': return 'Past Participle Trivia';
       case 'spanishEnglishTrivia': return 'Spanish to English Verb Trivia';
       case 'verbLock': return 'Verb Combination Lock';
+      case 'combinationLock': return 'Combination Lock';
       default: return 'Items';
     }
   }
@@ -181,7 +185,7 @@ export default function Home() {
               onGoBack={handleGoBackToSelection}
               currentDifficulty={currentDifficulty}
               itemCounts={getItemTypeCounts(currentGameType)}
-              isTrivia={currentGameType === 'trivia' || currentGameType === 'verbLock' || currentGameType === 'spanishEnglishTrivia'}
+              isTrivia={currentGameType === 'trivia' || currentGameType === 'verbLock' || currentGameType === 'spanishEnglishTrivia' || currentGameType === 'combinationLock'}
             />
           </div>
         );
