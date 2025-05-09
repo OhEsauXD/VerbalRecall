@@ -17,7 +17,7 @@ import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@
 import { generatePastTenseGameBoard, PastTenseCardData } from '@/lib/pastTense';
 import { generateRegularPastTenseGameBoard, RegularPastTenseCardData } from '@/lib/regularPastTense';
 import { generateNationGameBoard, NationCardData } from '@/lib/nations';
-import { verbLocks, VerbLock } from '@/lib/verbLock';
+import { verbLockSources, VerbLockSource, VerbLockChallenge, globalDistractorPools, DistractorPools } from '@/lib/verbLock';
 import type { GameType as PageGameType, Difficulty as PageDifficulty } from '@/app/page';
 
 export type GameType = PageGameType;
@@ -60,8 +60,8 @@ export interface TriviaQuestion {
   answerLetters: string[];
   userGuess: string[];
   revealedIndices: Set<number>;
-  isAttempted: boolean; // Has the user submitted an answer for this question
-  isCorrect: boolean | null; // null = not submitted, true = correct, false = incorrect after one attempt
+  isAttempted: boolean; 
+  isCorrect: boolean | null; 
 }
 
 
@@ -70,8 +70,8 @@ interface GameEngineProps {
   difficulty: Difficulty;
   onGameComplete: (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number; locksSolved?: number }) => void;
   onBackToDifficulty: () => void;
-  isHintActive: boolean; // For matching games
-  onToggleHint: () => void; // For matching games
+  isHintActive: boolean; 
+  onToggleHint: () => void; 
 }
 
 const GameEngine: React.FC<GameEngineProps> = ({
@@ -82,27 +82,22 @@ const GameEngine: React.FC<GameEngineProps> = ({
   isHintActive: isMatchingHintActive,
   onToggleHint: onToggleMatchingHint,
 }) => {
-  // Matching Game State
   const [cards, setCards] = useState<GenericCard[]>([]);
   const [flippedCards, setFlippedCards] = useState<string[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
 
-  // Trivia Game State
   const [triviaQuestions, setTriviaQuestions] = useState<TriviaQuestion[]>([]);
   const [currentTriviaQuestionIndex, setCurrentTriviaQuestionIndex] = useState(0);
   const [triviaScore, setTriviaScore] = useState(0);
   const [isTriviaHintActive, setIsTriviaHintActive] = useState(false);
 
-  // Verb Lock Game State
-  const [verbLockSet, setVerbLockSet] = useState<readonly VerbLock[]>([]);
-  const [currentVerbLockQuestIndex, setCurrentVerbLockQuestIndex] = useState(0); // Renamed from currentVerbLockIndex
+  const [verbLockChallenges, setVerbLockChallenges] = useState<VerbLockChallenge[]>([]);
+  const [currentVerbLockQuestIndex, setCurrentVerbLockQuestIndex] = useState(0);
   const [verbLockScore, setVerbLockScore] = useState(0);
-  // isHintActive for verb lock might not be needed or handled differently
 
-  // General Game State
   const [isGameActive, setIsGameActive] = useState(false);
-  const [isChecking, setIsChecking] = useState(false); // For matching game card check delay
+  const [isChecking, setIsChecking] = useState(false); 
   const [time, setTime] = useState(0);
 
 
@@ -134,17 +129,102 @@ const GameEngine: React.FC<GameEngineProps> = ({
     });
   }, []);
 
-  const generateVerbLockGameSet = useCallback((diff: Difficulty): readonly VerbLock[] => {
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+  
+  const generateSingleVerbLockChallenge = useCallback((source: VerbLockSource): VerbLockChallenge => {
+    const challengeOptions: VerbLockChallenge['options'] = { key1: [], key2: [], key3: [], key4: [] };
+    const challengeCorrectIndices: [number, number, number, number] = [0, 0, 0, 0];
+  
+    const formDetails = [
+      source.spanishInfinitive,
+      source.englishBase,
+      source.englishPastSimple,
+      source.englishPastParticiple,
+    ];
+    const distractorCategories: (keyof DistractorPools)[] = [
+      'spanishInfinitives',
+      'englishBases',
+      'englishPastSimples',
+      'englishPastParticiples',
+    ];
+  
+    formDetails.forEach((detail, index) => {
+      const keyName = `key${index + 1}` as keyof VerbLockChallenge['options'];
+      let currentKeyDisplayOptions: string[] = [detail.correct];
+  
+      if (detail.commonMistake && detail.commonMistake !== detail.correct) {
+        currentKeyDisplayOptions.push(detail.commonMistake);
+      }
+  
+      const pool = globalDistractorPools[distractorCategories[index]];
+      const shuffledPool = shuffleArray([...pool]);
+      
+      let distractorIdx = 0;
+      while (currentKeyDisplayOptions.length < 5 && distractorIdx < shuffledPool.length) {
+        const distractor = shuffledPool[distractorIdx];
+        if (!currentKeyDisplayOptions.includes(distractor)) {
+          currentKeyDisplayOptions.push(distractor);
+        }
+        distractorIdx++;
+      }
+      
+      // Fallback to ensure 5 options, even if it means repeating distractors from the pool
+      // or using generic fillers if the pool is exhausted.
+      distractorIdx = 0; 
+      while (currentKeyDisplayOptions.length < 5 && pool.length > 0) {
+          currentKeyDisplayOptions.push(shuffledPool[distractorIdx % shuffledPool.length]);
+          distractorIdx++;
+          if (distractorIdx > pool.length * 2 && currentKeyDisplayOptions.length < 5) break; // Safety break
+      }
+      
+      const genericFillers = ["Option A", "Option B", "Option C", "Option D", "Option E", "Option F", "Option G"];
+      let fillerIdx = 0;
+      while (currentKeyDisplayOptions.length < 5) {
+          let filler = genericFillers[fillerIdx % genericFillers.length];
+          // Ensure filler is somewhat unique if possible, or append index to make it unique for display
+          if (!currentKeyDisplayOptions.includes(filler)) {
+            currentKeyDisplayOptions.push(filler);
+          } else {
+            currentKeyDisplayOptions.push(`${filler} ${fillerIdx + 1}`);
+          }
+          fillerIdx++;
+      }
+
+      const finalShuffledOptions = shuffleArray(currentKeyDisplayOptions.slice(0,5));
+      challengeOptions[keyName] = Object.freeze(finalShuffledOptions as readonly string[]);
+      const correctIdx = finalShuffledOptions.indexOf(detail.correct);
+      challengeCorrectIndices[index] = correctIdx !== -1 ? correctIdx : 0; // Fallback to 0 if not found (should not happen)
+    });
+  
+    return {
+      id: source.id,
+      spanishDisplayTitle: source.spanishInfinitive.correct,
+      englishBaseDisplayTitle: source.englishBase.correct,
+      options: challengeOptions,
+      correctIndices: Object.freeze(challengeCorrectIndices),
+      gerund: source.gerund,
+    };
+  }, []);
+
+  const generateVerbLockChallenges = useCallback((diff: Difficulty): VerbLockChallenge[] => {
     let numLocks: number;
     switch (diff) {
       case 'easy': numLocks = 10; break;
       case 'medium': numLocks = 15; break;
-      case 'hard': numLocks = Math.min(20, verbLocks.length); break; // Cap at available locks
+      case 'hard': numLocks = Math.min(20, verbLockSources.length); break;
       default: numLocks = 10;
     }
-    const shuffledLocks = [...verbLocks].sort(() => 0.5 - Math.random());
-    return shuffledLocks.slice(0, numLocks);
-  }, []);
+    const shuffledSources = shuffleArray([...verbLockSources]);
+    const selectedSources = shuffledSources.slice(0, numLocks);
+    return selectedSources.map(sourceItem => generateSingleVerbLockChallenge(sourceItem));
+  }, [generateSingleVerbLockChallenge]);
 
 
   const getBoardGenerator = useCallback(() => {
@@ -172,10 +252,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setTriviaScore(0);
       setIsTriviaHintActive(false);
     } else if (gameType === 'verbLock') {
-      setVerbLockSet(generateVerbLockGameSet(difficulty));
+      setVerbLockChallenges(generateVerbLockChallenges(difficulty));
       setCurrentVerbLockQuestIndex(0);
       setVerbLockScore(0);
-      // Reset any verb lock specific states here
     } else {
       const generator = getBoardGenerator();
       if (generator) {
@@ -189,7 +268,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setMoves(0);
     }
     setIsGameActive(true);
-  }, [gameType, difficulty, getBoardGenerator, generateTriviaGameData, generateVerbLockGameSet]);
+  }, [gameType, difficulty, getBoardGenerator, generateTriviaGameData, generateVerbLockChallenges]);
 
 
   const handleCardClick = (cardId: string) => {
@@ -223,7 +302,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
   };
 
-  // Matching game completion
   useEffect(() => {
     if (gameType !== 'trivia' && gameType !== 'verbLock' && isGameActive && cards.length > 0 && matchedPairs.length === cards.length / 2) {
       setIsGameActive(false);
@@ -307,13 +385,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
   };
 
   const handleVerbLockSolved = (isCorrect: boolean) => {
-    if (currentVerbLockQuestIndex >= verbLockSet.length) return;
+    if (currentVerbLockQuestIndex >= verbLockChallenges.length) return;
 
     if (isCorrect) {
-      setVerbLockScore(prev => prev + 1); // Or some other scoring logic
+      setVerbLockScore(prev => prev + 1); 
     }
-    // Always move to next, or end game
-    if (currentVerbLockQuestIndex < verbLockSet.length - 1) {
+    if (currentVerbLockQuestIndex < verbLockChallenges.length - 1) {
       setCurrentVerbLockQuestIndex(prev => prev + 1);
     } else {
       setIsGameActive(false);
@@ -331,16 +408,16 @@ const GameEngine: React.FC<GameEngineProps> = ({
           onSubmit={handleTriviaSubmit}
         />
       );
-    } else if (gameType === 'verbLock' && verbLockSet.length > 0 && currentVerbLockQuestIndex < verbLockSet.length) {
+    } else if (gameType === 'verbLock' && verbLockChallenges.length > 0 && currentVerbLockQuestIndex < verbLockChallenges.length) {
       return (
         <VerbLockGame
-          verbLock={verbLockSet[currentVerbLockQuestIndex]}
+          verbLock={verbLockChallenges[currentVerbLockQuestIndex]}
           onCombinationSubmit={handleVerbLockSolved}
           difficulty={difficulty}
         />
       );
     }
-    else if (gameType !== 'crossword' && gameType !== 'trivia' && gameType !== 'verbLock') {
+    else if (gameType !== 'trivia' && gameType !== 'verbLock') { // Existing matching games
       return (
         <div className={`grid ${getGridColsClass(difficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
           {cards.map((card) => {
@@ -371,15 +448,15 @@ const GameEngine: React.FC<GameEngineProps> = ({
   return (
     <div className="flex flex-col items-center w-full">
       <GameStatus
-        moves={moves} // For matching game
+        moves={moves}
         score={gameType === 'trivia' ? triviaScore : gameType === 'verbLock' ? verbLockScore : undefined}
         isGameActive={isGameActive}
         onTimerUpdate={handleTimerUpdate}
-        isHintActive={gameType === 'trivia' ? isTriviaHintActive : (gameType === 'verbLock' ? false : isMatchingHintActive) } // verbLock might not have a simple hint toggle
-        onToggleHint={gameType === 'trivia' ? handleTriviaHint : (gameType === 'verbLock' ? () => {} : onToggleMatchingHint)} // Provide no-op for verbLock if no hint
+        isHintActive={gameType === 'trivia' ? isTriviaHintActive : (gameType === 'verbLock' ? false : isMatchingHintActive) }
+        onToggleHint={gameType === 'trivia' ? handleTriviaHint : (gameType === 'verbLock' ? () => {} : onToggleMatchingHint)}
         gameType={gameType}
         canUseHint={gameType === 'trivia' ? triviaScore > 0 : gameType !== 'verbLock'}
-        totalItems={gameType === 'verbLock' ? verbLockSet.length : (gameType === 'trivia' ? triviaQuestions.length : undefined)}
+        totalItems={gameType === 'verbLock' ? verbLockChallenges.length : (gameType === 'trivia' ? triviaQuestions.length : undefined)}
         currentItemIndex={gameType === 'verbLock' ? currentVerbLockQuestIndex : (gameType === 'trivia' ? currentTriviaQuestionIndex : undefined)}
       />
       {renderActiveGame()}
@@ -391,3 +468,4 @@ const GameEngine: React.FC<GameEngineProps> = ({
 };
 
 export default GameEngine;
+

@@ -1,262 +1,209 @@
 
-export type VerbLockOptionKey = 'key1' | 'key2' | 'key3' | 'key4';
+export type VerbFormDetail = {
+  correct: string;
+  commonMistake?: string; // A common misspelling or error for THIS specific correct form
+};
 
-export interface VerbLock {
-  spanish: string;
-  options: {
-    key1: readonly [string, string, string, string, string]; // Spanish Infinitive options
-    key2: readonly [string, string, string, string, string]; // English Base Form options
-    key3: readonly [string, string, string, string, string]; // English Past Simple options
-    key4: readonly [string, string, string, string, string]; // English Past Participle options
-  };
-  correctIndices: readonly [number, number, number, number]; // Index of correct option for key1, key2, key3, key4
-  gerund: string; // English Gerund form
-  id: number; // Unique ID for each verb lock
+export type DistractorPools = {
+  spanishInfinitives: readonly string[];
+  englishBases: readonly string[];
+  englishPastSimples: readonly string[];
+  englishPastParticiples: readonly string[];
+};
+
+export interface VerbLockSource {
+  id: number;
+  spanishInfinitive: VerbFormDetail;
+  englishBase: VerbFormDetail;
+  englishPastSimple: VerbFormDetail;
+  englishPastParticiple: VerbFormDetail;
+  gerund: string;
 }
 
-let nextId = 400; // Starting ID for verb locks to avoid collision with other games
+// This will be the type of object constructed by GameEngine and passed to VerbLockGame
+export interface VerbLockChallenge {
+  id: number;
+  spanishDisplayTitle: string; // from spanishInfinitive.correct, for the lock title
+  englishBaseDisplayTitle: string; // from englishBase.correct, for the lock title
+  options: {
+    key1: readonly string[]; // 5 options for Spanish Infinitive tumbler
+    key2: readonly string[]; // 5 options for English Base Form tumbler
+    key3: readonly string[]; // 5 options for English Past Simple tumbler
+    key4: readonly string[]; // 5 options for English Past Participle tumbler
+  };
+  correctIndices: readonly [number, number, number, number]; // Index of the correct option in each of the above shuffled lists
+  gerund: string;
+}
 
-export const verbLocks: readonly VerbLock[] = [
-  // Regular Verb
+
+// Global pool of distractors (can be expanded for more variety)
+export const globalDistractorPools: DistractorPools = {
+  spanishInfinitives: ["comer", "vivir", "tener", "hacer", "cantar", "correr", "bailar", "aprender", "jugar", "decir", "poder", "querer", "saber", "poner", "traducir", "enviar", "recibir", "leer", "estar", "venir", "partir", "volver", "mirar", "observar", "notar", "escuchar", "sentir", "tomar", "ofrecer", "pedir", "prestar", "ignorar", "recordar", "conocer", "amar", "desear", "odiar", "preferir", "necesitar", "viajar", "entrar", "salir", "ocurrir", "cruzar", "detener", "esperar", "faltar", "pagar", "cumplir", "quitar", "colocar", "sacar", "mover", "dejar", "lucir", "sonar", "verse", "opinar", "permanecer", "restar", "ajustar", "encajar", "dudar", "suponer", "imaginar", "confiar", "transportar", "usar (ropa)", "conducir", "agarrar"],
+  englishBases: ["eat", "live", "have", "do", "sing", "run", "dance", "learn", "play", "say", "can", "want", "know", "put", "translate", "send", "receive", "read", "be (state)", "come", "depart", "return", "watch", "observe", "notice", "listen", "feel", "take", "offer", "ask for", "lend", "ignore", "remember", "meet", "love", "wish", "hate", "prefer", "need", "travel", "enter", "exit", "happen", "cross", "stop", "wait", "miss", "pay", "fulfill", "remove", "place", "take out", "move", "leave", "look (like)", "sound", "appear", "opine", "remain", "be left", "fit", "match", "doubt", "suppose", "imagine", "trust", "transport", "wear", "drive", "grab"],
+  englishPastSimples: ["ate", "lived", "had", "did", "sang", "ran", "danced", "learnt", "played", "said", "could", "wanted", "knew", "put", "translated", "sent", "received", "read", "was", "came", "departed", "returned", "watched", "observed", "noticed", "listened", "felt", "took", "offered", "asked", "lent", "ignored", "remembered", "met", "loved", "wished", "hated", "preferred", "needed", "travelled", "entered", "exited", "happened", "crossed", "stopped", "waited", "missed", "paid", "fulfilled", "removed", "placed", "took out", "moved", "left", "looked", "sounded", "appeared", "opined", "remained", "was left", "fitted", "matched", "doubted", "supposed", "imagined", "thought", "trusted", "transported", "wore", "drove", "grabbed"],
+  englishPastParticiples: ["eaten", "lived", "had", "done", "sung", "run", "danced", "learnt", "played", "said", "could (modal)", "wanted", "known", "put", "translated", "sent", "received", "read", "been", "come", "departed", "returned", "watched", "observed", "noticed", "listened", "felt", "taken", "offered", "asked", "lent", "ignored", "remembered", "met", "loved", "wished", "hated", "preferred", "needed", "travelled", "entered", "exited", "happened", "crossed", "stopped", "waited", "missed", "paid", "fulfilled", "removed", "placed", "taken out", "moved", "left", "looked", "sounded", "appeared", "opined", "remained", "been left", "fitted", "matched", "doubted", "supposed", "imagined", "thought", "trusted", "transported", "worn", "driven", "grabbed"],
+};
+
+let nextId = 400; // Starting ID for verb locks
+export const verbLockSources: readonly VerbLockSource[] = [
   {
     id: nextId++,
-    spanish: "hablar",
-    options: {
-      key1: ["hablar", "comer", "vivir", "tener", "hacer"],
-      key2: ["speak", "eat", "live", "have", "do"],
-      key3: ["spoke", "ate", "lived", "had", "did"], // Note: 'lived' is regular, 'spoke' is for 'speak'
-      key4: ["spoken", "eaten", "lived", "had", "done"]
-    },
-    correctIndices: [0, 0, 2, 0], // hablar -> speak -> lived (as per options) -> spoken
+    spanishInfinitive: { correct: "hablar", commonMistake: "ablar" },
+    englishBase: { correct: "speak", commonMistake: "speek" },
+    englishPastSimple: { correct: "spoke", commonMistake: "spoked" },
+    englishPastParticiple: { correct: "spoken", commonMistake: "speaked" },
     gerund: "speaking"
   },
-  // Irregular Verb
   {
     id: nextId++,
-    spanish: "romper",
-    options: {
-      key1: ["romper", "escribir", "ver", "ser", "ir"],
-      key2: ["break", "write", "see", "be", "go"],
-      key3: ["broke", "wrote", "saw", "was", "went"],
-      key4: ["broken", "written", "seen", "been", "gone"]
-    },
-    correctIndices: [0, 0, 0, 0], // romper -> break -> broke -> broken
+    spanishInfinitive: { correct: "romper", commonMistake: "ronper" },
+    englishBase: { correct: "break", commonMistake: "brake" },
+    englishPastSimple: { correct: "broke", commonMistake: "breaked" },
+    englishPastParticiple: { correct: "broken", commonMistake: "broked" },
     gerund: "breaking"
   },
   {
     id: nextId++,
-    spanish: "comer",
-    options: {
-        key1: ["cantar", "comer", "beber", "correr", "bailar"],
-        key2: ["sing", "eat", "drink", "run", "dance"],
-        key3: ["sang", "ate", "drank", "ran", "danced"],
-        key4: ["sung", "eaten", "drunk", "run", "danced"],
-    },
-    correctIndices: [1, 1, 1, 1], // comer -> eat -> ate -> eaten
+    spanishInfinitive: { correct: "comer", commonMistake: "commer" },
+    englishBase: { correct: "eat", commonMistake: "eet" },
+    englishPastSimple: { correct: "ate", commonMistake: "eated" },
+    englishPastParticiple: { correct: "eaten", commonMistake: "ate" }, // 'ate' can be a mistake for p.p.
     gerund: "eating"
   },
   {
     id: nextId++,
-    spanish: "vivir",
-    options: {
-        key1: ["trabajar", "estudiar", "vivir", "aprender", "jugar"],
-        key2: ["work", "study", "live", "learn", "play"],
-        key3: ["worked", "studied", "lived", "learnt", "played"], // or learned
-        key4: ["worked", "studied", "lived", "learnt", "played"], // or learned
-    },
-    correctIndices: [2, 2, 2, 2], // vivir -> live -> lived -> lived
+    spanishInfinitive: { correct: "vivir", commonMistake: "vibir" },
+    englishBase: { correct: "live", commonMistake: "life" },
+    englishPastSimple: { correct: "lived", commonMistake: "livd" },
+    englishPastParticiple: { correct: "lived", commonMistake: "lifed" },
     gerund: "living"
   },
   {
     id: nextId++,
-    spanish: "tener",
-    options: {
-        key1: ["necesitar", "querer", "tener", "poder", "deber"],
-        key2: ["need", "want", "have", "can", "must"],
-        key3: ["needed", "wanted", "had", "could", "had to"],
-        key4: ["needed", "wanted", "had", "could", "had to"],
-    },
-    correctIndices: [2, 2, 2, 2], // tener -> have -> had -> had
+    spanishInfinitive: { correct: "tener", commonMistake: "tenner" },
+    englishBase: { correct: "have", commonMistake: "haf" },
+    englishPastSimple: { correct: "had", commonMistake: "haved" },
+    englishPastParticiple: { correct: "had", commonMistake: "haden" },
     gerund: "having"
   },
   {
     id: nextId++,
-    spanish: "escribir",
-    options: {
-        key1: ["leer", "escribir", "traducir", "enviar", "recibir"],
-        key2: ["read", "write", "translate", "send", "receive"],
-        key3: ["read", "wrote", "translated", "sent", "received"],
-        key4: ["read", "written", "translated", "sent", "received"],
-    },
-    correctIndices: [1, 1, 1, 1], // escribir -> write -> wrote -> written
+    spanishInfinitive: { correct: "escribir", commonMistake: "escribir" }, // No obvious common mistake
+    englishBase: { correct: "write", commonMistake: "rite" },
+    englishPastSimple: { correct: "wrote", commonMistake: "writed" },
+    englishPastParticiple: { correct: "written", commonMistake: "wrote" }, // 'wrote' can be mistake for p.p.
     gerund: "writing"
   },
   {
     id: nextId++,
-    spanish: "ser", // to be (essence)
-    options: {
-        key1: ["ser", "estar", "ir", "ver", "dar"],
-        key2: ["be", "be (location/state)", "go", "see", "give"],
-        key3: ["was/were", "was/were", "went", "saw", "gave"],
-        key4: ["been", "been", "gone", "seen", "given"],
-    },
-    correctIndices: [0, 0, 0, 0], // ser -> be -> was/were -> been
+    spanishInfinitive: { correct: "ser", commonMistake: "cer" },
+    englishBase: { correct: "be", commonMistake: "bee" },
+    englishPastSimple: { correct: "was/were", commonMistake: "was" }, // 'was' alone is incomplete if 'were' is needed
+    englishPastParticiple: { correct: "been", commonMistake: "bein" },
     gerund: "being"
   },
   {
     id: nextId++,
-    spanish: "ir",
-    options: {
-        key1: ["venir", "llegar", "ir", "partir", "volver"],
-        key2: ["come", "arrive", "go", "leave", "return"],
-        key3: ["came", "arrived", "went", "left", "returned"],
-        key4: ["come", "arrived", "gone", "left", "returned"],
-    },
-    correctIndices: [2, 2, 2, 2], // ir -> go -> went -> gone
+    spanishInfinitive: { correct: "ir", commonMistake: "hacer" }, // Confused with "to do/make"
+    englishBase: { correct: "go", commonMistake: "goed" },
+    englishPastSimple: { correct: "went", commonMistake: "gone" }, // 'gone' is p.p.
+    englishPastParticiple: { correct: "gone", commonMistake: "went" }, // 'went' is simple past
     gerund: "going"
   },
   {
     id: nextId++,
-    spanish: "ver",
-    options: {
-        key1: ["mirar", "observar", "ver", "notar", "escuchar"],
-        key2: ["watch", "observe", "see", "notice", "listen"],
-        key3: ["watched", "observed", "saw", "noticed", "listened"],
-        key4: ["watched", "observed", "seen", "noticed", "listened"],
-    },
-    correctIndices: [2, 2, 2, 2], // ver -> see -> saw -> seen
+    spanishInfinitive: { correct: "ver", commonMistake: "veer" },
+    englishBase: { correct: "see", commonMistake: "sea" },
+    englishPastSimple: { correct: "saw", commonMistake: "seed" },
+    englishPastParticiple: { correct: "seen", commonMistake: "saw" }, // 'saw' is simple past
     gerund: "seeing"
   },
   {
     id: nextId++,
-    spanish: "dar",
-    options: {
-        key1: ["recibir", "tomar", "dar", "ofrecer", "pedir"],
-        key2: ["receive", "take", "give", "offer", "ask for"],
-        key3: ["received", "took", "gave", "offered", "asked for"],
-        key4: ["received", "taken", "given", "offered", "asked for"],
-    },
-    correctIndices: [2, 2, 2, 2], // dar -> give -> gave -> given
+    spanishInfinitive: { correct: "dar", commonMistake: "darr" },
+    englishBase: { correct: "give", commonMistake: "gif" },
+    englishPastSimple: { correct: "gave", commonMistake: "gived" },
+    englishPastParticiple: { correct: "given", commonMistake: "gave" }, // 'gave' is simple past
     gerund: "giving"
   },
   {
     id: nextId++,
-    spanish: "saber", // to know (facts/information)
-    options: {
-        key1: ["aprender", "entender", "saber", "ignorar", "recordar"],
-        key2: ["learn", "understand", "know", "ignore", "remember"],
-        key3: ["learnt", "understood", "knew", "ignored", "remembered"],
-        key4: ["learnt", "understood", "known", "ignored", "remembered"],
-    },
-    correctIndices: [2, 2, 2, 2], // saber -> know -> knew -> known
+    spanishInfinitive: { correct: "saber", commonMistake: "savier" },
+    englishBase: { correct: "know", commonMistake: "no" }, // Homophone
+    englishPastSimple: { correct: "knew", commonMistake: "knowed" },
+    englishPastParticiple: { correct: "known", commonMistake: "knew" }, // 'knew' is simple past
     gerund: "knowing"
   },
   {
     id: nextId++,
-    spanish: "querer",
-    options: {
-        key1: ["amar", "desear", "querer", "odiar", "preferir"],
-        key2: ["love", "wish", "want", "hate", "prefer"],
-        key3: ["loved", "wished", "wanted", "hated", "preferred"],
-        key4: ["loved", "wished", "wanted", "hated", "preferred"],
-    },
-    correctIndices: [2, 2, 2, 2], // querer -> want -> wanted -> wanted
+    spanishInfinitive: { correct: "querer", commonMistake: "qerer" },
+    englishBase: { correct: "want", commonMistake: "wont" }, // Common confusion
+    englishPastSimple: { correct: "wanted", commonMistake: "wantd" },
+    englishPastParticiple: { correct: "wanted", commonMistake: "want" },
     gerund: "wanting"
   },
   {
     id: nextId++,
-    spanish: "llegar",
-    options: {
-        key1: ["partir", "viajar", "llegar", "entrar", "salir"],
-        key2: ["depart", "travel", "arrive", "enter", "exit"],
-        key3: ["departed", "travelled", "arrived", "entered", "exited"],
-        key4: ["departed", "travelled", "arrived", "entered", "exited"],
-    },
-    correctIndices: [2, 2, 2, 2], // llegar -> arrive -> arrived -> arrived
+    spanishInfinitive: { correct: "llegar", commonMistake: "yegar" }, // Phonetic spelling
+    englishBase: { correct: "arrive", commonMistake: "arive" },
+    englishPastSimple: { correct: "arrived", commonMistake: "arrivd" },
+    englishPastParticiple: { correct: "arrived", commonMistake: "arriven" },
     gerund: "arriving"
   },
   {
     id: nextId++,
-    spanish: "pasar", // to pass, to happen
-    options: {
-        key1: ["ocurrir", "cruzar", "pasar", "detener", "esperar"],
-        key2: ["happen", "cross", "pass", "stop", "wait"],
-        key3: ["happened", "crossed", "passed", "stopped", "waited"],
-        key4: ["happened", "crossed", "passed", "stopped", "waited"],
-    },
-    correctIndices: [2, 2, 2, 2], // pasar -> pass -> passed -> passed
+    spanishInfinitive: { correct: "pasar", commonMistake: "pazar" },
+    englishBase: { correct: "pass", commonMistake: "pas" }, // Missing 's'
+    englishPastSimple: { correct: "passed", commonMistake: "past" }, // Common confusion with noun
+    englishPastParticiple: { correct: "passed", commonMistake: "passd" },
     gerund: "passing"
   },
   {
     id: nextId++,
-    spanish: "deber", // to owe, must/should
-    options: {
-        key1: ["poder", "necesitar", "deber", "pagar", "cumplir"],
-        key2: ["can", "need", "must/should", "pay", "fulfill"], // "must" is modal, "should" is modal
-        key3: ["could", "needed", "had to/should have", "paid", "fulfilled"], // Tricky due to modal nature
-        key4: ["could", "needed", "had to/should have", "paid", "fulfilled"],
-    },
-    correctIndices: [2, 2, 2, 2], // deber -> must/should -> had to / should have
-    gerund: "owing/musting (not common for obligation)"
+    spanishInfinitive: { correct: "deber", commonMistake: "dever" },
+    englishBase: { correct: "must", commonMistake: "should" }, // Semantic, not orthographic
+    englishPastSimple: { correct: "had to", commonMistake: "musted" }, // Incorrect formation
+    englishPastParticiple: { correct: "had to", commonMistake: "must have" }, // Modals are tricky
+    gerund: "owing" // Or "having to"
   },
   {
     id: nextId++,
-    spanish: "poner",
-    options: {
-        key1: ["quitar", "colocar", "poner", "sacar", "mover"],
-        key2: ["remove", "place", "put", "take out", "move"],
-        key3: ["removed", "placed", "put", "took out", "moved"],
-        key4: ["removed", "placed", "put", "taken out", "moved"],
-    },
-    correctIndices: [2, 2, 2, 2], // poner -> put -> put -> put
+    spanishInfinitive: { correct: "poner", commonMistake: "ponner" },
+    englishBase: { correct: "put", commonMistake: "putt" },
+    englishPastSimple: { correct: "put", commonMistake: "putted" },
+    englishPastParticiple: { correct: "put", commonMistake: "putten" },
     gerund: "putting"
   },
   {
     id: nextId++,
-    spanish: "parecer",
-    options: {
-        key1: ["lucir", "sentirse", "parecer", "sonar", "verse"],
-        key2: ["look (like)", "feel", "seem", "sound", "appear"],
-        key3: ["looked", "felt", "seemed", "sounded", "appeared"],
-        key4: ["looked", "felt", "seemed", "sounded", "appeared"],
-    },
-    correctIndices: [2, 2, 2, 2], // parecer -> seem -> seemed -> seemed
+    spanishInfinitive: { correct: "parecer", commonMistake: "parezer" },
+    englishBase: { correct: "seem", commonMistake: "seam" }, // Homophone
+    englishPastSimple: { correct: "seemed", commonMistake: "seemd" },
+    englishPastParticiple: { correct: "seemed", commonMistake: "seemen" },
     gerund: "seeming"
   },
   {
     id: nextId++,
-    spanish: "quedar", // to stay, to remain, to fit
-    options: {
-        key1: ["permanecer", "restar", "quedar", "ajustar", "salir"],
-        key2: ["remain", "be left", "stay", "fit", "leave"],
-        key3: ["remained", "was left", "stayed", "fitted", "left"],
-        key4: ["remained", "been left", "stayed", "fitted", "left"],
-    },
-    correctIndices: [2, 2, 2, 2], // quedar -> stay -> stayed -> stayed (one common meaning)
+    spanishInfinitive: { correct: "quedar", commonMistake: "qedar" },
+    englishBase: { correct: "stay", commonMistake: "stai" },
+    englishPastSimple: { correct: "stayed", commonMistake: "staid" }, // Archaic word
+    englishPastParticiple: { correct: "stayed", commonMistake: "stayd" },
     gerund: "staying"
   },
   {
     id: nextId++,
-    spanish: "creer",
-    options: {
-        key1: ["dudar", "suponer", "creer", "imaginar", "pensar"],
-        key2: ["doubt", "suppose", "believe", "imagine", "think"],
-        key3: ["doubted", "supposed", "believed", "imagined", "thought"],
-        key4: ["doubted", "supposed", "believed", "imagined", "thought"],
-    },
-    correctIndices: [2, 2, 2, 2], // creer -> believe -> believed -> believed
+    spanishInfinitive: { correct: "creer", commonMistake: "creer" }, // No common mistake
+    englishBase: { correct: "believe", commonMistake: "beleive" }, // Common i/e swap
+    englishPastSimple: { correct: "believed", commonMistake: "believd" },
+    englishPastParticiple: { correct: "believed", commonMistake: "belieft" },
     gerund: "believing"
   },
   {
     id: nextId++,
-    spanish: "llevar", // to carry, to wear, to take (time)
-    options: {
-        key1: ["transportar", "usar (ropa)", "llevar", "traer", "conducir"],
-        key2: ["transport", "wear", "carry/take", "bring", "drive"],
-        key3: ["transported", "wore", "carried/took", "brought", "drove"],
-        key4: ["transported", "worn", "carried/taken", "brought", "driven"],
-    },
-    correctIndices: [2, 2, 2, 2], // llevar -> carry/take -> carried/took -> carried/taken
-    gerund: "carrying/taking"
+    spanishInfinitive: { correct: "llevar", commonMistake: "yevar" }, // Phonetic
+    englishBase: { correct: "carry", commonMistake: "cary" },
+    englishPastSimple: { correct: "carried", commonMistake: "carryed" }, // Incorrect -y ending
+    englishPastParticiple: { correct: "carried", commonMistake: "caried" },
+    gerund: "carrying"
   }
 ] as const;

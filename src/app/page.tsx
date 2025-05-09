@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -16,7 +17,7 @@ import { animalPairs } from '@/lib/animals';
 import { plantPairs } from '@/lib/plants';
 import { foodPairs } from '@/lib/food';
 import { transportBuildingPairs } from '@/lib/transportBuildings';
-import { verbLocks } from '@/lib/verbLock';
+import { verbLockSources } from '@/lib/verbLock';
 
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
@@ -137,7 +138,7 @@ export default function Home() {
       case 'trivia':
         return { easy: 10, medium: 15, hard: 20 }; // Number of questions
       case 'verbLock':
-        return { easy: 10, medium: 15, hard: Math.min(20, verbLocks.length) }; // Number of locks
+        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; // Number of locks
       default:
         return { easy: 15, medium: 30, hard: 60 };
     }
@@ -223,3 +224,4 @@ export default function Home() {
     </DashboardLayout>
   );
 }
+

@@ -4,12 +4,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronUp, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
-import { VerbLock, VerbLockOptionKey } from '@/lib/verbLock';
+import { VerbLockChallenge } from '@/lib/verbLock'; // Updated import
 import { cn } from '@/lib/utils';
 import type { Difficulty } from '@/app/page';
 
 interface VerbLockGameProps {
-  verbLock: VerbLock; // Current verb lock to solve
+  verbLock: VerbLockChallenge; // Use the new VerbLockChallenge type
   onCombinationSubmit: (isCorrect: boolean) => void;
   difficulty: Difficulty;
 }
@@ -21,17 +21,17 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
   const [showGerund, setShowGerund] = useState(false);
 
   useEffect(() => {
-    // Reset selections and feedback when the verbLock changes
     setSelectedKeyIndices([0, 0, 0, 0]);
     setFeedback({ message: '', type: '' });
     setShowGerund(false);
-  }, [verbLock]);
+  }, [verbLock]); // Reset when verbLock (challenge) changes
 
   const handleKeyRotation = (keyIndex: number, direction: 'up' | 'down') => {
     setSelectedKeyIndices(prevIndices => {
       const newIndices = [...prevIndices] as [number, number, number, number];
-      const currentOptionKey = `key${keyIndex + 1}` as VerbLockOptionKey;
-      const numOptions = verbLock.options[currentOptionKey].length;
+      const currentOptionKey = `key${keyIndex + 1}` as keyof VerbLockChallenge['options'];
+      // verbLock.options[currentOptionKey] might be undefined if not all keys are present (though current logic ensures 4 keys)
+      const numOptions = verbLock.options[currentOptionKey]?.length || 1; // Default to 1 to prevent NaN if undefined
       
       if (direction === 'up') {
         newIndices[keyIndex] = (newIndices[keyIndex] - 1 + numOptions) % numOptions;
@@ -40,7 +40,7 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
       }
       return newIndices;
     });
-    setFeedback({ message: '', type: '' }); // Clear feedback on rotation
+    setFeedback({ message: '', type: '' });
     setShowGerund(false);
   };
 
@@ -52,24 +52,20 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
       setShowGerund(true);
       setTimeout(() => {
         onCombinationSubmit(true);
-      }, 1500); // Delay before moving to next or completing
+      }, 1500); 
     } else {
       setFeedback({ message: 'Incorrect. Try again!', type: 'error' });
       setShowGerund(false);
        setTimeout(() => {
-         setFeedback({ message: '', type: '' }); // Clear feedback after a bit
+         setFeedback({ message: '', type: '' }); 
        }, 2000);
-      // Optionally, call onCombinationSubmit(false) if you want to track attempts immediately
-      // onCombinationSubmit(false); 
     }
   };
 
-  const keyLabels: VerbLockOptionKey[] = ['key1', 'key2', 'key3', 'key4'];
+  const keyLabels: (keyof VerbLockChallenge['options'])[] = ['key1', 'key2', 'key3', 'key4'];
   const displayLabels = ['Spanish Infinitive', 'English Base', 'Past Simple', 'Past Participle'];
   
-  // Get the English infinitive for the title
-  // The English base form is in options.key2 at the correctIndices[1]
-  const englishInfinitive = verbLock.options.key2[verbLock.correctIndices[1]];
+  const englishInfinitive = verbLock.englishBaseDisplayTitle;
 
 
   return (
@@ -93,7 +89,7 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
                 'border-border bg-background'
               )}
             >
-              {verbLock.options[keyName][selectedKeyIndices[index]]}
+              {verbLock.options[keyName]?.[selectedKeyIndices[index]] ?? 'N/A'} 
             </div>
             <Button variant="ghost" size="icon" onClick={() => handleKeyRotation(index, 'down')} aria-label={`Next option for ${displayLabels[index]}`}>
               <ChevronDown className="h-6 w-6" />
@@ -123,7 +119,7 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
       <Button 
         onClick={handleSubmit} 
         className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3"
-        disabled={feedback.type === 'success'} // Disable if already successfully submitted
+        disabled={feedback.type === 'success'}
       >
         Submit Combination
       </Button>
@@ -132,4 +128,3 @@ const VerbLockGame: React.FC<VerbLockGameProps> = ({ verbLock, onCombinationSubm
 };
 
 export default VerbLockGame;
-
