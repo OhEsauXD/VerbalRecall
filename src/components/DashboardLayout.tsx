@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -65,7 +66,7 @@ const DashboardContent: React.FC<{ children: React.ReactNode; onSelectGameTypeFr
           {/* Header (visible on all sizes, contains trigger) */}
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
              {/* Sidebar Trigger for Mobile and when Desktop sidebar is expanded */}
-             <SidebarTrigger className="md:hidden group-data-[state=expanded]:md:flex">
+             <SidebarTrigger className="md:hidden">
                <Menu className="h-5 w-5" />
                <span className="sr-only">Toggle Menu</span>
              </SidebarTrigger>
@@ -84,3 +85,4 @@ const DashboardContent: React.FC<{ children: React.ReactNode; onSelectGameTypeFr
 
 
 export default DashboardLayout;
+
