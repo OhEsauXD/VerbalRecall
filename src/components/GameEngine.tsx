@@ -10,7 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import TriviaGame from '@/components/TriviaGame';
 import VerbLockGame from '@/components/VerbLockGame';
 import CombinationLockGame from '@/components/CombinationLockGame'; // Import new game
-import { generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
+import { generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
@@ -20,7 +20,7 @@ import { generatePastTenseGameBoard, PastTenseCardData } from '@/lib/pastTense';
 import { generateRegularPastTenseGameBoard, RegularPastTenseCardData } from '@/lib/regularPastTense';
 import { generateNationGameBoard, NationCardData } from '@/lib/nations';
 import { verbLockSources, VerbLockSource, VerbLockChallenge, globalDistractorPools, DistractorPools } from '@/lib/verbLock';
-import { combinationLockSubjects, CombinationLockChallenge as LibCombinationLockChallenge, LockSubject, LockItem, shuffleArray as shuffleCombinationLockArray } from '@/lib/combinationLock'; // Import new lib
+import { combinationLockSubjects, CombinationLockChallenge as LibCombinationLockChallenge, shuffleArray as shuffleCombinationLockArray } from '@/lib/combinationLock'; // Import new lib
 import type { GameType as PageGameType, Difficulty as PageDifficulty } from '@/app/page';
 
 export type GameType = PageGameType;
@@ -106,7 +106,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
 
   const [isGameActive, setIsGameActive] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
+  const [isChecking, setIsChecking] = useState(false); // For matching game card check delay
   const [time, setTime] = useState(0);
 
 
@@ -276,7 +276,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         return;
       }
       const shuffledItems = shuffleCombinationLockArray([...subject.items]);
-      const correctItemsForLock = shuffledItems.slice(0, 4) as [LockItem, LockItem, LockItem, LockItem];
+      const correctItemsForLock = shuffledItems.slice(0, 4) as [string, string, string, string];
       
       const challengeOptions: LibCombinationLockChallenge['options'] = { key1: [], key2: [], key3: [], key4: [] };
       const challengeCorrectIndices: [number, number, number, number] = [0, 0, 0, 0];
@@ -299,7 +299,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
         // If not enough from the same subject, get from global pool (all items from other subjects)
         if (currentTumblerOptions.length < 5) {
-          const globalDistractorItems: LockItem[] = [];
+          const globalDistractorItems: string[] = [];
           combinationLockSubjects.forEach(s => {
             if (s.id !== subject.id) {
               s.items.forEach(item => {
@@ -636,3 +636,4 @@ const GameEngine: React.FC<GameEngineProps> = ({
 };
 
 export default GameEngine;
+
