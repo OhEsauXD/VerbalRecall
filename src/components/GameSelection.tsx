@@ -4,7 +4,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
+import Image from 'next/image'; // Import next/image
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import type { GameType } from '@/app/page';
 
@@ -136,13 +136,13 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 3, // Loop only if enough items
+        loop: games.length > 3, // Loop only if enough items to make sense for the largest view
       }}
       className="w-full"
     >
       <CarouselContent className="-ml-4">
         {games.map((game) => (
-          <CarouselItem key={game.type} className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+          <CarouselItem key={game.type} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
             <div className="p-1 h-full">
               <Card className="w-full h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
                 <CardHeader className="p-0">
@@ -171,7 +171,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
           </CarouselItem>
         ))}
       </CarouselContent>
-      {games.length > 1 && ( // Show controls only if there's more than one item
+      {games.length > 1 && ( // Show controls only if there's more than one item to scroll through
         <>
             <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground" />
             <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground" />
@@ -192,3 +192,4 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
 };
 
 export default GameSelection;
+
