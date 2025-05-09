@@ -13,7 +13,7 @@ interface DifficultySelectorProps {
   currentDifficulty: Difficulty | null;
   itemType: string; // Generic enough for all game types
   itemCounts: { easy: number; medium: number; hard: number };
-  isTrivia?: boolean; // Optional flag for trivia game
+  isTrivia?: boolean; // Optional flag for trivia game or verb lock
 }
 
 const DifficultySelector: React.FC<DifficultySelectorProps> = ({
@@ -27,17 +27,20 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({
   const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
 
   const getItemText = (level: Difficulty) => {
-    if (isTrivia) {
+    if (itemType === 'Verb Trivia') { // Specifically for Verb Trivia
       return `${itemCounts[level]} Questions`;
     }
+    if (itemType === 'Verb Combination Lock') { // Specifically for Verb Lock
+        return `${itemCounts[level]} Locks`;
+    }
+    // Default for matching games
     const pluralItemType = itemCounts[level] !== 1 && !itemType.endsWith('s') && itemType !== 'Nations & Nationalities'
       ? itemType + 's'
       : itemType.endsWith('s') || itemType === 'Nations & Nationalities'
       ? itemType
-      : itemType + 's'; // Fallback pluralization
+      : itemType + 's';
     
-    // Adjust "items" specifically for Nations & Nationalities to "pairs" for matching
-    const displayItemType = itemType === 'Nations & Nationalities' && !isTrivia ? 'pairs' : pluralItemType;
+    const displayItemType = itemType === 'Nations & Nationalities' ? 'pairs' : pluralItemType;
 
     return `${itemCounts[level]} ${displayItemType}`;
   };

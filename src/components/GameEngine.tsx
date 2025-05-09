@@ -6,7 +6,8 @@ import GameCard from '@/components/GameCard';
 import GameStatus from '@/components/GameStatus';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import TriviaGame from '@/components/TriviaGame'; // Import TriviaGame
+import TriviaGame from '@/components/TriviaGame';
+import VerbLockGame from '@/components/VerbLockGame';
 import { verbPairs, generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
@@ -16,7 +17,7 @@ import { generateTransportBuildingGameBoard, TransportBuildingCardData } from '@
 import { generatePastTenseGameBoard, PastTenseCardData } from '@/lib/pastTense';
 import { generateRegularPastTenseGameBoard, RegularPastTenseCardData } from '@/lib/regularPastTense';
 import { generateNationGameBoard, NationCardData } from '@/lib/nations';
-import type { CrosswordData } from '@/lib/crosswordUtils'; // Assuming this will be used later
+import { verbLocks, VerbLock } from '@/lib/verbLock';
 import type { GameType as PageGameType, Difficulty as PageDifficulty } from '@/app/page';
 
 export type GameType = PageGameType;
@@ -67,7 +68,7 @@ export interface TriviaQuestion {
 interface GameEngineProps {
   gameType: GameType;
   difficulty: Difficulty;
-  onGameComplete: (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number }) => void;
+  onGameComplete: (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number; locksSolved?: number }) => void;
   onBackToDifficulty: () => void;
   isHintActive: boolean; // For matching games
   onToggleHint: () => void; // For matching games
@@ -78,8 +79,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
   difficulty,
   onGameComplete,
   onBackToDifficulty,
-  isHintActive: isMatchingHintActive, // Rename to avoid conflict
-  onToggleHint: onToggleMatchingHint, // Rename to avoid conflict
+  isHintActive: isMatchingHintActive,
+  onToggleHint: onToggleMatchingHint,
 }) => {
   // Matching Game State
   const [cards, setCards] = useState<GenericCard[]>([]);
@@ -91,11 +92,17 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const [triviaQuestions, setTriviaQuestions] = useState<TriviaQuestion[]>([]);
   const [currentTriviaQuestionIndex, setCurrentTriviaQuestionIndex] = useState(0);
   const [triviaScore, setTriviaScore] = useState(0);
-  const [isTriviaHintActive, setIsTriviaHintActive] = useState(false); // Separate hint state for trivia
+  const [isTriviaHintActive, setIsTriviaHintActive] = useState(false);
+
+  // Verb Lock Game State
+  const [verbLockSet, setVerbLockSet] = useState<readonly VerbLock[]>([]);
+  const [currentVerbLockQuestIndex, setCurrentVerbLockQuestIndex] = useState(0); // Renamed from currentVerbLockIndex
+  const [verbLockScore, setVerbLockScore] = useState(0);
+  // isHintActive for verb lock might not be needed or handled differently
 
   // General Game State
   const [isGameActive, setIsGameActive] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
+  const [isChecking, setIsChecking] = useState(false); // For matching game card check delay
   const [time, setTime] = useState(0);
 
 
@@ -127,6 +134,18 @@ const GameEngine: React.FC<GameEngineProps> = ({
     });
   }, []);
 
+  const generateVerbLockGameSet = useCallback((diff: Difficulty): readonly VerbLock[] => {
+    let numLocks: number;
+    switch (diff) {
+      case 'easy': numLocks = 10; break;
+      case 'medium': numLocks = 15; break;
+      case 'hard': numLocks = Math.min(20, verbLocks.length); break; // Cap at available locks
+      default: numLocks = 10;
+    }
+    const shuffledLocks = [...verbLocks].sort(() => 0.5 - Math.random());
+    return shuffledLocks.slice(0, numLocks);
+  }, []);
+
 
   const getBoardGenerator = useCallback(() => {
     switch (gameType) {
@@ -139,7 +158,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
       case 'pastTense': return generatePastTenseGameBoard;
       case 'regularPastTense': return generateRegularPastTenseGameBoard;
       case 'nations': return generateNationGameBoard;
-      // Trivia and Crossword don't use this type of board generator directly in the same way
       default: return () => [];
     }
   }, [gameType]);
@@ -153,6 +171,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setCurrentTriviaQuestionIndex(0);
       setTriviaScore(0);
       setIsTriviaHintActive(false);
+    } else if (gameType === 'verbLock') {
+      setVerbLockSet(generateVerbLockGameSet(difficulty));
+      setCurrentVerbLockQuestIndex(0);
+      setVerbLockScore(0);
+      // Reset any verb lock specific states here
     } else {
       const generator = getBoardGenerator();
       if (generator) {
@@ -166,11 +189,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setMoves(0);
     }
     setIsGameActive(true);
-  }, [gameType, difficulty, getBoardGenerator, generateTriviaGameData]);
+  }, [gameType, difficulty, getBoardGenerator, generateTriviaGameData, generateVerbLockGameSet]);
 
 
   const handleCardClick = (cardId: string) => {
-    if (gameType === 'trivia' || isChecking || flippedCards.length >= 2) return;
+    if (gameType === 'trivia' || gameType === 'verbLock' || isChecking || flippedCards.length >= 2) return;
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
 
@@ -202,7 +225,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   // Matching game completion
   useEffect(() => {
-    if (gameType !== 'trivia' && gameType !== 'crossword' && isGameActive && cards.length > 0 && matchedPairs.length === cards.length / 2) {
+    if (gameType !== 'trivia' && gameType !== 'verbLock' && isGameActive && cards.length > 0 && matchedPairs.length === cards.length / 2) {
       setIsGameActive(false);
       onGameComplete({ moves, time });
     }
@@ -250,7 +273,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
       i === currentTriviaQuestionIndex ? { ...q, isAttempted: true, isCorrect: allCorrect } : q
     ));
 
-    // Automatically move to the next question or end game
     setTimeout(() => {
         if (currentTriviaQuestionIndex < triviaQuestions.length - 1) {
             setCurrentTriviaQuestionIndex(prev => prev + 1);
@@ -258,7 +280,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             setIsGameActive(false);
             onGameComplete({ questionsAttempted: triviaQuestions.length, score: triviaScore + questionScore });
           }
-    }, 1500); // Delay to show feedback
+    }, 1500);
   };
 
   const handleTriviaHint = () => {
@@ -284,6 +306,21 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }));
   };
 
+  const handleVerbLockSolved = (isCorrect: boolean) => {
+    if (currentVerbLockQuestIndex >= verbLockSet.length) return;
+
+    if (isCorrect) {
+      setVerbLockScore(prev => prev + 1); // Or some other scoring logic
+    }
+    // Always move to next, or end game
+    if (currentVerbLockQuestIndex < verbLockSet.length - 1) {
+      setCurrentVerbLockQuestIndex(prev => prev + 1);
+    } else {
+      setIsGameActive(false);
+      onGameComplete({ locksSolved: currentVerbLockQuestIndex + (isCorrect ? 1: 0), score: verbLockScore + (isCorrect ? 1: 0) });
+    }
+  };
+
   const renderActiveGame = () => {
     if (gameType === 'trivia' && triviaQuestions.length > 0 && currentTriviaQuestionIndex < triviaQuestions.length) {
       return (
@@ -294,7 +331,16 @@ const GameEngine: React.FC<GameEngineProps> = ({
           onSubmit={handleTriviaSubmit}
         />
       );
-    } else if (gameType !== 'crossword' && gameType !== 'trivia') {
+    } else if (gameType === 'verbLock' && verbLockSet.length > 0 && currentVerbLockQuestIndex < verbLockSet.length) {
+      return (
+        <VerbLockGame
+          verbLock={verbLockSet[currentVerbLockQuestIndex]}
+          onCombinationSubmit={handleVerbLockSolved}
+          difficulty={difficulty}
+        />
+      );
+    }
+    else if (gameType !== 'crossword' && gameType !== 'trivia' && gameType !== 'verbLock') {
       return (
         <div className={`grid ${getGridColsClass(difficulty)} gap-2 md:gap-4 place-items-center perspective-1000 w-full px-2 md:px-0`}>
           {cards.map((card) => {
@@ -318,7 +364,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         </div>
       );
     }
-    return <div className="text-foreground">Loading game...</div>; // Or some other placeholder
+    return <div className="text-foreground">Loading game...</div>;
   };
 
 
@@ -326,13 +372,15 @@ const GameEngine: React.FC<GameEngineProps> = ({
     <div className="flex flex-col items-center w-full">
       <GameStatus
         moves={moves} // For matching game
-        score={gameType === 'trivia' ? triviaScore : undefined} // For trivia game
+        score={gameType === 'trivia' ? triviaScore : gameType === 'verbLock' ? verbLockScore : undefined}
         isGameActive={isGameActive}
         onTimerUpdate={handleTimerUpdate}
-        isHintActive={gameType === 'trivia' ? isTriviaHintActive : isMatchingHintActive}
-        onToggleHint={gameType === 'trivia' ? handleTriviaHint : onToggleMatchingHint}
+        isHintActive={gameType === 'trivia' ? isTriviaHintActive : (gameType === 'verbLock' ? false : isMatchingHintActive) } // verbLock might not have a simple hint toggle
+        onToggleHint={gameType === 'trivia' ? handleTriviaHint : (gameType === 'verbLock' ? () => {} : onToggleMatchingHint)} // Provide no-op for verbLock if no hint
         gameType={gameType}
-        canUseHint={gameType === 'trivia' ? triviaScore > 0 : true}
+        canUseHint={gameType === 'trivia' ? triviaScore > 0 : gameType !== 'verbLock'}
+        totalItems={gameType === 'verbLock' ? verbLockSet.length : (gameType === 'trivia' ? triviaQuestions.length : undefined)}
+        currentItemIndex={gameType === 'verbLock' ? currentVerbLockQuestIndex : (gameType === 'trivia' ? currentTriviaQuestionIndex : undefined)}
       />
       {renderActiveGame()}
       <Button onClick={onBackToDifficulty} variant="outline" className="mt-8">

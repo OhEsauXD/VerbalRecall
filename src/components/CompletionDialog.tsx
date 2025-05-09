@@ -15,8 +15,8 @@ import type { GameType } from '@/app/page';
 
 interface CompletionDialogProps {
   isOpen: boolean;
-  moves: number; // For matching: moves; For trivia: questions attempted/correct
-  time: number;  // For matching: time in seconds; For trivia: final score
+  moves: number; // For matching: moves; For trivia: questions attempted/correct; For verbLock: locks solved
+  time: number;  // For matching: time in seconds; For trivia/verbLock: final score
   onPlayAgain: () => void;
   itemType: GameType;
 }
@@ -39,8 +39,14 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
     description = `You finished the trivia!
                    <br />
                    You attempted <strong>${moves} questions</strong> and your final score is <strong>${time}</strong>.`;
-  } else {
-    const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword'>, string> = {
+  } else if (itemType === 'verbLock') {
+    title = "Verb Lock Challenge Complete!";
+    description = `You successfully unlocked all combinations!
+                   <br />
+                   You solved <strong>${moves} locks</strong> and your final score is <strong>${time}</strong>.`;
+  }
+   else {
+    const itemTextMap: Record<Exclude<GameType, 'trivia' | 'crossword' | 'verbLock'>, string> = {
         'verbs': 'verb',
         'adjectives': 'adjective',
         'animals': 'animal name/picture',
@@ -51,7 +57,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({ isOpen, moves, time
         'regularPastTense': 'regular past tense verb',
         'nations': 'nation/nationality',
     };
-    const itemText = itemTextMap[itemType as Exclude<GameType, 'trivia' | 'crossword'>] || 'item';
+    const itemText = itemTextMap[itemType as Exclude<GameType, 'trivia' | 'crossword' | 'verbLock'>] || 'item';
     description = `You matched all the ${itemText} pairs!
                    <br />
                    You completed the game in <strong>${moves} moves</strong> and <strong>${formatTime(time)}</strong>.`;

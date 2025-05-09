@@ -8,13 +8,15 @@ import type { GameType } from '@/app/page'; // Import GameType
 
 interface GameStatusProps {
   moves: number; // For matching game
-  score?: number; // Optional score for trivia game
+  score?: number; // Optional score for trivia game / verb lock game
   isGameActive: boolean;
   onTimerUpdate: (time: number) => void;
   isHintActive: boolean; // General hint active state
   onToggleHint: () => void; // General hint toggle function
   gameType: GameType; // To differentiate display
   canUseHint?: boolean; // Optional: to disable hint button based on score
+  totalItems?: number; // For trivia (total questions) or verbLock (total locks)
+  currentItemIndex?: number; // For trivia (current question) or verbLock (current lock)
 }
 
 const GameStatus: React.FC<GameStatusProps> = ({
@@ -25,7 +27,9 @@ const GameStatus: React.FC<GameStatusProps> = ({
   isHintActive,
   onToggleHint,
   gameType,
-  canUseHint = true, // Default to true if not provided
+  canUseHint = true,
+  totalItems,
+  currentItemIndex,
 }) => {
   const [time, setTime] = useState(0);
 
@@ -65,10 +69,27 @@ const GameStatus: React.FC<GameStatusProps> = ({
     <div className="flex flex-col items-center my-4 p-4 bg-muted rounded-lg shadow w-full max-w-md">
       <div className="flex justify-around w-full">
         {gameType === 'trivia' ? (
-          <div className="text-center">
-            <div className="text-sm text-muted-foreground">Score</div>
-            <div className="text-xl font-semibold">{score ?? 0}</div>
-          </div>
+          <>
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground">Question</div>
+              <div className="text-xl font-semibold">{currentItemIndex !== undefined ? currentItemIndex + 1 : '-'}/{totalItems ?? '-'}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground">Score</div>
+              <div className="text-xl font-semibold">{score ?? 0}</div>
+            </div>
+          </>
+        ) : gameType === 'verbLock' ? (
+          <>
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground">Lock</div>
+              <div className="text-xl font-semibold">{currentItemIndex !== undefined ? currentItemIndex + 1 : '-'}/{totalItems ?? '-'}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground">Score</div>
+              <div className="text-xl font-semibold">{score ?? 0}</div>
+            </div>
+          </>
         ) : (
           <div className="text-center">
             <div className="text-sm text-muted-foreground">Moves</div>
@@ -80,15 +101,17 @@ const GameStatus: React.FC<GameStatusProps> = ({
           <div className="text-xl font-semibold">{formatTime(time)}</div>
         </div>
       </div>
-      <Button
-        onClick={onToggleHint}
-        variant={isHintActive && gameType !== 'trivia' ? "default" : "outline"} // For trivia, hint is a one-time action, not a toggle
-        className="mt-4"
-        aria-pressed={isHintActive}
-        disabled={!canUseHint || (gameType === 'trivia' && isHintActive)} // Disable if cannot use hint or if trivia hint already used (isHintActive can signify this)
-      >
-        <Lightbulb className="mr-2 h-4 w-4" /> {hintButtonText}
-      </Button>
+      {gameType !== 'verbLock' && ( // Hint button not applicable for verb lock in current design
+        <Button
+          onClick={onToggleHint}
+          variant={isHintActive && gameType !== 'trivia' ? "default" : "outline"}
+          className="mt-4"
+          aria-pressed={isHintActive}
+          disabled={!canUseHint || (gameType === 'trivia' && isHintActive)}
+        >
+          <Lightbulb className="mr-2 h-4 w-4" /> {hintButtonText}
+        </Button>
+      )}
     </div>
   );
 };

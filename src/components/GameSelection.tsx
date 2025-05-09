@@ -44,7 +44,7 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
       <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
         <CardHeader className="p-0">
           <Image
-            src="https://picsum.photos/400/200?random=10" // New random seed
+            src="https://picsum.photos/400/200?random=10"
             alt="Abstract representation of trivia or question marks"
             width={400}
             height={200}
@@ -61,6 +61,31 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
         <CardFooter className="p-6 pt-0 mt-auto">
           <Button onClick={() => onSelectGame('trivia')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             Play Verb Trivia
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Verb Lock Game Card */}
+      <Card className="w-full max-w-sm overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+        <CardHeader className="p-0">
+          <Image
+            src="https://picsum.photos/400/200?random=11" // New random seed
+            alt="Abstract representation of a combination lock"
+            width={400}
+            height={200}
+            className="w-full h-48 object-cover"
+            data-ai-hint="lock combination"
+          />
+        </CardHeader>
+        <CardContent className="p-6 flex-grow">
+          <CardTitle className="mb-2 text-xl font-semibold text-primary">Verb Combination Lock</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Unlock verb forms! Match Spanish infinitives with English base, past simple, and past participle.
+          </CardDescription>
+        </CardContent>
+        <CardFooter className="p-6 pt-0 mt-auto">
+          <Button onClick={() => onSelectGame('verbLock')} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+            Play Verb Lock
           </Button>
         </CardFooter>
       </Card>
