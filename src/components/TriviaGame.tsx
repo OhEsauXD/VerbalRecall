@@ -1,20 +1,21 @@
-
-
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TriviaQuestion } from '@/components/GameEngine'; 
 import { cn } from '@/lib/utils';
 import type { GameType } from '@/app/page';
+import { Lightbulb } from 'lucide-react';
 
 interface TriviaGameProps {
   question: TriviaQuestion;
   questionIndex: number; 
   onInputChange: (questionIndex: number, letterIndex: number, value: string) => void;
   onSubmit: () => void;
-  gameType: GameType; // Added to determine clue display
+  gameType: GameType;
+  score: number; // Added score prop
+  onHint: () => void; // Added hint callback
 }
 
 const TriviaGame: React.FC<TriviaGameProps> = ({
@@ -23,12 +24,17 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
   onInputChange,
   onSubmit,
   gameType,
+  score,
+  onHint,
 }) => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [isHintButtonUsed, setIsHintButtonUsed] = useState(false);
+
 
   useEffect(() => {
     inputRefs.current = inputRefs.current.slice(0, question.answerLetters.length);
-  }, [question.answerLetters.length]);
+    setIsHintButtonUsed(false); // Reset hint used state for new question
+  }, [question.answerLetters.length, questionIndex]); // Depend on questionIndex to reset for new question
 
   useEffect(() => {
     if (question) {
@@ -76,9 +82,16 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
 
   const getClueText = () => {
     if (gameType === 'spanishEnglishTrivia' || question.clueLanguage === 'es') {
-      return question.clue; // Spanish clue is already infinitive
+      return question.clue; 
     }
-    return `to ${question.clue}`; // English clue, add "to"
+    return `to ${question.clue}`; 
+  }
+
+  const handleHintClick = () => {
+    if (score > 0) {
+      onHint();
+      setIsHintButtonUsed(true);
+    }
   }
 
   return (
@@ -112,9 +125,19 @@ const TriviaGame: React.FC<TriviaGameProps> = ({
       </div>
 
       {!question.isAttempted && (
-        <Button onClick={onSubmit} className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3">
-          Submit Answer
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
+            <Button onClick={onSubmit} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3">
+            Submit Answer
+            </Button>
+            <Button 
+            onClick={handleHintClick} 
+            variant="outline" 
+            className="flex-1 text-lg py-3"
+            disabled={score <= 0 || isHintButtonUsed || question.revealedIndices.size >= question.answerLetters.length}
+            >
+            <Lightbulb className="mr-2 h-5 w-5" /> Hint (-1 Pt)
+            </Button>
+        </div>
       )}
 
       {question.isAttempted && question.isCorrect === true && (

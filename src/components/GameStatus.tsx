@@ -1,23 +1,24 @@
 
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import type { GameType } from '@/app/page'; 
 import { Button } from '@/components/ui/button';
-import { Lightbulb } from 'lucide-react';
-import type { GameType } from '@/app/page'; // Import GameType
+import { Volume2, VolumeX, Lightbulb } from 'lucide-react'; // Added Lightbulb
 
 interface GameStatusProps {
-  moves: number; // For matching game
-  score?: number; // Optional score for trivia game / verb lock game
+  moves: number; 
+  score?: number; 
   isGameActive: boolean;
   onTimerUpdate: (time: number) => void;
-  isHintActive: boolean; // General hint active state
-  onToggleHint: () => void; // General hint toggle function
-  gameType: GameType; // To differentiate display
-  canUseHint?: boolean; // Optional: to disable hint button based on score
-  totalItems?: number; // For trivia (total questions) or verbLock (total locks)
-  currentItemIndex?: number; // For trivia (current question) or verbLock (current lock)
+  isHintActive?: boolean;
+  onToggleHint?: () => void;
+  gameType: GameType; 
+  canUseHint?: boolean; 
+  totalItems?: number; 
+  currentItemIndex?: number; 
+  isMuted?: boolean; // Mute state for memory games
+  onToggleMute?: () => void; // Toggle mute for memory games
 }
 
 const GameStatus: React.FC<GameStatusProps> = ({
@@ -28,9 +29,11 @@ const GameStatus: React.FC<GameStatusProps> = ({
   isHintActive,
   onToggleHint,
   gameType,
-  canUseHint = true,
+  canUseHint,
   totalItems,
   currentItemIndex,
+  isMuted,
+  onToggleMute,
 }) => {
   const [time, setTime] = useState(0);
 
@@ -63,12 +66,11 @@ const GameStatus: React.FC<GameStatusProps> = ({
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
-  const hintButtonText = gameType === 'trivia' ? (isHintActive ? 'Hint Used' : 'Use Hint (-1 Pt)') : (isHintActive ? 'Hide Hints' : 'Show Hints');
-
+  const isMemoryGame = gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock';
 
   return (
     <div className="flex flex-col items-center my-4 p-4 bg-muted rounded-lg shadow w-full max-w-md">
-      <div className="flex justify-around w-full">
+      <div className="flex justify-around w-full items-center">
         {gameType === 'trivia' || gameType === 'spanishEnglishTrivia' ? (
           <>
             <div className="text-center">
@@ -101,17 +103,27 @@ const GameStatus: React.FC<GameStatusProps> = ({
           <div className="text-sm text-muted-foreground">Time</div>
           <div className="text-xl font-semibold">{formatTime(time)}</div>
         </div>
+        {isMemoryGame && onToggleMute && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggleMute}
+            aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+            className="text-foreground hover:text-accent"
+          >
+            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+          </Button>
+        )}
       </div>
-      {gameType !== 'verbLock' && gameType !== 'combinationLock' && ( // Hint button not applicable for lock games
-        <Button
-          onClick={onToggleHint}
-          variant={isHintActive && gameType !== 'trivia' ? "default" : "outline"}
-          className="mt-4"
-          aria-pressed={isHintActive}
-          disabled={!canUseHint || (gameType === 'trivia' && isHintActive)}
-        >
-          <Lightbulb className="mr-2 h-4 w-4" /> {hintButtonText}
-        </Button>
+      {isMemoryGame && canUseHint && onToggleHint && (
+         <Button
+            onClick={onToggleHint}
+            variant={isHintActive ? "default" : "outline"}
+            className="mt-4"
+            aria-pressed={isHintActive}
+          >
+            <Lightbulb className="mr-2 h-4 w-4" /> {isHintActive ? 'Hints ON' : 'Hints OFF'}
+          </Button>
       )}
     </div>
   );
