@@ -4,30 +4,31 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import Image from 'next/image'; // Import next/image
+import Image from 'next/image'; 
 
 interface GameCardProps {
   cardId: string;
-  text?: string; // Make text optional
-  imageUrl?: string; // Add imageUrl prop for general images
-  flagUrl?: string; // Add specific flagUrl prop
-  nation?: string; // Add nation name prop (optional)
-  nationality?: string; // Add nationality prop (optional)
-  spanishName?: string; // Add Spanish name prop (optional)
-  dataAiHint?: string; // Add AI hint prop for images
+  text?: string;
+  imageUrl?: string;
+  flagUrl?: string;
+  nation?: string;
+  nationality?: string;
+  spanishName?: string;
+  dataAiHint?: string;
   isFlipped: boolean;
   isMatched: boolean;
   onClick: (cardId: string) => void;
-  language: 'en' | 'es' | 'infinitive' | 'past'; // Language now reflects the content
+  language: 'en' | 'es' | 'infinitive' | 'past';
   isHintActive: boolean;
-  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nation' | 'nationality'; // Add nation types
+  cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nation' | 'nationality';
+  onSpeak?: (text: string, lang: string) => void; // New prop for speaking text
 }
 
 const GameCard: React.FC<GameCardProps> = ({
   cardId,
   text,
   imageUrl,
-  flagUrl, // Destructure flagUrl
+  flagUrl,
   nation,
   nationality,
   spanishName,
@@ -38,6 +39,7 @@ const GameCard: React.FC<GameCardProps> = ({
   language,
   isHintActive,
   cardType,
+  onSpeak, // Destructure new prop
 }) => {
   const handleClick = () => {
     if (!isFlipped && !isMatched) {
@@ -45,7 +47,32 @@ const GameCard: React.FC<GameCardProps> = ({
     }
   };
 
-  // Base styling
+  const handleSpeak = () => {
+    if (onSpeak && (isFlipped || isMatched)) {
+      let textToSpeak = '';
+      let langToUse = 'en-US';
+
+      if (cardType === 'nation' && nation) {
+        textToSpeak = nation;
+        langToUse = 'en-US';
+      } else if (cardType === 'nationality' && nationality) {
+        textToSpeak = nationality;
+        langToUse = 'es-ES'; // Assuming nationality is in Spanish as per current setup
+      } else if (cardType === 'image' && spanishName) {
+        textToSpeak = spanishName;
+        langToUse = 'es-ES';
+      } else if (text) {
+        textToSpeak = text;
+        if (language === 'es') langToUse = 'es-ES';
+        else if (language === 'en' || language === 'infinitive' || language === 'past') langToUse = 'en-US';
+      }
+      
+      if (textToSpeak) {
+        onSpeak(textToSpeak, langToUse);
+      }
+    }
+  };
+
   const baseCardStyle = `
     w-24 h-32 md:w-32 md:h-40
     flex items-center justify-center
@@ -53,28 +80,21 @@ const GameCard: React.FC<GameCardProps> = ({
     rounded-lg shadow-md
   `;
 
-  // Card face styling
   const faceStyle = `
     absolute inset-0 w-full h-full
     flex flex-col items-center justify-center
     rounded-lg backface-hidden p-2 text-center overflow-hidden
   `;
 
-  // Back face (visible when flipped=false)
   const getHintColor = () => {
     if (isHintActive && !isFlipped && !isMatched) {
-      // Hint logic based on language or cardType
-      if (language === 'en' || language === 'infinitive' || cardType === 'nation') { // English text, infinitive verb, name card, or nation card (flag)
+      if (language === 'en' || language === 'infinitive' || cardType === 'nation') {
         return 'bg-blue-200';
-      } else if (language === 'es' || language === 'past' || cardType === 'nationality') { // Spanish text, image, past tense verb, or nationality card
-        if (cardType === 'image') {
-            return 'bg-yellow-200'; // Distinct hint for general image cards
-        }
-        // Hint for Spanish text, Past Tense, or Nationality
-        return 'bg-green-200';
+      } else if (language === 'es' || language === 'past' || cardType === 'nationality' || cardType === 'image') {
+         return cardType === 'image' ? 'bg-yellow-200' : 'bg-green-200';
       }
     }
-    return 'bg-secondary text-secondary-foreground'; // Default back face
+    return 'bg-secondary text-secondary-foreground';
   };
 
   const backFaceStyle = cn(
@@ -83,24 +103,22 @@ const GameCard: React.FC<GameCardProps> = ({
     isFlipped ? 'rotate-y-180' : ''
   );
 
-  // Front face (visible when flipped=true or matched=true)
   const frontFaceStyle = cn(
     faceStyle,
-    'bg-card text-card-foreground rotate-y-180', // White background for text/image visibility
-    isMatched ? 'bg-accent text-accent-foreground' : '', // Accent background for matched
-    isFlipped ? '' : 'rotate-y-180' // Start rotated if not flipped
+    'bg-card text-card-foreground rotate-y-180',
+    isMatched ? 'bg-accent text-accent-foreground' : '',
+    isFlipped ? '' : 'rotate-y-180'
   );
 
   const cardContainerStyle = cn(
     baseCardStyle,
-    'relative', // Needed for absolute positioning of faces
-    isFlipped || isMatched ? 'rotate-y-180' : '' // Rotate container when flipped/matched
+    'relative',
+    isFlipped || isMatched ? 'rotate-y-180' : ''
   );
 
-  // Determine font style based on card content (Spanish text, Past Tense, Nationality are italic)
   const fontStyle = (language === 'es' || language === 'past' || cardType === 'nationality') ? 'italic' : '';
   const spanishNameStyle = cardType === 'image' ? 'italic text-xs mt-1' : '';
-  const nationNameStyle = cardType === 'nation' ? 'text-xs mt-1 font-semibold' : ''; // Style for nation name below flag
+  const nationNameStyle = cardType === 'nation' ? 'text-xs mt-1 font-semibold' : '';
 
   const renderFrontContent = () => {
     if (cardType === 'nation') {
@@ -110,12 +128,12 @@ const GameCard: React.FC<GameCardProps> = ({
             <Image
               src={flagUrl}
               alt={`${nation} flag`}
-              width={80} // Adjusted size
-              height={50} // Adjusted size for flag aspect ratio
-              className="object-contain max-w-full max-h-[60%] rounded-sm border border-muted" // Border for flags
+              width={80}
+              height={50}
+              className="object-contain max-w-full max-h-[60%] rounded-sm border border-muted"
             />
           )}
-          {nation && ( // Display nation name below the flag
+          {nation && (
             <span className={cn("block", nationNameStyle)}>{nation}</span>
           )}
         </>
@@ -137,7 +155,6 @@ const GameCard: React.FC<GameCardProps> = ({
         </>
       );
     } else {
-       // Display text (verb, adjective, nationality, etc.)
       const displayText = cardType === 'nationality' ? nationality : text;
       return (
         <span className={cn("text-sm md:text-base font-medium", fontStyle)}>
@@ -147,18 +164,14 @@ const GameCard: React.FC<GameCardProps> = ({
     }
   };
 
-
   return (
     <div className={cardContainerStyle} onClick={handleClick} role="button" aria-pressed={isFlipped}>
-      {/* Back Face */}
       <Card className={backFaceStyle}>
         <CardContent className="p-0">
           <span className="text-4xl">?</span>
         </CardContent>
       </Card>
-
-      {/* Front Face */}
-      <Card className={frontFaceStyle}>
+      <Card className={frontFaceStyle} onClick={handleSpeak} role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSpeak()}>
         <CardContent className="p-0 flex flex-col items-center justify-center w-full h-full">
           {renderFrontContent()}
         </CardContent>
@@ -167,23 +180,19 @@ const GameCard: React.FC<GameCardProps> = ({
   );
 };
 
-// Add necessary CSS for 3D transforms and backface visibility
 const styles = `
   .transform-style-3d { transform-style: preserve-3d; }
   .rotate-y-180 { transform: rotateY(180deg); }
   .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 `;
 
-// Inject styles into the head
 if (typeof window !== 'undefined') {
   const styleSheet = document.createElement("style");
   styleSheet.type = "text/css";
   styleSheet.innerText = styles;
-  // Ensure head exists before appending
   if (document.head) {
      document.head.appendChild(styleSheet);
   } else {
-    // Fallback if head is not immediately available (e.g., during SSR hydration)
     document.addEventListener('DOMContentLoaded', () => {
          if (document.head) {
             document.head.appendChild(styleSheet);
@@ -192,7 +201,4 @@ if (typeof window !== 'undefined') {
   }
 }
 
-
 export default GameCard;
-
-    

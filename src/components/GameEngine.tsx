@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import TriviaGame from '@/components/TriviaGame';
 import VerbLockGame from '@/components/VerbLockGame';
-import CombinationLockGame from '@/components/CombinationLockGame'; // Import new game
+import CombinationLockGame from '@/components/CombinationLockGame';
 import { generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
@@ -72,8 +73,6 @@ interface GameEngineProps {
   difficulty: Difficulty;
   onGameComplete: (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number; locksSolved?: number }) => void;
   onBackToDifficulty: () => void;
-  // isHintActive and onToggleHint are now primarily for matching games
-  // Trivia and VerbLock manage their own hint/audio states internally
   isHintActive: boolean; 
   onToggleHint: () => void;
 }
@@ -83,8 +82,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
   difficulty,
   onGameComplete,
   onBackToDifficulty,
-  isHintActive: isMatchingGameHintActive, // Renamed for clarity
-  onToggleHint: onToggleMatchingGameHint, // Renamed for clarity
+  isHintActive: isMatchingGameHintActive,
+  onToggleHint: onToggleMatchingGameHint,
 }) => {
   const [cards, setCards] = useState<GenericCard[]>([]);
   const [flippedCards, setFlippedCards] = useState<string[]>([]);
@@ -94,13 +93,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const [triviaQuestions, setTriviaQuestions] = useState<TriviaQuestion[]>([]);
   const [currentTriviaQuestionIndex, setCurrentTriviaQuestionIndex] = useState(0);
   const [triviaScore, setTriviaScore] = useState(0);
-  // Trivia game will manage its own hint button interaction state
 
   const [verbLockChallenges, setVerbLockChallenges] = useState<VerbLockChallenge[]>([]);
   const [currentVerbLockQuestIndex, setCurrentVerbLockQuestIndex] = useState(0);
   const [verbLockScore, setVerbLockScore] = useState(0);
   const [verbLocksSolvedCount, setVerbLocksSolvedCount] = useState(0);
-  // VerbLock game will manage its own mute button interaction state
 
   const [combinationLockChallenges, setCombinationLockChallenges] = useState<LibCombinationLockChallenge[]>([]);
   const [currentCombinationLockIndex, setCurrentCombinationLockIndex] = useState(0);
@@ -110,6 +107,42 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const [isGameActive, setIsGameActive] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [time, setTime] = useState(0);
+  const [isMemoryGameMuted, setIsMemoryGameMuted] = useState(false); // Mute state for memory games
+
+  const speakMemoryGameText = useCallback((text: string, lang: string) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis && !isMemoryGameMuted) {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      const voices = window.speechSynthesis.getVoices();
+      const specificVoice = voices.find(voice => voice.lang === lang);
+      if (specificVoice) {
+        utterance.voice = specificVoice;
+      }
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [isMemoryGameMuted]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.getVoices(); 
+    }
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const toggleMemoryGameMute = () => {
+    setIsMemoryGameMuted(prev => !prev);
+    if (window.speechSynthesis.speaking && !isMemoryGameMuted) { // If unmuting and speaking, it was likely for a verb lock game. Cancel it.
+        // If it was speaking and now we are muting it, cancel it.
+        window.speechSynthesis.cancel();
+    }
+  };
 
 
   const cleanVerb = (verb: string): string => {
@@ -365,6 +398,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
   useEffect(() => {
     setIsGameActive(false);
     setTime(0);
+    setIsMemoryGameMuted(false); // Reset mute state on game change
 
     if (gameType === 'trivia' || gameType === 'spanishEnglishTrivia') {
       setTriviaQuestions(generateTriviaGameData(gameType, difficulty));
@@ -441,16 +475,19 @@ const GameEngine: React.FC<GameEngineProps> = ({
   };
 
   const getGridColsClass = (diff: Difficulty | null) => {
-    switch (diff) {
-      case 'easy':
-        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6';
-      case 'medium':
-        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10';
-      case 'hard':
-        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10';
-      default:
-        return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5';
+    // For mobile (default)
+    let gridClass = 'grid-cols-3'; 
+  
+    // Adjust for larger screens based on difficulty
+    if (typeof window !== 'undefined' && window.innerWidth >= 640) { // sm breakpoint
+      switch (diff) {
+        case 'easy': gridClass = 'sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'; break;
+        case 'medium': gridClass = 'sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8'; break;
+        case 'hard': gridClass = 'sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10'; break;
+        default: gridClass = 'sm:grid-cols-4 md:grid-cols-5';
+      }
     }
+    return gridClass;
   };
 
 
@@ -498,7 +535,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const handleTriviaHint = () => {
     if (currentTriviaQuestionIndex >= triviaQuestions.length || triviaScore <= 0) return;
 
-    setTriviaScore(prev => Math.max(0, prev - 1)); // Deduct point for hint
+    setTriviaScore(prev => Math.max(0, prev - 1)); 
 
     setTriviaQuestions(prev => prev.map((q, i) => {
       if (i === currentTriviaQuestionIndex) {
@@ -576,7 +613,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
           onInputChange={handleTriviaInputChange}
           onSubmit={handleTriviaSubmit}
           gameType={gameType}
-          // Pass down score and hint handler for TriviaGame to manage its own hint button
           score={triviaScore}
           onHint={handleTriviaHint}
         />
@@ -587,7 +623,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
           verbLock={verbLockChallenges[currentVerbLockQuestIndex]}
           onCombinationSubmit={handleVerbLockSolved}
           difficulty={difficulty}
-          // VerbLockGame manages its own audio mute, not a traditional "hint" button passed here
         />
       );
     } else if (gameType === 'combinationLock' && combinationLockChallenges.length > 0 && currentCombinationLockIndex < combinationLockChallenges.length) {
@@ -605,6 +640,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             let cardProps: React.ComponentProps<typeof GameCard> = {
               key: card.id, cardId: card.id, isFlipped: card.isFlipped, isMatched: card.isMatched,
               onClick: handleCardClick, isHintActive: isMatchingGameHintActive, language: 'en', cardType: card.type as any,
+              onSpeak: speakMemoryGameText, // Pass speak function
             };
             if (card.text) cardProps.text = card.text;
             if (card.verb) cardProps.text = card.verb;
@@ -638,11 +674,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
         isGameActive={isGameActive}
         onTimerUpdate={handleTimerUpdate}
-        // For matching games, pass the general hint state and toggle
         isHintActive={gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock' ? isMatchingGameHintActive : undefined}
         onToggleHint={gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock' ? onToggleMatchingGameHint : undefined}
         gameType={gameType}
-        canUseHint={gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock'} // Trivia and VerbLock handle their own hint/audio disabling
+        canUseHint={gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock'}
         totalItems={(gameType === 'verbLock' || gameType === 'trivia' || gameType === 'spanishEnglishTrivia' || gameType === 'combinationLock') ? 
             (gameType === 'verbLock' ? verbLockChallenges.length : gameType === 'combinationLock' ? combinationLockChallenges.length : triviaQuestions.length) 
             : undefined}
@@ -651,6 +686,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
             (gameType === 'verbLock' ? currentVerbLockQuestIndex : gameType === 'combinationLock' ? currentCombinationLockIndex : currentTriviaQuestionIndex) 
             : undefined
         }
+        isMuted={gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock' ? isMemoryGameMuted : undefined}
+        onToggleMute={gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock' ? toggleMemoryGameMute : undefined}
       />
       {renderActiveGame()}
       <Button onClick={onBackToDifficulty} variant="outline" className="mt-8">

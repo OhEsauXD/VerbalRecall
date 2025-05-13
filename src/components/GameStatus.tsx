@@ -1,19 +1,24 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import type { GameType } from '@/app/page'; 
+import { Button } from '@/components/ui/button';
+import { Volume2, VolumeX, Lightbulb } from 'lucide-react'; // Added Lightbulb
 
 interface GameStatusProps {
   moves: number; 
   score?: number; 
   isGameActive: boolean;
   onTimerUpdate: (time: number) => void;
-  isHintActive?: boolean; // Kept for potential future use or other game types
-  onToggleHint?: () => void; // Kept for potential future use
+  isHintActive?: boolean;
+  onToggleHint?: () => void;
   gameType: GameType; 
   canUseHint?: boolean; 
   totalItems?: number; 
   currentItemIndex?: number; 
+  isMuted?: boolean; // Mute state for memory games
+  onToggleMute?: () => void; // Toggle mute for memory games
 }
 
 const GameStatus: React.FC<GameStatusProps> = ({
@@ -21,12 +26,14 @@ const GameStatus: React.FC<GameStatusProps> = ({
   score,
   isGameActive,
   onTimerUpdate,
-  // isHintActive and onToggleHint are no longer directly used by this component
-  // for verbLock or trivia, as those games handle their specific hints/audio toggles internally.
-  // They are kept in props for potential other game types or future refactoring.
+  isHintActive,
+  onToggleHint,
   gameType,
+  canUseHint,
   totalItems,
   currentItemIndex,
+  isMuted,
+  onToggleMute,
 }) => {
   const [time, setTime] = useState(0);
 
@@ -59,9 +66,11 @@ const GameStatus: React.FC<GameStatusProps> = ({
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
+  const isMemoryGame = gameType !== 'trivia' && gameType !== 'verbLock' && gameType !== 'spanishEnglishTrivia' && gameType !== 'combinationLock';
+
   return (
     <div className="flex flex-col items-center my-4 p-4 bg-muted rounded-lg shadow w-full max-w-md">
-      <div className="flex justify-around w-full">
+      <div className="flex justify-around w-full items-center">
         {gameType === 'trivia' || gameType === 'spanishEnglishTrivia' ? (
           <>
             <div className="text-center">
@@ -94,10 +103,28 @@ const GameStatus: React.FC<GameStatusProps> = ({
           <div className="text-sm text-muted-foreground">Time</div>
           <div className="text-xl font-semibold">{formatTime(time)}</div>
         </div>
+        {isMemoryGame && onToggleMute && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggleMute}
+            aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+            className="text-foreground hover:text-accent"
+          >
+            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+          </Button>
+        )}
       </div>
-      {/* Hint button is removed from GameStatus for verbLock/trivia as they handle it internally.
-          It could be conditionally rendered here for other game types if needed.
-      */}
+      {isMemoryGame && canUseHint && onToggleHint && (
+         <Button
+            onClick={onToggleHint}
+            variant={isHintActive ? "default" : "outline"}
+            className="mt-4"
+            aria-pressed={isHintActive}
+          >
+            <Lightbulb className="mr-2 h-4 w-4" /> {isHintActive ? 'Hints ON' : 'Hints OFF'}
+          </Button>
+      )}
     </div>
   );
 };
