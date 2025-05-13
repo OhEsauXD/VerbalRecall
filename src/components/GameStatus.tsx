@@ -1,23 +1,19 @@
-
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Lightbulb } from 'lucide-react';
-import type { GameType } from '@/app/page'; // Import GameType
+import type { GameType } from '@/app/page'; 
 
 interface GameStatusProps {
-  moves: number; // For matching game
-  score?: number; // Optional score for trivia game / verb lock game
+  moves: number; 
+  score?: number; 
   isGameActive: boolean;
   onTimerUpdate: (time: number) => void;
-  isHintActive: boolean; // General hint active state
-  onToggleHint: () => void; // General hint toggle function
-  gameType: GameType; // To differentiate display
-  canUseHint?: boolean; // Optional: to disable hint button based on score
-  totalItems?: number; // For trivia (total questions) or verbLock (total locks)
-  currentItemIndex?: number; // For trivia (current question) or verbLock (current lock)
+  isHintActive?: boolean; // Kept for potential future use or other game types
+  onToggleHint?: () => void; // Kept for potential future use
+  gameType: GameType; 
+  canUseHint?: boolean; 
+  totalItems?: number; 
+  currentItemIndex?: number; 
 }
 
 const GameStatus: React.FC<GameStatusProps> = ({
@@ -25,10 +21,10 @@ const GameStatus: React.FC<GameStatusProps> = ({
   score,
   isGameActive,
   onTimerUpdate,
-  isHintActive,
-  onToggleHint,
+  // isHintActive and onToggleHint are no longer directly used by this component
+  // for verbLock or trivia, as those games handle their specific hints/audio toggles internally.
+  // They are kept in props for potential other game types or future refactoring.
   gameType,
-  canUseHint = true,
   totalItems,
   currentItemIndex,
 }) => {
@@ -62,9 +58,6 @@ const GameStatus: React.FC<GameStatusProps> = ({
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
-
-  const hintButtonText = gameType === 'trivia' ? (isHintActive ? 'Hint Used' : 'Use Hint (-1 Pt)') : (isHintActive ? 'Hide Hints' : 'Show Hints');
-
 
   return (
     <div className="flex flex-col items-center my-4 p-4 bg-muted rounded-lg shadow w-full max-w-md">
@@ -102,17 +95,9 @@ const GameStatus: React.FC<GameStatusProps> = ({
           <div className="text-xl font-semibold">{formatTime(time)}</div>
         </div>
       </div>
-      {gameType !== 'verbLock' && gameType !== 'combinationLock' && ( // Hint button not applicable for lock games
-        <Button
-          onClick={onToggleHint}
-          variant={isHintActive && gameType !== 'trivia' ? "default" : "outline"}
-          className="mt-4"
-          aria-pressed={isHintActive}
-          disabled={!canUseHint || (gameType === 'trivia' && isHintActive)}
-        >
-          <Lightbulb className="mr-2 h-4 w-4" /> {hintButtonText}
-        </Button>
-      )}
+      {/* Hint button is removed from GameStatus for verbLock/trivia as they handle it internally.
+          It could be conditionally rendered here for other game types if needed.
+      */}
     </div>
   );
 };
