@@ -21,7 +21,7 @@ interface GameCardProps {
   language: 'en' | 'es' | 'infinitive' | 'past';
   isHintActive: boolean;
   cardType?: 'name' | 'image' | 'verb' | 'adjective' | 'plant' | 'food' | 'transportBuilding' | 'pastTense' | 'regularPastTense' | 'nation' | 'nationality';
-  onSpeak?: (text: string, lang: string) => void; // New prop for speaking text
+  onSpeak?: (text: string, lang: string) => void; 
 }
 
 const GameCard: React.FC<GameCardProps> = ({
@@ -39,16 +39,12 @@ const GameCard: React.FC<GameCardProps> = ({
   language,
   isHintActive,
   cardType,
-  onSpeak, // Destructure new prop
+  onSpeak,
 }) => {
   const handleClick = () => {
     if (!isFlipped && !isMatched) {
-      onClick(cardId);
-    }
-  };
-
-  const handleSpeak = () => {
-    if (onSpeak && (isFlipped || isMatched)) {
+      onClick(cardId); // GameEngine will handle flipping and initial speech
+    } else if (onSpeak && (isFlipped || isMatched)) { // If already revealed, allow re-speaking
       let textToSpeak = '';
       let langToUse = 'en-US';
 
@@ -57,14 +53,16 @@ const GameCard: React.FC<GameCardProps> = ({
         langToUse = 'en-US';
       } else if (cardType === 'nationality' && nationality) {
         textToSpeak = nationality;
-        langToUse = 'es-ES'; // Assuming nationality is in Spanish as per current setup
+        langToUse = 'es-ES';
       } else if (cardType === 'image' && spanishName) {
         textToSpeak = spanishName;
         langToUse = 'es-ES';
       } else if (text) {
         textToSpeak = text;
         if (language === 'es') langToUse = 'es-ES';
-        else if (language === 'en' || language === 'infinitive' || language === 'past') langToUse = 'en-US';
+      } else if (cardType === 'verb' && text) { // Fallback for verb type just in case
+        textToSpeak = text;
+        if (language === 'es') langToUse = 'es-ES';
       }
       
       if (textToSpeak) {
@@ -165,13 +163,14 @@ const GameCard: React.FC<GameCardProps> = ({
   };
 
   return (
-    <div className={cardContainerStyle} onClick={handleClick} role="button" aria-pressed={isFlipped}>
+    <div className={cardContainerStyle} onClick={handleClick} role="button" aria-pressed={isFlipped} tabIndex={0} 
+         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClick()}>
       <Card className={backFaceStyle}>
         <CardContent className="p-0">
           <span className="text-4xl">?</span>
         </CardContent>
       </Card>
-      <Card className={frontFaceStyle} onClick={handleSpeak} role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSpeak()}>
+      <Card className={frontFaceStyle} > 
         <CardContent className="p-0 flex flex-col items-center justify-center w-full h-full">
           {renderFrontContent()}
         </CardContent>
@@ -202,3 +201,4 @@ if (typeof window !== 'undefined') {
 }
 
 export default GameCard;
+

@@ -9,7 +9,7 @@ import { ArrowLeft } from 'lucide-react';
 import TriviaGame from '@/components/TriviaGame';
 import VerbLockGame from '@/components/VerbLockGame';
 import CombinationLockGame from '@/components/CombinationLockGame';
-import { generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
+import { verbPairs, generateGameBoard as generateVerbGameBoard, CardData as VerbCardData } from '@/lib/verbs';
 import { generateAdjectiveGameBoard, AdjectiveCardData } from '@/lib/adjectives';
 import { generateAnimalGameBoard, AnimalCardData } from '@/lib/animals';
 import { generatePlantGameBoard, PlantCardData } from '@/lib/plants';
@@ -107,9 +107,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const [isGameActive, setIsGameActive] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [time, setTime] = useState(0);
-  const [isMemoryGameMuted, setIsMemoryGameMuted] = useState(false); // Mute state for memory games
+  const [isMemoryGameMuted, setIsMemoryGameMuted] = useState(false); 
 
-  const speakMemoryGameText = useCallback((text: string, lang: string) => {
+  const playSingleUtterance = useCallback((text: string, lang: string) => {
     if (typeof window !== 'undefined' && window.speechSynthesis && !isMemoryGameMuted) {
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
@@ -138,10 +138,37 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   const toggleMemoryGameMute = () => {
     setIsMemoryGameMuted(prev => !prev);
-    if (window.speechSynthesis.speaking && !isMemoryGameMuted) { // If unmuting and speaking, it was likely for a verb lock game. Cancel it.
-        // If it was speaking and now we are muting it, cancel it.
+    if (window.speechSynthesis.speaking && !isMemoryGameMuted) { 
         window.speechSynthesis.cancel();
     }
+  };
+
+  const getSpeechDataForCard = (card: GenericCard | undefined): { text: string; lang: string } | null => {
+    if (!card) return null;
+
+    let textToSpeak = '';
+    let langToUse = 'en-US'; // Default
+
+    if (card.type === 'nation' && card.nation) {
+      textToSpeak = card.nation;
+      langToUse = 'en-US';
+    } else if (card.type === 'nationality' && card.nationality) {
+      textToSpeak = card.nationality;
+      langToUse = 'es-ES';
+    } else if (card.type === 'image' && card.spanishName) {
+      textToSpeak = card.spanishName;
+      langToUse = 'es-ES';
+    } else if (card.text) { 
+      textToSpeak = card.text;
+      if (card.language === 'es') langToUse = 'es-ES';
+      // 'en', 'infinitive', 'past' map to 'en-US' by default
+    } else if (card.verb) { // Fallback for older verb structure if text isn't populated
+        textToSpeak = card.verb;
+        if (card.language === 'es') langToUse = 'es-ES';
+    }
+
+
+    return textToSpeak ? { text: textToSpeak, lang: langToUse } : null;
   };
 
 
@@ -398,7 +425,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
   useEffect(() => {
     setIsGameActive(false);
     setTime(0);
-    setIsMemoryGameMuted(false); // Reset mute state on game change
+    setIsMemoryGameMuted(false);
 
     if (gameType === 'trivia' || gameType === 'spanishEnglishTrivia') {
       setTriviaQuestions(generateTriviaGameData(gameType, difficulty));
@@ -433,13 +460,26 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   const handleCardClick = (cardId: string) => {
     if (gameType === 'trivia' || gameType === 'verbLock' || gameType === 'spanishEnglishTrivia' || gameType === 'combinationLock' || isChecking || flippedCards.length >= 2) return;
-    const card = cards.find(c => c.id === cardId);
+    
+    const cardIndex = cards.findIndex(c => c.id === cardId);
+    if (cardIndex === -1) return;
+    const card = cards[cardIndex];
     if (!card || card.isFlipped || card.isMatched) return;
 
     const newFlippedCards = [...flippedCards, cardId];
     setFlippedCards(newFlippedCards);
     setMoves((prevMoves) => prevMoves + 1);
-    setCards((prevCards) => prevCards.map((c) => (c.id === cardId ? { ...c, isFlipped: true } : c)));
+    
+    setCards((prevCards) => 
+      prevCards.map((c, idx) => (idx === cardIndex ? { ...c, isFlipped: true } : c))
+    );
+
+    // Speak the content of the just-flipped card
+    const speechDataSingle = getSpeechDataForCard(card);
+    if (speechDataSingle) {
+      playSingleUtterance(speechDataSingle.text, speechDataSingle.lang);
+    }
+
 
     if (newFlippedCards.length === 2) {
       setIsChecking(true);
@@ -452,6 +492,41 @@ const GameEngine: React.FC<GameEngineProps> = ({
         setCards((prevCards) => prevCards.map((c) => (c.pairId === firstCard.pairId ? { ...c, isMatched: true } : c)));
         setFlippedCards([]);
         setIsChecking(false);
+
+        // Speak both matched cards sequentially
+        const firstSpeechData = getSpeechDataForCard(firstCard);
+        const secondSpeechData = getSpeechDataForCard(secondCard);
+
+        if (typeof window !== 'undefined' && window.speechSynthesis && !isMemoryGameMuted) {
+          window.speechSynthesis.cancel(); // Clear any ongoing speech from the first flip
+
+          if (firstSpeechData) {
+            const utterance1 = new SpeechSynthesisUtterance(firstSpeechData.text);
+            utterance1.lang = firstSpeechData.lang;
+            const voices = window.speechSynthesis.getVoices();
+            const specificVoice1 = voices.find(voice => voice.lang === firstSpeechData.lang);
+            if (specificVoice1) utterance1.voice = specificVoice1;
+            
+            utterance1.onend = () => {
+              if (secondSpeechData && !isMemoryGameMuted) {
+                const utterance2 = new SpeechSynthesisUtterance(secondSpeechData.text);
+                utterance2.lang = secondSpeechData.lang;
+                const specificVoice2 = voices.find(voice => voice.lang === secondSpeechData.lang);
+                if (specificVoice2) utterance2.voice = specificVoice2;
+                window.speechSynthesis.speak(utterance2);
+              }
+            };
+            window.speechSynthesis.speak(utterance1);
+          } else if (secondSpeechData) { // If only first card has no speech data, speak second
+            const utterance2 = new SpeechSynthesisUtterance(secondSpeechData.text);
+            utterance2.lang = secondSpeechData.lang;
+            const voices = window.speechSynthesis.getVoices();
+            const specificVoice2 = voices.find(voice => voice.lang === secondSpeechData.lang);
+            if (specificVoice2) utterance2.voice = specificVoice2;
+            window.speechSynthesis.speak(utterance2);
+          }
+        }
+
       } else {
         setTimeout(() => {
           setCards((prevCards) => prevCards.map((c) => (newFlippedCards.includes(c.id) ? { ...c, isFlipped: false } : c)));
@@ -640,10 +715,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
             let cardProps: React.ComponentProps<typeof GameCard> = {
               key: card.id, cardId: card.id, isFlipped: card.isFlipped, isMatched: card.isMatched,
               onClick: handleCardClick, isHintActive: isMatchingGameHintActive, language: 'en', cardType: card.type as any,
-              onSpeak: speakMemoryGameText, // Pass speak function
+              onSpeak: playSingleUtterance, 
             };
             if (card.text) cardProps.text = card.text;
-            if (card.verb) cardProps.text = card.verb;
+            if (card.verb) cardProps.text = card.verb; // Fallback for old verb structure
             if (card.language) cardProps.language = card.language;
             if (card.tense) cardProps.language = card.tense as 'infinitive' | 'past'; 
             if (card.type === 'image' || (gameType === 'animals' && card.type === 'image') || (gameType === 'plants' && card.type === 'image') || (gameType === 'food' && card.type === 'image') || (gameType === 'transportBuildings' && card.type === 'image')) {
@@ -698,3 +773,4 @@ const GameEngine: React.FC<GameEngineProps> = ({
 };
 
 export default GameEngine;
+
