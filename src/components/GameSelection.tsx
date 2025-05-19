@@ -1,13 +1,14 @@
 
-
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image'; 
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import type { GameType } from '@/app/page';
+import { BookOpenCheck } from 'lucide-react'; // Icon for TOEFL
 
 interface GameSelectionProps {
   onSelectGame: (type: GameType) => void;
@@ -17,13 +18,23 @@ interface GameCardData {
   type: GameType;
   title: string;
   description: string;
-  imageSrc: string;
-  imageAlt: string;
-  aiHint: string;
+  imageSrc?: string; // Optional for TOEFL
+  imageAlt?: string; // Optional for TOEFL
+  aiHint?: string;   // Optional for TOEFL
+  icon?: React.ReactNode; // For TOEFL
   buttonText: string;
 }
 
 const gameCategories: Record<string, GameCardData[]> = {
+  practiceTests: [
+    {
+      type: 'toeflPractice',
+      title: 'TOEFL Reading Practice',
+      description: 'Prepare for the TOEFL test with reading comprehension passages and multiple-choice questions. Timed sections and PDF results.',
+      icon: <BookOpenCheck className="w-24 h-24 text-primary mx-auto my-6" />,
+      buttonText: 'Start TOEFL Practice',
+    },
+  ],
   trivia: [
     {
       type: 'trivia',
@@ -149,7 +160,7 @@ const gameCategories: Record<string, GameCardData[]> = {
   ],
 };
 
-const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onSelectGame: (type: GameType) => void }> = ({ title, games, onSelectGame }) => (
+const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onSelectGame: (type: GameType) => void; router: ReturnType<typeof useRouter> }> = ({ title, games, onSelectGame, router }) => (
   <div className="mb-12 w-full max-w-4xl mx-auto">
     <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-primary">{title}</h2>
     <Carousel
@@ -165,14 +176,24 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
             <div className="p-1 h-full">
               <Card className="w-full h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
                 <CardHeader className="p-0">
-                  <Image
-                    src={game.imageSrc}
-                    alt={game.imageAlt}
-                    width={400}
-                    height={200}
-                    className="w-full h-48 object-cover"
-                    data-ai-hint={game.aiHint}
-                  />
+                  {game.imageSrc ? (
+                    <Image
+                      src={game.imageSrc}
+                      alt={game.imageAlt || game.title}
+                      width={400}
+                      height={200}
+                      className="w-full h-48 object-cover"
+                      data-ai-hint={game.aiHint}
+                    />
+                  ) : game.icon ? (
+                     <div className="w-full h-48 flex items-center justify-center bg-muted">
+                        {game.icon}
+                     </div>
+                  ) : (
+                    <div className="w-full h-48 flex items-center justify-center bg-muted">
+                      <BookOpenCheck className="w-16 h-16 text-primary" />
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="p-6 flex-grow">
                   <CardTitle className="mb-2 text-xl font-semibold text-primary">{game.title}</CardTitle>
@@ -181,7 +202,16 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
                   </CardDescription>
                 </CardContent>
                 <CardFooter className="p-6 pt-0 mt-auto">
-                  <Button onClick={() => onSelectGame(game.type)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button 
+                    onClick={() => {
+                      if (game.type === 'toeflPractice') {
+                        router.push('/toefl-practice/start');
+                      } else {
+                        onSelectGame(game.type);
+                      }
+                    }} 
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
                     {game.buttonText}
                   </Button>
                 </CardFooter>
@@ -201,13 +231,17 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
 );
 
 const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
+  const router = useRouter();
   return (
     <div className="flex flex-col items-center w-full">
-      <GameCategoryCarousel title="Trivia Games" games={gameCategories.trivia} onSelectGame={onSelectGame} />
-      <GameCategoryCarousel title="Combination Lock Games" games={gameCategories.lock} onSelectGame={onSelectGame} />
-      <GameCategoryCarousel title="Memory Matching Games" games={gameCategories.memory} onSelectGame={onSelectGame} />
+      <GameCategoryCarousel title="Practice Tests" games={gameCategories.practiceTests} onSelectGame={onSelectGame} router={router} />
+      <GameCategoryCarousel title="Trivia Games" games={gameCategories.trivia} onSelectGame={onSelectGame} router={router} />
+      <GameCategoryCarousel title="Combination Lock Games" games={gameCategories.lock} onSelectGame={onSelectGame} router={router} />
+      <GameCategoryCarousel title="Memory Matching Games" games={gameCategories.memory} onSelectGame={onSelectGame} router={router} />
     </div>
   );
 };
 
 export default GameSelection;
+
+    

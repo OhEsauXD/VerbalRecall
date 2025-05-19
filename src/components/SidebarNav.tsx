@@ -1,9 +1,9 @@
 
-
 'use client';
 
 import React from 'react';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages, KeyRound } from 'lucide-react'; // Added KeyRound icon
+import { useRouter } from 'next/navigation'; // Import useRouter
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages, KeyRound, BookOpenCheck } from 'lucide-react'; 
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -15,9 +15,14 @@ interface SidebarNavProps {
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) => {
   const { setOpenMobile } = useSidebar();
+  const router = useRouter(); // Initialize router
 
   const handleSelectGame = (type: GameType) => {
-    onSelectGameType(type);
+    if (type === 'toeflPractice') {
+      router.push('/toefl-practice/start');
+    } else {
+      onSelectGameType(type);
+    }
     setOpenMobile(false); 
   };
 
@@ -32,6 +37,17 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
         <SidebarMenuButton onClick={handleGoHomeClick} tooltip="Go Home">
           <Home />
           <span>Home</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarSeparator />
+      <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+         <span className="group-data-[collapsible=icon]:hidden">Practice Tests</span>
+      </SidebarGroupLabel>
+       <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => handleSelectGame('toeflPractice')} tooltip="TOEFL Reading Practice">
+          <BookOpenCheck />
+          <span>TOEFL Practice</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
 
@@ -132,3 +148,5 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
 };
 
 export default SidebarNav;
+
+    

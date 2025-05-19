@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -22,8 +21,8 @@ import { combinationLockSubjects } from '@/lib/combinationLock';
 
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock';
-type ViewState = 'selection' | 'difficulty' | 'game';
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock' | 'toeflPractice'; // Added toeflPractice
+type ViewState = 'selection' | 'difficulty' | 'game' | 'toefl_start'; // Added toefl_start
 
 interface CompletionDialogState {
   isOpen: boolean;
@@ -53,6 +52,11 @@ export default function Home() {
   };
 
   const handleSelectGameType = (type: GameType) => {
+    if (type === 'toeflPractice') {
+      // Navigate to TOEFL start page, handled by GameSelection via router.push
+      // This function might not even be called if GameSelection handles it directly
+      return;
+    }
     setCurrentGameType(type);
     setCurrentDifficulty(null);
     setView('difficulty');
@@ -143,6 +147,8 @@ export default function Home() {
         return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; 
       case 'combinationLock':
         return { easy: 3, medium: 5, hard: Math.min(7, combinationLockSubjects.length) };
+      case 'toeflPractice': // TOEFL doesn't have difficulty levels in this setup
+        return { easy: 0, medium: 0, hard: 0}; 
       default:
         return { easy: 15, medium: 30, hard: 60 };
     }
@@ -163,6 +169,7 @@ export default function Home() {
       case 'spanishEnglishTrivia': return 'Spanish to English Verb Trivia';
       case 'verbLock': return 'Verb Combination Lock';
       case 'combinationLock': return 'Combination Lock';
+      case 'toeflPractice': return 'TOEFL Practice Test';
       default: return 'Items';
     }
   }
@@ -174,6 +181,12 @@ export default function Home() {
         return <GameSelection onSelectGame={handleSelectGameType} />;
       case 'difficulty':
         if (!currentGameType) return <GameSelection onSelectGame={handleSelectGameType} />;
+         if (currentGameType === 'toeflPractice') { // TOEFL Practice doesn't use difficulty selector
+            // This case should ideally be handled by router navigation from GameSelection
+            // But as a fallback:
+            router.push('/toefl-practice/start');
+            return <div className="text-foreground">Redirecting to TOEFL Test...</div>;
+        }
         return (
           <div className="flex flex-col items-center w-full">
             <h2 className="text-2xl font-semibold text-center my-4 text-foreground">
@@ -202,7 +215,7 @@ export default function Home() {
             />
           );
         }
-        setView('selection');
+        setView('selection'); // Fallback
         return <GameSelection onSelectGame={handleSelectGameType} />;
       default:
         return <GameSelection onSelectGame={handleSelectGameType} />;
@@ -228,3 +241,5 @@ export default function Home() {
     </DashboardLayout>
   );
 }
+
+    
