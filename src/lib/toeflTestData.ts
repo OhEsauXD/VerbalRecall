@@ -8,7 +8,7 @@ export interface ToeflQuestion {
   id: string;
   questionText: string;
   options: ToeflQuestionOption[];
-  explanation: string;
+  explanation: string; // Will now be in Spanish, brief, and for the correct answer.
 }
 
 export interface ToeflReadingSectionData {
@@ -22,8 +22,8 @@ export interface ToeflReadingSectionData {
 export const toeflTestSections: ToeflReadingSectionData[] = [
   {
     id: 1,
-    title: "Section 1: Reading Comprehension",
-    topic: "The Himalayan Mountain Range",
+    title: "Sección 1: Comprensión Lectora",
+    topic: "La Cordillera del Himalaya",
     passage: `The Himalayas, a vast mountain range in Asia, separate the plains of the Indian subcontinent from the Tibetan Plateau. This colossal range is home to some of the planet's highest peaks, including Mount Everest. Formed by the collision of the Indian-Australian plate with the Eurasian plate, the Himalayas are geologically young and still rising. This ongoing tectonic activity makes the region prone to earthquakes.
 The range spans across five countries: Bhutan, India, Nepal, China, and Pakistan. It is the source of several major river systems, such as the Indus, Ganges, and Brahmaputra, which provide water for billions of people. The diverse ecosystems of the Himalayas vary with altitude, from subtropical forests at the base to alpine tundra and permanent ice and snow at the highest elevations. This biodiversity includes many unique species of flora and fauna, some of which are endangered.
 The Himalayas have also played a significant role in shaping the cultures of South Asia and Tibet. They are considered sacred in Hinduism and Buddhism, with numerous monasteries and pilgrimage sites nestled in their valleys. The formidable terrain has historically acted as a natural barrier, influencing migration patterns and trade routes for centuries. Climate change poses a significant threat to the Himalayan glaciers, which are receding at an alarming rate, potentially impacting water resources and increasing risks of glacial lake outburst floods.`,
@@ -37,7 +37,7 @@ The Himalayas have also played a significant role in shaping the cultures of Sou
           { text: "Collision of tectonic plates", isCorrect: true },
           { text: "Glacial movements", isCorrect: false },
         ],
-        explanation: "The passage states, 'Formed by the collision of the Indian-Australian plate with the Eurasian plate...'",
+        explanation: "El pasaje indica que las Himalayas se formaron por la 'colisión de la placa Indo-Australiana con la placa Euroasiática', siendo esta la causa geológica principal.",
       },
       {
         id: "1-2",
@@ -48,7 +48,7 @@ The Himalayas have also played a significant role in shaping the cultures of Sou
           { text: "India", isCorrect: false },
           { text: "China", isCorrect: false },
         ],
-        explanation: "The passage lists Bhutan, India, Nepal, China, and Pakistan. Bangladesh is not mentioned.",
+        explanation: "El texto menciona que la cordillera atraviesa Bután, India, Nepal, China y Pakistán. Bangladesh no está en esta lista.",
       },
       {
         id: "1-3",
@@ -59,7 +59,7 @@ The Himalayas have also played a significant role in shaping the cultures of Sou
           { text: "Diverse and varying with altitude", isCorrect: true },
           { text: "Mainly man-made forests", isCorrect: false },
         ],
-        explanation: "The passage states, 'The diverse ecosystems of the Himalayas vary with altitude...'",
+        explanation: "El pasaje describe los ecosistemas como 'diversos' y que 'varían con la altitud', mostrando una heterogeneidad ecológica.",
       },
       {
         id: "1-4",
@@ -70,7 +70,7 @@ The Himalayas have also played a significant role in shaping the cultures of Sou
           { text: "Industrial pollution", isCorrect: false },
           { text: "Climate change", isCorrect: true },
         ],
-        explanation: "The passage mentions, 'Climate change poses a significant threat to the Himalayan glaciers...'",
+        explanation: "El cambio climático es señalado como una 'amenaza significativa' para los glaciares del Himalaya, causando su retroceso.",
       },
       {
         id: "1-5",
@@ -81,14 +81,14 @@ The Himalayas have also played a significant role in shaping the cultures of Sou
           { text: "Judaism and Sikhism", isCorrect: false },
           { text: "Shintoism and Taoism", isCorrect: false },
         ],
-        explanation: "The passage states, 'They are considered sacred in Hinduism and Buddhism...'",
+        explanation: "Se menciona que la cordillera es 'considerada sagrada en el Hinduismo y el Budismo', destacando su importancia en estas religiones.",
       },
     ],
   },
   {
     id: 2,
-    title: "Section 2: Reading Comprehension",
-    topic: "The Medicinal Properties of Aloe Vera",
+    title: "Sección 2: Comprensión Lectora",
+    topic: "Las Propiedades Medicinales del Aloe Vera",
     passage: `Aloe vera, a succulent plant species of the genus Aloe, has been renowned for its medicinal properties for thousands of years. Native to the Arabian Peninsula, it is now cultivated worldwide. The plant's thick, fleshy leaves contain a gel-like substance rich in vitamins, minerals, amino acids, and antioxidants. This gel is widely used in traditional and modern medicine, as well as in the cosmetic industry.
 Historically, aloe vera was used by ancient civilizations, including the Egyptians, Greeks, and Romans, to treat wounds, burns, and skin ailments. Its anti-inflammatory and antimicrobial properties help soothe irritated skin and promote healing. Studies have shown that aloe vera can accelerate the healing of first and second-degree burns more effectively than some conventional medications.
 Internally, aloe vera juice is sometimes consumed for its purported benefits in aiding digestion and boosting the immune system. However, the scientific evidence for these internal uses is less robust, and consumption of certain parts of the aloe plant can have laxative effects or interact with medications.
@@ -103,7 +103,7 @@ In cosmetics, aloe vera is a common ingredient in lotions, creams, and sunscreen
           { text: "Southeast Asia", isCorrect: false },
           { text: "Sub-Saharan Africa", isCorrect: false },
         ],
-        explanation: "The passage states, 'Native to the Arabian Peninsula...'",
+        explanation: "El pasaje establece que el aloe vera es 'Nativo de la Península Arábiga'.",
       },
       {
         id: "2-2",
@@ -114,7 +114,7 @@ In cosmetics, aloe vera is a common ingredient in lotions, creams, and sunscreen
           { text: "The thick, fleshy leaves", isCorrect: true },
           { text: "The seeds", isCorrect: false },
         ],
-        explanation: "The passage mentions, 'The plant's thick, fleshy leaves contain a gel-like substance...'",
+        explanation: "Se indica que 'Las gruesas y carnosas hojas de la planta contienen una sustancia gelatinosa' rica en componentes medicinales.",
       },
       {
         id: "2-3",
@@ -125,7 +125,7 @@ In cosmetics, aloe vera is a common ingredient in lotions, creams, and sunscreen
           { text: "Its anti-inflammatory and antimicrobial properties", isCorrect: true },
           { text: "Its ability to grow in arid climates", isCorrect: false },
         ],
-        explanation: "The passage highlights its 'anti-inflammatory and antimicrobial properties' for soothing skin.",
+        explanation: "Las 'propiedades antiinflamatorias y antimicrobianas' del aloe vera son las que ayudan a calmar la piel irritada y promover la curación.",
       },
       {
         id: "2-4",
@@ -136,7 +136,7 @@ In cosmetics, aloe vera is a common ingredient in lotions, creams, and sunscreen
           { text: "It primarily boosts energy levels.", isCorrect: false },
           { text: "It is only effective when cooked.", isCorrect: false },
         ],
-        explanation: "The passage warns that internal consumption 'can have laxative effects or interact with medications.'",
+        explanation: "El texto advierte que el consumo interno 'puede tener efectos laxantes o interactuar con medicamentos'.",
       },
       {
         id: "2-5",
@@ -147,14 +147,14 @@ In cosmetics, aloe vera is a common ingredient in lotions, creams, and sunscreen
           { text: "Because some individuals may experience allergic reactions", isCorrect: true },
           { text: "To ensure the product is fresh", isCorrect: false },
         ],
-        explanation: "The passage states, 'some individuals may experience allergic reactions. It's always advisable to do a patch test...'",
+        explanation: "Se recomienda una prueba de parche porque 'algunas personas pueden experimentar reacciones alérgicas'.",
       },
     ],
   },
   {
     id: 3,
-    title: "Section 3: Reading Comprehension",
-    topic: "Whale Migration Patterns",
+    title: "Sección 3: Comprensión Lectora",
+    topic: "Patrones de Migración de las Ballenas",
     passage: `Whale migration is one of the most remarkable phenomena in the animal kingdom, involving vast journeys across oceans. Many whale species, particularly baleen whales like humpbacks and gray whales, undertake seasonal migrations between feeding grounds in cold, polar waters and breeding grounds in warmer, tropical waters. These migrations can cover thousands of kilometers, making them some of the longest of any mammal.
 The primary driver for these migrations is resource availability and reproductive needs. Polar waters are rich in krill and small fish during the summer months, providing abundant food for whales to build up blubber reserves. However, these cold waters are not ideal for newborn calves, which lack the thick blubber layer needed for insulation. Consequently, pregnant females travel to warmer waters to give birth, where calves can survive and grow more easily.
 Whales navigate these extensive routes using a variety of cues, believed to include the Earth's magnetic field, an innate sense of direction, celestial navigation (using the sun and stars), and possibly by following underwater geographical features. The exact mechanisms are still a subject of ongoing research. These journeys are perilous, exposing whales to threats such as predation by orcas, entanglement in fishing gear, and vessel strikes.
@@ -169,7 +169,7 @@ Conservation efforts are crucial for protecting whale migration routes, known as
           { text: "For breeding and for newborn calves to survive", isCorrect: true },
           { text: "To follow ocean currents more easily", isCorrect: false },
         ],
-        explanation: "The passage states they travel to warmer waters 'to give birth, where calves can survive and grow more easily.'",
+        explanation: "Las ballenas migran a aguas más cálidas 'para dar a luz, donde los ballenatos pueden sobrevivir y crecer más fácilmente', lo cual es crucial para la reproducción.",
       },
       {
         id: "3-2",
@@ -180,7 +180,7 @@ Conservation efforts are crucial for protecting whale migration routes, known as
           { text: "Plankton only", isCorrect: false },
           { text: "Larger marine mammals", isCorrect: false },
         ],
-        explanation: "The passage says, 'Polar waters are rich in krill and small fish...'",
+        explanation: "El pasaje indica que 'Las aguas polares son ricas en krill y peces pequeños', siendo estas sus fuentes de alimento principales allí.",
       },
       {
         id: "3-3",
@@ -191,7 +191,7 @@ Conservation efforts are crucial for protecting whale migration routes, known as
           { text: "Celestial navigation", isCorrect: false },
           { text: "Underwater geographical features", isCorrect: false },
         ],
-        explanation: "Sonar signals from other whales for navigation is not explicitly mentioned as a cue in the passage.",
+        explanation: "El texto menciona el campo magnético terrestre, la navegación celestial y características geográficas submarinas como señales de navegación, pero no las señales de sónar de otras ballenas.",
       },
       {
         id: "3-4",
@@ -202,7 +202,7 @@ Conservation efforts are crucial for protecting whale migration routes, known as
           { text: "The routes whales follow during migration", isCorrect: true },
           { text: "A period of rest during migration", isCorrect: false },
         ],
-        explanation: "The passage refers to 'whale migration routes, known as migratory corridors.'",
+        explanation: "Un 'corredor migratorio' se define en el pasaje como 'las rutas que las ballenas siguen durante la migración'.",
       },
       {
         id: "3-5",
@@ -213,14 +213,14 @@ Conservation efforts are crucial for protecting whale migration routes, known as
           { text: "By altering water temperatures and food distribution", isCorrect: true },
           { text: "By strengthening ocean currents", isCorrect: false },
         ],
-        explanation: "The passage states, 'Climate change is also impacting migration by altering water temperatures and food distribution...'",
+        explanation: "Se explica que el cambio climático impacta la migración 'alterando las temperaturas del agua y la distribución de alimentos'.",
       },
     ],
   },
   {
     id: 4,
-    title: "Section 4: Reading Comprehension",
-    topic: "The Great Wall of China: A Historical Marvel",
+    title: "Sección 4: Comprensión Lectora",
+    topic: "La Gran Muralla China: Una Maravilla Histórica",
     passage: `The Great Wall of China is an immense series of fortifications built across the historical northern borders of ancient Chinese states and Imperial China as protection against various migratory groups from the Eurasian Steppe. Several walls were built from as early as the 7th century BC, with selective stretches later joined together by Qin Shi Huang (220–206 BC), the first Emperor of China. Little of that wall remains. Later on, many successive dynasties built and maintained multiple stretches of border walls. The most well-known sections of the wall were built by the Ming dynasty (1368–1644).
 The primary purpose of the Great Wall was not just military defense but also border control, allowing the imposition of duties on goods transported along the Silk Road, regulation or encouragement of trade, and the control of immigration and emigration. The construction of the Wall was a monumental undertaking, utilizing materials ranging from stone and brick to tamped earth and wood, depending on the terrain and available resources. Millions of laborers, including soldiers, convicts, and commoners, were conscripted for its construction, and many perished under harsh conditions.
 Contrary to popular myth, the Great Wall is not a single continuous structure but a network of walls and fortifications. Its total length, including all its branches, is estimated to be over 21,000 kilometers. While it served as a formidable barrier, it was not impenetrable and was breached on several occasions. Today, the Great Wall is a powerful symbol of Chinese strength and endurance, a major tourist attraction, and a UNESCO World Heritage site. However, sections of the wall are deteriorating due to natural erosion and human activity, prompting ongoing preservation efforts.`,
@@ -234,7 +234,7 @@ Contrary to popular myth, the Great Wall is not a single continuous structure bu
           { text: "Qin Shi Huang", isCorrect: true },
           { text: "Emperor Wu of Han", isCorrect: false },
         ],
-        explanation: "The passage states, '...selective stretches later joined together by Qin Shi Huang...'",
+        explanation: "Qin Shi Huang, el primer Emperador de China, es acreditado por 'unir tramos selectivos' de murallas anteriores.",
       },
       {
         id: "4-2",
@@ -245,7 +245,7 @@ Contrary to popular myth, the Great Wall is not a single continuous structure bu
           { text: "Ming Dynasty", isCorrect: true },
           { text: "Song Dynasty", isCorrect: false },
         ],
-        explanation: "The passage mentions, 'The most well-known sections of the wall were built by the Ming dynasty...'",
+        explanation: "Las secciones más famosas de la muralla que se conocen hoy fueron construidas por 'la dinastía Ming'.",
       },
       {
         id: "4-3",
@@ -256,7 +256,7 @@ Contrary to popular myth, the Great Wall is not a single continuous structure bu
           { text: "Border control and trade regulation", isCorrect: true },
           { text: "Agricultural irrigation systems", isCorrect: false },
         ],
-        explanation: "The passage states its purpose included 'border control, allowing the imposition of duties on goods transported along the Silk Road, regulation or encouragement of trade...'",
+        explanation: "Además de la defensa, la Gran Muralla servía para 'el control fronterizo, permitiendo la imposición de aranceles... y la regulación del comercio'.",
       },
       {
         id: "4-4",
@@ -267,7 +267,7 @@ Contrary to popular myth, the Great Wall is not a single continuous structure bu
           { text: "It was built quickly with minimal casualties.", isCorrect: false },
           { text: "Millions of laborers were conscripted, and many died.", isCorrect: true },
         ],
-        explanation: "The passage notes, 'Millions of laborers...were conscripted...and many perished under harsh conditions.'",
+        explanation: "El pasaje afirma que 'Millones de trabajadores... fueron reclutados para su construcción, y muchos perecieron'.",
       },
       {
         id: "4-5",
@@ -278,14 +278,14 @@ Contrary to popular myth, the Great Wall is not a single continuous structure bu
           { text: "Lack of tourist interest", isCorrect: false },
           { text: "Government plans to dismantle it", isCorrect: false },
         ],
-        explanation: "The passage mentions, 'sections of the wall are deteriorating due to natural erosion and human activity...'",
+        explanation: "Actualmente, 'secciones de la muralla se están deteriorando debido a la erosión natural y la actividad humana'.",
       },
     ],
   },
   {
     id: 5,
-    title: "Section 5: Reading Comprehension",
-    topic: "Tundra Ecosystems and Climate",
+    title: "Sección 5: Comprensión Lectora",
+    topic: "Ecosistemas de Tundra y Clima",
     passage: `The tundra is a vast, treeless biome characterized by low temperatures, short growing seasons, and limited precipitation. It is primarily found in the high latitudes of the Arctic and on mountaintops (alpine tundra). A defining feature of Arctic tundra is permafrost, a layer of permanently frozen subsoil. This frozen ground restricts drainage and limits the depth to which plant roots can penetrate, shaping the vegetation that can survive.
 Tundra vegetation consists mainly of low-growing plants such as mosses, lichens, sedges, grasses, and dwarf shrubs. These plants are adapted to withstand harsh conditions, including strong winds, nutrient-poor soil, and a short period for growth and reproduction. Animals in the tundra, like caribou, Arctic foxes, snowy owls, and lemmings, have also developed specific adaptations to survive the extreme cold and scarce food resources, such as thick fur or feathers, and hibernation or migration strategies.
 Tundra ecosystems are highly sensitive to climate change. Rising global temperatures are causing permafrost to thaw, which has several consequences. Thawing permafrost can release large amounts of greenhouse gases (carbon dioxide and methane) trapped in the frozen organic matter, further accelerating global warming. It also leads to changes in the landscape, such as the formation of thermokarst (uneven ground caused by thawing ice) and can damage infrastructure built on previously stable frozen ground.
@@ -300,7 +300,7 @@ The warming climate is also allowing taller shrubs and even some trees to encroa
           { text: "The short summer season in the tundra", isCorrect: false },
           { text: "A specific type of tundra plant", isCorrect: false },
         ],
-        explanation: "The passage defines permafrost as 'a layer of permanently frozen subsoil.'",
+        explanation: "El permafrost se define como 'una capa de subsuelo permanentemente congelado', una característica clave de la tundra ártica.",
       },
       {
         id: "5-2",
@@ -311,7 +311,7 @@ The warming climate is also allowing taller shrubs and even some trees to encroa
           { text: "Grasses and sedges", isCorrect: false },
           { text: "Dwarf shrubs", isCorrect: false },
         ],
-        explanation: "The passage states the tundra is 'treeless' and vegetation consists of 'low-growing plants'. Tall trees are not typical.",
+        explanation: "La tundra es un bioma 'sin árboles' y su vegetación consiste en plantas de bajo crecimiento; los árboles altos de hoja ancha no son típicos.",
       },
       {
         id: "5-3",
@@ -322,7 +322,7 @@ The warming climate is also allowing taller shrubs and even some trees to encroa
           { text: "A decrease in local temperatures", isCorrect: false },
           { text: "Expansion of tundra animal populations", isCorrect: false },
         ],
-        explanation: "The passage explains, 'Thawing permafrost can release large amounts of greenhouse gases...'",
+        explanation: "Una consecuencia importante del descongelamiento del permafrost es la 'liberación de grandes cantidades de gases de efecto invernadero'.",
       },
       {
         id: "5-4",
@@ -333,7 +333,7 @@ The warming climate is also allowing taller shrubs and even some trees to encroa
           { text: "The encroachment of taller shrubs into tundra areas due to warming", isCorrect: true },
           { text: "The scientific study of tundra shrubs", isCorrect: false },
         ],
-        explanation: "The passage defines 'shrubification' as 'The warming climate is also allowing taller shrubs and even some trees to encroach on tundra areas...'",
+        explanation: "La 'arbustificación' es 'el avance de arbustos más altos e incluso algunos árboles en áreas de tundra' debido al calentamiento.",
       },
       {
         id: "5-5",
@@ -344,7 +344,7 @@ The warming climate is also allowing taller shrubs and even some trees to encroa
           { text: "By building complex underground burrows in the permafrost", isCorrect: false },
           { text: "By relying on abundant water sources from melting glaciers", isCorrect: false },
         ],
-        explanation: "The passage mentions adaptations such as 'thick fur or feathers, and hibernation or migration strategies.'",
+        explanation: "Los animales de la tundra han desarrollado adaptaciones como 'pelaje o plumas gruesas, y estrategias de hibernación o migración' para sobrevivir.",
       },
     ],
   },
@@ -357,6 +357,7 @@ export type UserInfo = {
   grado: string;
   grupo: string;
   carrera: string;
+  otraCarrera?: string; // Added for "Otra" option
 };
 
 export type ToeflAnswer = {

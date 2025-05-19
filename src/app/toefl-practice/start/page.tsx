@@ -21,34 +21,67 @@ const ToeflStartPage = () => {
     grado: '',
     grupo: '',
     carrera: '',
+    otraCarrera: '', // Initialize
   });
+  const [showOtraCarreraInput, setShowOtraCarreraInput] = useState(false);
 
-  const grados = ['1°', '2°', '3°', '4°', '5°', '6°'];
-  const grupos = Array.from({ length: 26 }, (_, i) => String.fromCharCode('A'.charCodeAt(0) + i));
+  const grados = Array.from({ length: 10 }, (_, i) => `${i + 1}°`);
+  const grupos = Array.from({ length: 10 }, (_, i) => `${i + 1}`);
+  const carreras = [
+    'Ingenieria Industrial',
+    'Ingenieria en Inovacion agricola sustentable',
+    'Ingenieria en Energias Renovables',
+    'Otra',
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setUserInfo(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: keyof UserInfo, value: string) => {
-    setUserInfo({ ...userInfo, [name]: value });
+    setUserInfo(prev => ({ ...prev, [name]: value }));
+    if (name === 'carrera') {
+      if (value === 'Otra') {
+        setShowOtraCarreraInput(true);
+      } else {
+        setShowOtraCarreraInput(false);
+        setUserInfo(prev => ({ ...prev, otraCarrera: '' })); // Clear otraCarrera if not "Otra"
+      }
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    for (const key in userInfo) {
-      if (userInfo[key as keyof UserInfo].trim() === '') {
+    const requiredFields: (keyof UserInfo)[] = ['nombre', 'apellidoPaterno', 'apellidoMaterno', 'grado', 'grupo', 'carrera'];
+    for (const key of requiredFields) {
+      if (!userInfo[key] || userInfo[key].trim() === '') {
         toast({
-          title: 'Validation Error',
-          description: `Please fill in all fields. Missing: ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`,
+          title: 'Error de Validación',
+          description: `Por favor, complete todos los campos. Falta: ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`,
           variant: 'destructive',
         });
         return;
       }
     }
-    sessionStorage.setItem('toeflUserInfo', JSON.stringify(userInfo));
-    // Clear any previous test state
-    localStorage.removeItem('toeflTestState');
+
+    if (userInfo.carrera === 'Otra' && (!userInfo.otraCarrera || userInfo.otraCarrera.trim() === '')) {
+      toast({
+        title: 'Error de Validación',
+        description: 'Por favor, especifique la carrera en el campo "Otra Carrera".',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const finalUserInfo = { ...userInfo };
+    if (userInfo.carrera === 'Otra') {
+      finalUserInfo.carrera = userInfo.otraCarrera || 'Otra';
+    }
+
+
+    sessionStorage.setItem('toeflUserInfo', JSON.stringify(finalUserInfo));
+    localStorage.removeItem('toeflTestState'); // Clear any previous test state
     router.push('/toefl-practice/section/1');
   };
 
@@ -56,8 +89,8 @@ const ToeflStartPage = () => {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center text-primary">TOEFL Practice Test Registration</CardTitle>
-          <CardDescription className="text-center text-muted-foreground">Please fill in your details to begin the test.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center text-primary">Registro Prueba Práctica TOEFL</CardTitle>
+          <CardDescription className="text-center text-muted-foreground">Por favor, ingrese sus datos para comenzar la prueba.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -77,7 +110,7 @@ const ToeflStartPage = () => {
               <div>
                 <Label htmlFor="grado">Grado</Label>
                 <Select name="grado" onValueChange={(value) => handleSelectChange('grado', value)} value={userInfo.grado}>
-                  <SelectTrigger id="grado"><SelectValue placeholder="Select Grado" /></SelectTrigger>
+                  <SelectTrigger id="grado"><SelectValue placeholder="Seleccionar Grado" /></SelectTrigger>
                   <SelectContent>
                     {grados.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
@@ -86,7 +119,7 @@ const ToeflStartPage = () => {
               <div>
                 <Label htmlFor="grupo">Grupo</Label>
                 <Select name="grupo" onValueChange={(value) => handleSelectChange('grupo', value)} value={userInfo.grupo}>
-                  <SelectTrigger id="grupo"><SelectValue placeholder="Select Grupo" /></SelectTrigger>
+                  <SelectTrigger id="grupo"><SelectValue placeholder="Seleccionar Grupo" /></SelectTrigger>
                   <SelectContent>
                     {grupos.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
@@ -95,11 +128,22 @@ const ToeflStartPage = () => {
             </div>
             <div>
               <Label htmlFor="carrera">Carrera</Label>
-              <Input id="carrera" name="carrera" type="text" value={userInfo.carrera} onChange={handleChange} required />
+              <Select name="carrera" onValueChange={(value) => handleSelectChange('carrera', value)} value={userInfo.carrera}>
+                <SelectTrigger id="carrera"><SelectValue placeholder="Seleccionar Carrera" /></SelectTrigger>
+                <SelectContent>
+                  {carreras.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
+            {showOtraCarreraInput && (
+              <div>
+                <Label htmlFor="otraCarrera">Especificar Carrera</Label>
+                <Input id="otraCarrera" name="otraCarrera" type="text" value={userInfo.otraCarrera} onChange={handleChange} required />
+              </div>
+            )}
             <CardFooter className="p-0 pt-4">
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                Begin Test
+                Comenzar Prueba
               </Button>
             </CardFooter>
           </form>
