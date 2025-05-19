@@ -56,24 +56,23 @@ const ToeflResultsPage = () => {
       setScore(correctAnswersCount);
     }
 
-    if (loadedUserInfo || loadedAnswers.length > 0) { // Check if either user info or answers are present
+    if (loadedUserInfo || loadedAnswers.length > 0) { 
       setIsPageDataLoaded(true);
       setOverlayState('open');
       setShowScoreHighlight(true);
 
-      setTimeout(() => setOverlayState('closed'), 1000); // Overlay fades after 1s animation
-      setTimeout(() => setShowScoreHighlight(false), 2000); // Highlight fades after 2s
-    } else if (currentDate) { // If only date is set, but no user info/answers, means empty state
-        setIsPageDataLoaded(true); // Still mark as "loaded" to remove initial opacity if needed
+      setTimeout(() => setOverlayState('closed'), 1000); 
+      setTimeout(() => setShowScoreHighlight(false), 2000); 
+    } else if (currentDate) { 
+        setIsPageDataLoaded(true); 
     }
-  }, [currentDate]); // Added currentDate to dependencies to ensure animations trigger if data load is very fast
+  }, [currentDate]); 
 
   useEffect(() => {
     if (isPageDataLoaded && resultsCardRef.current && (userInfo || answers.length > 0)) {
       resultsCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // resultsCardRef.current.focus(); // Optional: if focus management is strictly needed
     }
-  }, [isPageDataLoaded, userInfo, answers]); // Trigger scroll when data is loaded and card is ready
+  }, [isPageDataLoaded, userInfo, answers]); 
 
   const getQuestionById = (questionId: string): ToeflQuestion | undefined => {
     for (const section of toeflTestSections) {
@@ -91,30 +90,33 @@ const ToeflResultsPage = () => {
       printWindow.document.write(bodyContent);
       printWindow.document.write('</body></html>');
       printWindow.document.close();
-      // Ensure content is loaded before printing for some browsers
-      // setTimeout(() => { printWindow.print(); }, 500); 
     }
     return printWindow;
   };
   
   const scoreSheetStyles = `
-    body { font-family: Arial, sans-serif; margin: 20px; color: #000; }
-    .container { max-width: 800px; margin: auto; }
-    h1, h2, h3 { color: #003566; text-align: center; }
-    h1 { font-size: 24px; margin-bottom: 5px;}
-    h2 { font-size: 20px; margin-bottom: 15px; }
-    .user-info, .score-summary { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-    .user-info p, .score-summary p { margin: 5px 0; font-size: 14px; }
-    .answer-grid { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    .answer-grid th, .answer-grid td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 12px; }
-    .answer-grid th { background-color: #e0e0e0; }
-    .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; } /* 5 columns for tables */
-    .grid-item-table { break-inside: avoid; page-break-inside: avoid; } /* Helper for printing grid items */
-    @page { size: A4; margin: 20mm; }
+    body { font-family: Arial, sans-serif; margin: 0; color: #000; font-size: 10pt; }
+    .container { max-width: 100%; padding: 0; } /* Use full width for print */
+    h1, h2, h3 { color: #000; text-align: center; } /* Black for monochrome */
+    h1 { font-size: 16pt; margin-bottom: 5px;}
+    h2 { font-size: 12pt; margin-bottom: 10px; }
+    h3 { font-size: 10pt; margin-bottom: 5px; text-align: left; }
+    .user-info, .score-summary { border: 1px solid #000; padding: 8px; margin-bottom: 10px; border-radius: 0; }
+    .user-info p, .score-summary p { margin: 3px 0; font-size: 9pt; }
+    .answer-grid { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .answer-grid th, .answer-grid td { border: 1px solid #000; padding: 3px; text-align: center; font-size: 8pt; }
+    .answer-grid th { background-color: #ccc; } /* Light gray for header */
+    .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; } /* 8 columns */
+    .grid-item-table { break-inside: avoid; page-break-inside: avoid; }
+    @page { size: letter portrait; margin: 0.75in; }
     @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 9pt; }
       .no-print { display: none; }
-      .grid-container { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } /* Adjust for printing */
+      h1 { font-size: 14pt; }
+      h2 { font-size: 11pt; }
+      .user-info p, .score-summary p { font-size: 8pt; }
+      .answer-grid th, .answer-grid td { font-size: 7pt; padding: 2px; }
+      .grid-container { gap: 3px; }
     }
   `;
 
@@ -142,7 +144,7 @@ const ToeflResultsPage = () => {
     body += '<h3>Hoja de Respuestas</h3>';
     body += '<div class="grid-container">';
     
-    const numColumnsForGrid = 5; 
+    const numColumnsForGrid = 8; 
     const questionsPerColumn = Math.ceil(totalQuestions / numColumnsForGrid); 
 
     for (let col = 0; col < numColumnsForGrid; col++) { 
@@ -173,6 +175,9 @@ const ToeflResultsPage = () => {
                     }
                 }
                 body += `<tr><td>${questionNumber}</td><td>${displayAnswer}</td></tr>`;
+            } else {
+                 // Add empty rows to fill up the table if needed for consistent column heights
+                 // body += `<tr><td>&nbsp;</td><td>&nbsp;</td></tr>`; 
             }
         }
         body += '</tbody></table></div>';
@@ -181,14 +186,13 @@ const ToeflResultsPage = () => {
     body += '</div>'; 
 
     const printWindow = generatePrintWindowContent('TOEFL Practice Score Sheet', body, scoreSheetStyles);
-    // Delay print to ensure content is rendered in the new window
     setTimeout(() => printWindow?.print(), 500);
   };
   
   const detailedFeedbackStyles = `
     body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; color: #333; }
     .container { max-width: 800px; margin: auto; }
-    h1, h2, h3 { color: #00502A; } /* Greenish tone for learning tool */
+    h1, h2, h3 { color: #00502A; } 
     h1 { font-size: 24px; text-align: center; margin-bottom: 20px; }
     .user-info { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; background-color: #f0fff0; }
     .user-info p { margin: 5px 0; font-size: 14px; }
@@ -275,7 +279,6 @@ const ToeflResultsPage = () => {
     router.push('/');
   };
 
-  // Initial loading state before any data is processed
   if (!isPageDataLoaded && !currentDate) { 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
@@ -290,11 +293,10 @@ const ToeflResultsPage = () => {
         </div>
     );
   }
-  // No results found state (after attempting to load data)
   if (isPageDataLoaded && !userInfo && answers.length === 0) {
      return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
-            <Card className="w-full max-w-md text-center opacity-100 translate-y-0"> {/* Ensure this card is also visible */}
+            <Card className="w-full max-w-md text-center opacity-100 translate-y-0"> 
                 <CardHeader>
                     <CardTitle className="text-2xl text-primary">No se Encontraron Resultados</CardTitle>
                 </CardHeader>
@@ -316,9 +318,9 @@ const ToeflResultsPage = () => {
          )}
         <Card
           ref={resultsCardRef}
-          tabIndex={-1} // Make it focusable for potential programmatic focus
+          tabIndex={-1} 
           className={cn(
-            "w-full max-w-4xl mx-auto relative z-10 scroll-mt-5", // scroll-mt-5 is for 20px scroll margin top
+            "w-full max-w-4xl mx-auto relative z-10 scroll-mt-5", 
             "transition-all duration-700 ease-out",
             isPageDataLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           )}
@@ -468,3 +470,5 @@ const ToeflResultsPage = () => {
 };
 
 export default ToeflResultsPage;
+
+    
