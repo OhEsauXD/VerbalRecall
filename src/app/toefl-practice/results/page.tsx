@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toeflTestSections, UserInfo, ToeflAnswer, ToeflQuestion, TOTAL_SECTIONS } from '@/lib/toeflTestData';
@@ -23,16 +23,28 @@ const ToeflResultsPage = () => {
   const [currentDate, setCurrentDate] = useState('');
   const totalQuestions = toeflTestSections.reduce((sum, sec) => sum + sec.questions.length, 0);
 
+  const resultsCardRef = useRef<HTMLDivElement>(null);
+  const [isPageDataLoaded, setIsPageDataLoaded] = useState(false);
+  const [showScoreHighlight, setShowScoreHighlight] = useState(false);
+  const [overlayState, setOverlayState] = useState<'open' | 'closed'>('closed');
+
 
   useEffect(() => {
     setCurrentDate(format(new Date(), 'dd/MM/yyyy'));
     const storedUserInfo = sessionStorage.getItem('toeflUserInfo');
     const storedTestState = localStorage.getItem('toeflTestState');
 
-    if (storedUserInfo) setUserInfo(JSON.parse(storedUserInfo));
+    let loadedUserInfo: UserInfo | null = null;
+    let loadedAnswers: ToeflAnswer[] = [];
+
+    if (storedUserInfo) {
+      loadedUserInfo = JSON.parse(storedUserInfo);
+      setUserInfo(loadedUserInfo);
+    }
     if (storedTestState) {
       const testState = JSON.parse(storedTestState);
-      setAnswers(testState.answers || []);
+      loadedAnswers = testState.answers || [];
+      setAnswers(loadedAnswers);
       
       let correctAnswersCount = 0;
       (testState.answers || []).forEach((ans: ToeflAnswer) => {
@@ -43,7 +55,25 @@ const ToeflResultsPage = () => {
       });
       setScore(correctAnswersCount);
     }
-  }, []);
+
+    if (loadedUserInfo || loadedAnswers.length > 0) { // Check if either user info or answers are present
+      setIsPageDataLoaded(true);
+      setOverlayState('open');
+      setShowScoreHighlight(true);
+
+      setTimeout(() => setOverlayState('closed'), 1000); // Overlay fades after 1s animation
+      setTimeout(() => setShowScoreHighlight(false), 2000); // Highlight fades after 2s
+    } else if (currentDate) { // If only date is set, but no user info/answers, means empty state
+        setIsPageDataLoaded(true); // Still mark as "loaded" to remove initial opacity if needed
+    }
+  }, [currentDate]); // Added currentDate to dependencies to ensure animations trigger if data load is very fast
+
+  useEffect(() => {
+    if (isPageDataLoaded && resultsCardRef.current && (userInfo || answers.length > 0)) {
+      resultsCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // resultsCardRef.current.focus(); // Optional: if focus management is strictly needed
+    }
+  }, [isPageDataLoaded, userInfo, answers]); // Trigger scroll when data is loaded and card is ready
 
   const getQuestionById = (questionId: string): ToeflQuestion | undefined => {
     for (const section of toeflTestSections) {
@@ -61,6 +91,8 @@ const ToeflResultsPage = () => {
       printWindow.document.write(bodyContent);
       printWindow.document.write('</body></html>');
       printWindow.document.close();
+      // Ensure content is loaded before printing for some browsers
+      // setTimeout(() => { printWindow.print(); }, 500); 
     }
     return printWindow;
   };
@@ -110,7 +142,7 @@ const ToeflResultsPage = () => {
     body += '<h3>Hoja de Respuestas</h3>';
     body += '<div class="grid-container">';
     
-    const numColumnsForGrid = 5; // Keep 5 columns for answer sheet for compactness
+    const numColumnsForGrid = 5; 
     const questionsPerColumn = Math.ceil(totalQuestions / numColumnsForGrid); 
 
     for (let col = 0; col < numColumnsForGrid; col++) { 
@@ -122,7 +154,6 @@ const ToeflResultsPage = () => {
             if (questionNumber <= totalQuestions) {
                 let actualQuestionId: string | undefined;
                 let questionCounter = 0;
-                // Find the questionId for the sequential questionNumber
                 outerLoop: for (const section of toeflTestSections) {
                     for (const q of section.questions) {
                         questionCounter++;
@@ -146,11 +177,12 @@ const ToeflResultsPage = () => {
         }
         body += '</tbody></table></div>';
     }
-    body += '</div>'; // end grid-container
-    body += '</div>'; // end container
+    body += '</div>'; 
+    body += '</div>'; 
 
     const printWindow = generatePrintWindowContent('TOEFL Practice Score Sheet', body, scoreSheetStyles);
-    printWindow?.print();
+    // Delay print to ensure content is rendered in the new window
+    setTimeout(() => printWindow?.print(), 500);
   };
   
   const detailedFeedbackStyles = `
@@ -227,10 +259,10 @@ const ToeflResultsPage = () => {
         questionNumber++;
       });
     });
-    body += '</div>'; // end container
+    body += '</div>'; 
 
     const printWindow = generatePrintWindowContent('TOEFL Practice Detailed Feedback', body, detailedFeedbackStyles);
-    printWindow?.print();
+    setTimeout(() => printWindow?.print(), 500);
   };
 
   const handlePlayAgain = () => {
@@ -243,7 +275,8 @@ const ToeflResultsPage = () => {
     router.push('/');
   };
 
-  if (!userInfo && answers.length === 0 && !currentDate) { 
+  // Initial loading state before any data is processed
+  if (!isPageDataLoaded && !currentDate) { 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
             <Card className="w-full max-w-md text-center">
@@ -257,10 +290,11 @@ const ToeflResultsPage = () => {
         </div>
     );
   }
-  if (!userInfo && answers.length === 0 && currentDate) { // Check if answers are empty even after date is set
+  // No results found state (after attempting to load data)
+  if (isPageDataLoaded && !userInfo && answers.length === 0) {
      return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
-            <Card className="w-full max-w-md text-center">
+            <Card className="w-full max-w-md text-center opacity-100 translate-y-0"> {/* Ensure this card is also visible */}
                 <CardHeader>
                     <CardTitle className="text-2xl text-primary">No se Encontraron Resultados</CardTitle>
                 </CardHeader>
@@ -276,8 +310,19 @@ const ToeflResultsPage = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
-        <Card className="w-full max-w-4xl mx-auto">
+      <div className="min-h-screen bg-background text-foreground p-4 md:p-8 relative">
+         {overlayState === 'open' && (
+           <div className="fixed inset-0 bg-black/30 z-0 animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 duration-1000" data-state={overlayState} />
+         )}
+        <Card
+          ref={resultsCardRef}
+          tabIndex={-1} // Make it focusable for potential programmatic focus
+          className={cn(
+            "w-full max-w-4xl mx-auto relative z-10 scroll-mt-5", // scroll-mt-5 is for 20px scroll margin top
+            "transition-all duration-700 ease-out",
+            isPageDataLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          )}
+        >
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold text-primary">Resultados de Prueba Práctica TOEFL</CardTitle>
             {userInfo && (
@@ -287,7 +332,12 @@ const ToeflResultsPage = () => {
                 Fecha: {currentDate}
               </CardDescription>
             )}
-            <p className="text-2xl font-semibold mt-4">Tu Puntuación: <span className="text-accent">{score}</span> / {totalQuestions}</p>
+            <p className={cn(
+                "text-2xl font-semibold mt-4 p-2 transition-all duration-500",
+                showScoreHighlight ? "border-2 border-primary rounded-lg shadow-lg" : "border-2 border-transparent"
+              )}>
+                Tu Puntuación: <span className="text-accent">{score}</span> / {totalQuestions}
+            </p>
           </CardHeader>
           <CardContent>
             <h3 className="text-xl font-semibold mb-4 text-center text-primary">Revisa Tus Respuestas</h3>
@@ -301,9 +351,8 @@ const ToeflResultsPage = () => {
                       const selectedOptionIndex = userAnswer?.selectedOptionIndex;
                       const isCorrect = selectedOptionIndex !== undefined && selectedOptionIndex !== null && q.options[selectedOptionIndex]?.isCorrect;
                       
-                      // Calculate overall question number
                       let overallQuestionNumber = 0;
-                      for(let i=0; i < section.id -1; i++){ // -1 because section.id is 1-based
+                      for(let i=0; i < section.id -1; i++){ 
                         overallQuestionNumber += toeflTestSections[i].questions.length;
                       }
                       overallQuestionNumber += qIndex + 1;
@@ -419,5 +468,3 @@ const ToeflResultsPage = () => {
 };
 
 export default ToeflResultsPage;
-
-    
