@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card'; // Added Card imports
+import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
 const ToeflSectionPage = () => {
@@ -26,30 +26,37 @@ const ToeflSectionPage = () => {
     const savedStateRaw = localStorage.getItem('toeflTestState');
     if (savedStateRaw) {
       const savedState: ToeflTestState = JSON.parse(savedStateRaw);
-      // If navigating to a different section than saved, or if it's a fresh start, reset appropriately
-      if (savedState.currentSection !== sectionId || !savedState.startTime) {
-        const initialAnswers = toeflTestSections.flatMap(sec => 
-          sec.questions.map(q => ({ questionId: q.id, selectedOptionIndex: null }))
-        );
-        const newState: ToeflTestState = {
-          currentSection: sectionId,
-          answers: initialAnswers,
-          startTime: Date.now(),
-          timeRemaining: INITIAL_TEST_DURATION,
-        };
-        setTestState(newState);
-        localStorage.setItem('toeflTestState', JSON.stringify(newState));
-      } else {
-        // Recalculate time remaining if state is loaded
-        const elapsed = Math.floor((Date.now() - savedState.startTime!) / 1000);
-        const remaining = Math.max(0, INITIAL_TEST_DURATION - elapsed);
-        savedState.timeRemaining = remaining;
-        setTestState(savedState);
-        if (remaining === 0) setIsTimeUp(true);
+      
+      // Preserve answers and startTime from savedState. Update currentSection and recalculate time.
+      const elapsed = savedState.startTime ? Math.floor((Date.now() - savedState.startTime) / 1000) : 0;
+      const timeRemaining = Math.max(0, INITIAL_TEST_DURATION - elapsed);
+
+      const newState: ToeflTestState = {
+        ...savedState, // Carry over existing answers and potentially startTime
+        currentSection: sectionId, // Update to the current section being loaded
+        timeRemaining: timeRemaining,
+      };
+
+      // If startTime was not in savedState (e.g. first load or an old state format)
+      // or if for some reason answers were not initialized.
+      if (!savedState.startTime || !savedState.answers || savedState.answers.length === 0) {
+        newState.startTime = savedState.startTime || Date.now(); // Use existing if there, else set new
+        newState.timeRemaining = savedState.startTime ? timeRemaining : INITIAL_TEST_DURATION;
+        // Ensure answers array is fully populated if it wasn't or was empty
+        if (!savedState.answers || savedState.answers.length === 0) {
+             newState.answers = toeflTestSections.flatMap(sec =>
+                sec.questions.map(q => ({ questionId: q.id, selectedOptionIndex: null }))
+            );
+        }
       }
+      
+      setTestState(newState);
+      localStorage.setItem('toeflTestState', JSON.stringify(newState)); // Save updated state
+      if (newState.timeRemaining === 0) setIsTimeUp(true);
+
     } else {
-      // First time loading any section
-      const initialAnswers = toeflTestSections.flatMap(sec => 
+      // First time loading any section (no saved state at all)
+      const initialAnswers = toeflTestSections.flatMap(sec =>
         sec.questions.map(q => ({ questionId: q.id, selectedOptionIndex: null }))
       );
       const newState: ToeflTestState = {
@@ -76,16 +83,22 @@ const ToeflSectionPage = () => {
         if (!prev || !prev.startTime) return prev;
         const elapsed = Math.floor((Date.now() - prev.startTime!) / 1000);
         const remaining = Math.max(0, INITIAL_TEST_DURATION - elapsed);
-        if (remaining === 0) {
+        
+        const updatedState = { ...prev, timeRemaining: remaining };
+        
+        if (remaining === 0 && !isTimeUp) { // prevent multiple triggers
           setIsTimeUp(true);
           clearInterval(timerInterval);
           toast({ title: "Time's Up!", description: "Navigating to results.", variant: 'destructive' });
+          localStorage.setItem('toeflTestState', JSON.stringify(updatedState)); // Save final state before navigating
           router.push('/toefl-practice/results');
-          return { ...prev, timeRemaining: 0 };
+          return updatedState;
         }
-        // Save state periodically
-        localStorage.setItem('toeflTestState', JSON.stringify({ ...prev, timeRemaining: remaining }));
-        return { ...prev, timeRemaining: remaining };
+        // Save state periodically only if time is not up
+        if (remaining > 0) {
+            localStorage.setItem('toeflTestState', JSON.stringify(updatedState));
+        }
+        return updatedState;
       });
     }, 1000);
 
@@ -130,13 +143,14 @@ const ToeflSectionPage = () => {
     if (!currentSectionData || !testState) return;
 
     const nextSectionId = currentSectionData.id + 1;
+    // Save current complete state before navigating
+    localStorage.setItem('toeflTestState', JSON.stringify(testState)); 
+    
     if (nextSectionId <= TOTAL_SECTIONS) {
-      const newState = { ...testState, currentSection: nextSectionId };
-      localStorage.setItem('toeflTestState', JSON.stringify(newState));
+      // No need to update state here as loadState in the next section will handle it.
       router.push(`/toefl-practice/section/${nextSectionId}`);
     } else {
       // Last section completed, go to results
-      localStorage.setItem('toeflTestState', JSON.stringify(testState)); // Save final answers
       router.push('/toefl-practice/results');
     }
   };
@@ -152,7 +166,7 @@ const ToeflSectionPage = () => {
         <h1 className="text-2xl font-bold text-primary">{currentSectionData.title} - {currentSectionData.topic}</h1>
         <div className="text-right">
           <div className="text-sm text-muted-foreground">Progress: Section {currentSectionData.id} of {TOTAL_SECTIONS}</div>
-          <div className={`text-xl font-semibold ${testState.timeRemaining < 60 ? 'text-destructive' : 'text-foreground'}`}>
+          <div className={`text-xl font-semibold ${testState.timeRemaining < 60 && testState.timeRemaining > 0 ? 'text-destructive' : 'text-foreground'}`}>
             Time: {formatTime(testState.timeRemaining)}
           </div>
         </div>

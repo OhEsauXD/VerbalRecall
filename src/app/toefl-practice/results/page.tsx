@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toeflTestSections, UserInfo, ToeflAnswer, ToeflQuestion } from '@/lib/toeflTestData';
+import { toeflTestSections, UserInfo, ToeflAnswer, ToeflQuestion, TOTAL_SECTIONS } from '@/lib/toeflTestData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -21,6 +21,8 @@ const ToeflResultsPage = () => {
   const [showScoreSheetDialog, setShowScoreSheetDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
+  const totalQuestions = toeflTestSections.reduce((sum, sec) => sum + sec.questions.length, 0);
+
 
   useEffect(() => {
     setCurrentDate(format(new Date(), 'dd/MM/yyyy'));
@@ -32,14 +34,14 @@ const ToeflResultsPage = () => {
       const testState = JSON.parse(storedTestState);
       setAnswers(testState.answers || []);
       
-      let correctAnswers = 0;
+      let correctAnswersCount = 0;
       (testState.answers || []).forEach((ans: ToeflAnswer) => {
         const question = getQuestionById(ans.questionId);
         if (question && ans.selectedOptionIndex !== null && question.options[ans.selectedOptionIndex]?.isCorrect) {
-          correctAnswers++;
+          correctAnswersCount++;
         }
       });
-      setScore(correctAnswers);
+      setScore(correctAnswersCount);
     }
   }, []);
 
@@ -74,12 +76,13 @@ const ToeflResultsPage = () => {
     .answer-grid { width: 100%; border-collapse: collapse; margin-top: 20px; }
     .answer-grid th, .answer-grid td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 12px; }
     .answer-grid th { background-color: #e0e0e0; }
-    .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .grid-item { border: 1px solid #000; padding: 5px; }
+    .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; } /* 5 columns for tables */
+    .grid-item-table { break-inside: avoid; page-break-inside: avoid; } /* Helper for printing grid items */
     @page { size: A4; margin: 20mm; }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .no-print { display: none; }
+      .grid-container { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } /* Adjust for printing */
     }
   `;
 
@@ -101,36 +104,47 @@ const ToeflResultsPage = () => {
 
     body += '<div class="score-summary">';
     body += `<h3>Resumen de Puntuación</h3>`;
-    body += `<p><strong>Puntuación Total:</strong> ${score} / ${toeflTestSections.reduce((sum, sec) => sum + sec.questions.length, 0)}</p>`;
+    body += `<p><strong>Puntuación Total:</strong> ${score} / ${totalQuestions}</p>`;
     body += '</div>';
 
     body += '<h3>Hoja de Respuestas</h3>';
     body += '<div class="grid-container">';
-    for (let i = 0; i < 5; i++) { // 5 columns
-        body += '<div><table class="answer-grid">';
+    
+    const questionsPerColumn = Math.ceil(totalQuestions / 5); // e.g., 25 / 5 = 5
+
+    for (let col = 0; col < 5; col++) { // 5 columns
+        body += '<div class="grid-item-table"><table class="answer-grid">';
         body += '<thead><tr><th>#</th><th>Respuesta</th></tr></thead>';
         body += '<tbody>';
-        for (let j = 0; j < 5; j++) { // 5 rows per column
-            const questionNumber = i * 5 + j + 1;
-            if (questionNumber <= answers.length) {
-                const userAnswer = answers.find(a => getQuestionById(a.questionId)?.id.startsWith(`${Math.floor((questionNumber-1)/5)+1}-`));
-                // Find the specific question for this number
-                let actualQuestion: ToeflQuestion | undefined;
-                let actualAnswerIndex: number | null = null;
-
+        for (let row = 0; row < questionsPerColumn; row++) { 
+            const questionNumber = col * questionsPerColumn + row + 1;
+            if (questionNumber <= totalQuestions) {
+                // Find the actual question ID for this sequential question number
+                let actualQuestionId: string | undefined;
+                let questionCounter = 0;
                 for (const section of toeflTestSections) {
-                    const qMatch = section.questions.find(q => parseInt(q.id.split('-')[1]) === (questionNumber % 5 === 0 ? 5 : questionNumber % 5) && section.id === Math.floor((questionNumber-1)/5)+1);
-                    if (qMatch) {
-                        actualQuestion = qMatch;
-                        const ansForQ = answers.find(a => a.questionId === qMatch.id);
-                        actualAnswerIndex = ansForQ ? ansForQ.selectedOptionIndex : null;
-                        break;
+                    for (const q of section.questions) {
+                        questionCounter++;
+                        if (questionCounter === questionNumber) {
+                            actualQuestionId = q.id;
+                            break;
+                        }
+                    }
+                    if (actualQuestionId) break;
+                }
+
+                let displayAnswer = '-';
+                if (actualQuestionId) {
+                    const userAnswer = answers.find(a => a.questionId === actualQuestionId);
+                    const actualAnswerIndex = userAnswer ? userAnswer.selectedOptionIndex : null;
+                    if (actualAnswerIndex !== null) {
+                        displayAnswer = String.fromCharCode(97 + actualAnswerIndex).toUpperCase();
                     }
                 }
-                const displayAnswer = actualAnswerIndex !== null ? String.fromCharCode(97 + actualAnswerIndex).toUpperCase() : '-';
                 body += `<tr><td>${questionNumber}</td><td>${displayAnswer}</td></tr>`;
             } else {
-                 body += `<tr><td>${questionNumber}</td><td>-</td></tr>`;
+                // This case should not be reached if questionsPerColumn is calculated correctly
+                // body += `<tr><td>${questionNumber}</td><td>-</td></tr>`; 
             }
         }
         body += '</tbody></table></div>';
@@ -150,7 +164,7 @@ const ToeflResultsPage = () => {
     .user-info { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; background-color: #f0fff0; }
     .user-info p { margin: 5px 0; font-size: 14px; }
     .score-summary { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 20px; }
-    .question-review { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;}
+    .question-review { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; page-break-inside: avoid;}
     .question-review p { margin: 3px 0; }
     .question-text { font-weight: bold; }
     .user-answer-text { font-style: italic; }
@@ -182,7 +196,7 @@ const ToeflResultsPage = () => {
     body += `<p><strong>Fecha:</strong> ${currentDate}</p>`;
     body += '</div>';
 
-    body += `<div class="score-summary">Puntuación Total: ${score} / ${toeflTestSections.reduce((sum, sec) => sum + sec.questions.length, 0)}</div>`;
+    body += `<div class="score-summary">Puntuación Total: ${score} / ${totalQuestions}</div>`;
     
     body += '<h2>Revisión Detallada</h2>';
     let questionNumber = 1;
@@ -191,7 +205,7 @@ const ToeflResultsPage = () => {
       section.questions.forEach(q => {
         const userAnswer = answers.find(a => a.questionId === q.id);
         const selectedOptionIndex = userAnswer?.selectedOptionIndex;
-        const isCorrect = selectedOptionIndex !== null && q.options[selectedOptionIndex]?.isCorrect;
+        const isCorrect = selectedOptionIndex !== null && q.options[selectedOptionIndex!]?.isCorrect;
 
         body += '<div class="question-review">';
         body += `<p class="question-text">${questionNumber}. ${q.questionText}</p>`;
@@ -209,10 +223,9 @@ const ToeflResultsPage = () => {
         });
         body += '</ul>';
 
-        if (!isCorrect && selectedOptionIndex !== null) {
-           // Not needed as per new requirement: only explain correct
+        if (q.explanation) {
+           body += `<p class="explanation-text"><strong>Explicación (Respuesta Correcta):</strong> ${q.explanation}</p>`;
         }
-        body += `<p class="explanation-text"><strong>Explicación (Respuesta Correcta):</strong> ${q.explanation}</p>`;
         body += '</div>';
         questionNumber++;
       });
@@ -233,7 +246,7 @@ const ToeflResultsPage = () => {
     router.push('/');
   };
 
-  if (!userInfo && answers.length === 0 && !currentDate) { // Wait for date too
+  if (!userInfo && answers.length === 0 && !currentDate) { 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
             <Card className="w-full max-w-md text-center">
@@ -247,7 +260,7 @@ const ToeflResultsPage = () => {
         </div>
     );
   }
-  if (!userInfo && answers.length === 0 && currentDate) {
+  if (!userInfo && answers.length === 0 && currentDate) { // Check if answers are empty even after date is set
      return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
             <Card className="w-full max-w-md text-center">
@@ -277,7 +290,7 @@ const ToeflResultsPage = () => {
                 Fecha: {currentDate}
               </CardDescription>
             )}
-            <p className="text-2xl font-semibold mt-4">Tu Puntuación: <span className="text-accent">{score}</span> / {toeflTestSections.reduce((sum, sec) => sum + sec.questions.length, 0)}</p>
+            <p className="text-2xl font-semibold mt-4">Tu Puntuación: <span className="text-accent">{score}</span> / {totalQuestions}</p>
           </CardHeader>
           <CardContent>
             <h3 className="text-xl font-semibold mb-4 text-center text-primary">Revisa Tus Respuestas</h3>
@@ -289,10 +302,18 @@ const ToeflResultsPage = () => {
                     {section.questions.map((q, qIndex) => {
                       const userAnswer = answers.find(a => a.questionId === q.id);
                       const selectedOptionIndex = userAnswer?.selectedOptionIndex;
-                      const isCorrect = selectedOptionIndex !== null && q.options[selectedOptionIndex]?.isCorrect;
+                      const isCorrect = selectedOptionIndex !== null && q.options[selectedOptionIndex!]?.isCorrect;
+                      
+                      // Calculate overall question number
+                      let overallQuestionNumber = 0;
+                      for(let i=0; i < section.id -1; i++){
+                        overallQuestionNumber += toeflTestSections[i].questions.length;
+                      }
+                      overallQuestionNumber += qIndex + 1;
+
                       return (
                         <div key={q.id} className="mb-6 p-4 border-b border-border last:border-b-0">
-                          <p className="font-semibold text-foreground">{((section.id -1) * 5) + qIndex + 1}. {q.questionText}</p>
+                          <p className="font-semibold text-foreground">{overallQuestionNumber}. {q.questionText}</p>
                           <ul className="list-none pl-0 mt-2 space-y-1">
                             {q.options.map((opt, index) => (
                               <li
@@ -312,7 +333,7 @@ const ToeflResultsPage = () => {
                               </li>
                             ))}
                           </ul>
-                          <p className="mt-2 text-sm text-muted-foreground italic"><strong>Explicación (Español):</strong> {q.explanation}</p>
+                          {q.explanation && <p className="mt-2 text-sm text-muted-foreground italic"><strong>Explicación (Español):</strong> {q.explanation}</p>}
                         </div>
                       );
                     })}
@@ -401,5 +422,3 @@ const ToeflResultsPage = () => {
 };
 
 export default ToeflResultsPage;
-
-    
