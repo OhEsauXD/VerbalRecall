@@ -125,7 +125,6 @@ const ToeflGrammarSectionPage = () => {
   const params = useParams();
   const { toast } = useToast();
   
-  // sectionId from URL is the 1-based index of the grammar *section* (1-5)
   const currentDisplaySectionId = parseInt(params.id as string, 10);
 
   const [testState, setTestState] = useState<ToeflGrammarTestState | null>(null);
@@ -136,7 +135,6 @@ const ToeflGrammarSectionPage = () => {
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showNextSectionDialog, setShowNextSectionDialog] = useState(false);
 
-  // Derived states
   const currentGlobalQIndex = testState?.currentGlobalQuestionIndex ?? 0;
   const { sectionId: actualCurrentSectionId, questionIndexInSection } = getGrammarSectionAndQuestionIndex(currentGlobalQIndex);
 
@@ -149,14 +147,19 @@ const ToeflGrammarSectionPage = () => {
       const elapsed = savedState.startTime ? Math.floor((Date.now() - savedState.startTime) / 1000) : 0;
       const timeRemaining = Math.max(0, INITIAL_GRAMMAR_TEST_DURATION - elapsed);
 
-      const updatedState = { ...savedState, timeRemaining };
-      setTestState(updatedState);
+      const currentGlobalIdxFromStorage = savedState.currentGlobalQuestionIndex;
+      const updatedState = { ...savedState, timeRemaining, currentGlobalQuestionIndex: currentGlobalIdxFromStorage };
+      
+      // Set testState first, as other derived states depend on it.
+      // This might cause a quick double setTestState if called from an effect that also set it,
+      // but ensures currentGlobalQuestionIndex from storage is prioritized for question fetching.
+      setTestState(updatedState); 
 
       if (timeRemaining <= 0 && !isTimeUp) {
         setIsTimeUp(true);
       }
       
-      const { sectionId: targetSectionId, questionIndexInSection: targetQIndexInSection } = getGrammarSectionAndQuestionIndex(updatedState.currentGlobalQuestionIndex);
+      const { sectionId: targetSectionId, questionIndexInSection: targetQIndexInSection } = getGrammarSectionAndQuestionIndex(currentGlobalIdxFromStorage);
       const sectionData = toeflGrammarTestSections.find(sec => sec.id === targetSectionId);
       
       if (sectionData && sectionData.questions[targetQIndexInSection]) {
@@ -173,11 +176,19 @@ const ToeflGrammarSectionPage = () => {
       // No saved state, should redirect to start
       router.push('/toefl-grammar/start');
     }
-  }, [router, isTimeUp]);
+  }, [router, isTimeUp]); // Removed currentGlobalQIndex from deps as it might cause loops if setTestState is called within
 
   useEffect(() => {
     loadStateAndQuestion();
-  }, [currentGlobalQIndex, loadStateAndQuestion]); // Reload when global index changes
+  }, [params.id, loadStateAndQuestion]); // Reload when section ID from URL changes (e.g. direct nav) or loadStateAndQuestion itself changes (rare)
+
+   useEffect(() => {
+    // This effect specifically re-runs loadStateAndQuestion when currentGlobalQIndex changes due to navigation
+    if (testState?.currentGlobalQuestionIndex !== undefined) {
+        loadStateAndQuestion();
+    }
+  }, [testState?.currentGlobalQuestionIndex, loadStateAndQuestion]);
+
 
   useEffect(() => {
     if (!testState || !testState.startTime || isTimeUp) return;
@@ -261,34 +272,44 @@ const ToeflGrammarSectionPage = () => {
     const { sectionId: oldSectionId } = getGrammarSectionAndQuestionIndex(testState.currentGlobalQuestionIndex);
 
     if (newSectionId !== oldSectionId && direction === 'next') {
-      // Moving to the start of a new section
-      setShowNextSectionDialog(true); // Or show review screen first
+      setShowNextSectionDialog(true); 
     } else if (newGlobalIndex === (TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION) -1 && direction === 'next' && (questionIndexInSection === QUESTIONS_PER_GRAMMAR_SECTION -1)){
-       // This logic is tricky, if it's the last question of the last section, "Next" should behave like "Finish Section"
        setShowReviewDialog(true);
     }
     else {
-      setTestState(prev => prev ? { ...prev, currentGlobalQuestionIndex: newGlobalIndex } : null);
+      setTestState(prev => {
+        if (!prev) return null;
+        const newState = { ...prev, currentGlobalQuestionIndex: newGlobalIndex };
+        localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState)); // Save the new state
+        return newState;
+      });
     }
   };
   
   const handleFinishSection = () => {
-      // Logic to show review screen or directly go to next section dialog
-      setShowReviewDialog(true); // For now, always show review dialog
+      setShowReviewDialog(true); 
   };
 
   const confirmProceedToNextSection = () => {
     setShowNextSectionDialog(false);
     if (!testState) return;
     
-    const nextGlobalIndex = testState.currentGlobalQuestionIndex + 1; // This assumes we are at the end of a section
-    const { sectionId: nextSectionId } = getGrammarSectionAndQuestionIndex(nextGlobalIndex);
+    // This implies we are at the end of a section, wanting to go to the first question of the next.
+    const currentSectId = actualCurrentSectionId;
+    const nextSectionFirstGlobalIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION;
+    const { sectionId: nextSectionId } = getGrammarSectionAndQuestionIndex(nextSectionFirstGlobalIndex);
 
-    if (nextSectionId <= TOTAL_GRAMMAR_SECTIONS && nextGlobalIndex < (TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION)) {
-         setTestState(prev => prev ? { ...prev, currentGlobalQuestionIndex: nextGlobalIndex } : null);
+
+    if (nextSectionId <= TOTAL_GRAMMAR_SECTIONS && nextSectionFirstGlobalIndex < (TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION)) {
+         setTestState(prev => {
+             if (!prev) return null;
+             const newState = { ...prev, currentGlobalQuestionIndex: nextSectionFirstGlobalIndex };
+             localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState));
+             return newState;
+         });
          router.push(`/toefl-grammar/section/${nextSectionId}`);
     } else {
-      // Last section completed, go to results
+      // This case should not be hit if TOTAL_GRAMMAR_SECTIONS is correct
       router.push('/toefl-grammar/results');
     }
   };
@@ -300,19 +321,24 @@ const ToeflGrammarSectionPage = () => {
     const currentGlobalIdx = testState.currentGlobalQuestionIndex;
     const { sectionId: currentSectId, questionIndexInSection: qIdxInSect } = getGrammarSectionAndQuestionIndex(currentGlobalIdx);
     
-    if (qIdxInSect === QUESTIONS_PER_GRAMMAR_SECTION - 1) { // If it's the last question of the current section
+    // This function is called after finishing a section (last question of section)
+    if (qIdxInSect === QUESTIONS_PER_GRAMMAR_SECTION - 1) { 
         const nextSectionId = currentSectId + 1;
         if (nextSectionId <= TOTAL_GRAMMAR_SECTIONS) {
-            const nextGlobalQuestionIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION;
-            setTestState(prev => prev ? { ...prev, currentGlobalQuestionIndex: nextGlobalQuestionIndex } : null);
+            const nextGlobalQuestionIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION; // Start of next section
+            setTestState(prev => {
+                if (!prev) return null;
+                const newState = { ...prev, currentGlobalQuestionIndex: nextGlobalQuestionIndex };
+                localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState));
+                return newState;
+            });
             router.push(`/toefl-grammar/section/${nextSectionId}`);
-        } else {
+        } else { // Last section of the test finished
             router.push('/toefl-grammar/results');
         }
     } else {
-        // This case should ideally not be hit if review is only at section end
-        // but as a fallback, just advance to the next question in the current section
-        handleNavigateQuestion('next');
+        // This case should not happen if review dialog is only shown at section end
+        console.error("Review dialog shown mid-section, this should not happen.");
     }
   };
 
@@ -461,3 +487,4 @@ const ToeflGrammarSectionPage = () => {
 };
 
 export default ToeflGrammarSectionPage;
+
