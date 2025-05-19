@@ -110,27 +110,27 @@ const ToeflResultsPage = () => {
     body += '<h3>Hoja de Respuestas</h3>';
     body += '<div class="grid-container">';
     
-    const questionsPerColumn = Math.ceil(totalQuestions / 5); // e.g., 25 / 5 = 5
+    const numColumnsForGrid = 5; // Keep 5 columns for answer sheet for compactness
+    const questionsPerColumn = Math.ceil(totalQuestions / numColumnsForGrid); 
 
-    for (let col = 0; col < 5; col++) { // 5 columns
+    for (let col = 0; col < numColumnsForGrid; col++) { 
         body += '<div class="grid-item-table"><table class="answer-grid">';
         body += '<thead><tr><th>#</th><th>Respuesta</th></tr></thead>';
         body += '<tbody>';
         for (let row = 0; row < questionsPerColumn; row++) { 
             const questionNumber = col * questionsPerColumn + row + 1;
             if (questionNumber <= totalQuestions) {
-                // Find the actual question ID for this sequential question number
                 let actualQuestionId: string | undefined;
                 let questionCounter = 0;
-                for (const section of toeflTestSections) {
+                // Find the questionId for the sequential questionNumber
+                outerLoop: for (const section of toeflTestSections) {
                     for (const q of section.questions) {
                         questionCounter++;
                         if (questionCounter === questionNumber) {
                             actualQuestionId = q.id;
-                            break;
+                            break outerLoop;
                         }
                     }
-                    if (actualQuestionId) break;
                 }
 
                 let displayAnswer = '-';
@@ -142,9 +142,6 @@ const ToeflResultsPage = () => {
                     }
                 }
                 body += `<tr><td>${questionNumber}</td><td>${displayAnswer}</td></tr>`;
-            } else {
-                // This case should not be reached if questionsPerColumn is calculated correctly
-                // body += `<tr><td>${questionNumber}</td><td>-</td></tr>`; 
             }
         }
         body += '</tbody></table></div>';
@@ -205,7 +202,7 @@ const ToeflResultsPage = () => {
       section.questions.forEach(q => {
         const userAnswer = answers.find(a => a.questionId === q.id);
         const selectedOptionIndex = userAnswer?.selectedOptionIndex;
-        const isCorrect = selectedOptionIndex !== null && q.options[selectedOptionIndex!]?.isCorrect;
+        const isCorrect = selectedOptionIndex !== undefined && selectedOptionIndex !== null && q.options[selectedOptionIndex]?.isCorrect;
 
         body += '<div class="question-review">';
         body += `<p class="question-text">${questionNumber}. ${q.questionText}</p>`;
@@ -297,16 +294,16 @@ const ToeflResultsPage = () => {
             <Accordion type="single" collapsible className="w-full">
               {toeflTestSections.map(section => (
                 <AccordionItem value={`section-${section.id}`} key={section.id}>
-                  <AccordionTrigger className="text-lg hover:no-underline text-accent">{section.topic}</AccordionTrigger>
+                  <AccordionTrigger className="text-lg hover:no-underline text-accent">{section.title} - {section.topic}</AccordionTrigger>
                   <AccordionContent>
                     {section.questions.map((q, qIndex) => {
                       const userAnswer = answers.find(a => a.questionId === q.id);
                       const selectedOptionIndex = userAnswer?.selectedOptionIndex;
-                      const isCorrect = selectedOptionIndex !== null && q.options[selectedOptionIndex!]?.isCorrect;
+                      const isCorrect = selectedOptionIndex !== undefined && selectedOptionIndex !== null && q.options[selectedOptionIndex]?.isCorrect;
                       
                       // Calculate overall question number
                       let overallQuestionNumber = 0;
-                      for(let i=0; i < section.id -1; i++){
+                      for(let i=0; i < section.id -1; i++){ // -1 because section.id is 1-based
                         overallQuestionNumber += toeflTestSections[i].questions.length;
                       }
                       overallQuestionNumber += qIndex + 1;
@@ -422,3 +419,5 @@ const ToeflResultsPage = () => {
 };
 
 export default ToeflResultsPage;
+
+    

@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import DashboardLayout from '@/components/DashboardLayout';
 import DifficultySelector from '@/components/DifficultySelector';
 import CompletionDialog from '@/components/CompletionDialog';
@@ -18,11 +19,12 @@ import { foodPairs } from '@/lib/food';
 import { transportBuildingPairs } from '@/lib/transportBuildings';
 import { verbLockSources } from '@/lib/verbLock';
 import { combinationLockSubjects } from '@/lib/combinationLock';
+import { toeflTestSections } from '@/lib/toeflTestData'; // Import to access TOTAL_SECTIONS
 
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock' | 'toeflPractice'; // Added toeflPractice
-type ViewState = 'selection' | 'difficulty' | 'game' | 'toefl_start'; // Added toefl_start
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock' | 'toeflPractice'; 
+type ViewState = 'selection' | 'difficulty' | 'game'; 
 
 interface CompletionDialogState {
   isOpen: boolean;
@@ -32,6 +34,7 @@ interface CompletionDialogState {
 }
 
 export default function Home() {
+  const router = useRouter(); // Initialize router
   const [view, setView] = useState<ViewState>('selection');
   const [currentGameType, setCurrentGameType] = useState<GameType | null>(null);
   const [currentDifficulty, setCurrentDifficulty] = useState<Difficulty | null>(null);
@@ -53,8 +56,7 @@ export default function Home() {
 
   const handleSelectGameType = (type: GameType) => {
     if (type === 'toeflPractice') {
-      // Navigate to TOEFL start page, handled by GameSelection via router.push
-      // This function might not even be called if GameSelection handles it directly
+      router.push('/toefl-practice/start'); // Navigate to TOEFL start page
       return;
     }
     setCurrentGameType(type);
@@ -147,8 +149,11 @@ export default function Home() {
         return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; 
       case 'combinationLock':
         return { easy: 3, medium: 5, hard: Math.min(7, combinationLockSubjects.length) };
-      case 'toeflPractice': // TOEFL doesn't have difficulty levels in this setup
-        return { easy: 0, medium: 0, hard: 0}; 
+      case 'toeflPractice': 
+         // TOEFL questions are fixed per section, difficulty not applicable in the same way
+        const totalToeflQuestions = toeflTestSections.reduce((sum, sec) => sum + sec.questions.length, 0);
+        // For simplicity, we'll just return the total; the UI for TOEFL won't use these counts for difficulty buttons.
+        return { easy: totalToeflQuestions, medium: totalToeflQuestions, hard: totalToeflQuestions }; 
       default:
         return { easy: 15, medium: 30, hard: 60 };
     }
@@ -181,9 +186,8 @@ export default function Home() {
         return <GameSelection onSelectGame={handleSelectGameType} />;
       case 'difficulty':
         if (!currentGameType) return <GameSelection onSelectGame={handleSelectGameType} />;
-         if (currentGameType === 'toeflPractice') { // TOEFL Practice doesn't use difficulty selector
-            // This case should ideally be handled by router navigation from GameSelection
-            // But as a fallback:
+         if (currentGameType === 'toeflPractice') { 
+            // This path should be handled by direct navigation from GameSelection
             router.push('/toefl-practice/start');
             return <div className="text-foreground">Redirecting to TOEFL Test...</div>;
         }

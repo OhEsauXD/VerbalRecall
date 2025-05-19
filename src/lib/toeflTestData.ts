@@ -12,7 +12,7 @@ export interface ToeflQuestion {
 }
 
 export interface ToeflReadingSectionData {
-  id: number; // 1-5
+  id: number; // 1-10
   title: string;
   topic: string;
   passage: string;
@@ -348,6 +348,336 @@ The warming climate is also allowing taller shrubs and even some trees to encroa
       },
     ],
   },
+  {
+    id: 6,
+    title: "Sección 6: Comprensión Lectora",
+    topic: "Pirámides Alrededor del Mundo",
+    passage: `Pyramids, iconic structures of antiquity, are found in various parts of the world, most notably in Egypt, Mesoamerica (by civilizations like the Maya and Aztecs), and Sudan (Nubian pyramids). While sharing a general pyramidal shape, these structures differed significantly in their purpose, construction techniques, and cultural significance.
+Egyptian pyramids, such as the Great Pyramid of Giza, are the oldest and were primarily built as tombs for pharaohs and their consorts during the Old and Middle Kingdom periods (circa 2686–1650 BC). They were constructed with massive stone blocks, showcasing remarkable engineering precision, and were intended to protect the ruler's body and possessions for the afterlife.
+Mesoamerican pyramids, like those at Chichen Itza (Maya) or Teotihuacan (pre-Aztec), were generally stepped pyramids with temples on top. Their construction often involved stone, rubble, and adobe, and they served as religious centers for ceremonies, sacrifices, and astronomical observations. Many were built over centuries, with newer structures often encasing older ones. They were central to the urban landscape and spiritual life of these civilizations, rather than solely funerary monuments.
+Nubian pyramids, found in Sudan, are smaller and steeper than their Egyptian counterparts. Built by the rulers of the Kushite kingdoms (circa 700 BC – AD 350), they also served as tombs but were influenced by both Egyptian and local traditions. They often featured offering chapels at their base and were part of larger necropolis complexes. The geographical spread and chronological development of pyramids highlight diverse cultural responses to themes of power, religion, and the afterlife.`,
+    questions: [
+      {
+        id: "6-1",
+        questionText: "According to the passage, what was the primary purpose of Egyptian pyramids?",
+        options: [
+          { text: "Astronomical observatories", isCorrect: false },
+          { text: "Tombs for pharaohs", isCorrect: true },
+          { text: "Public gathering spaces", isCorrect: false },
+          { text: "Fortified military outposts", isCorrect: false },
+        ],
+        explanation: "El pasaje indica que las pirámides egipcias 'fueron construidas principalmente como tumbas para los faraones'.",
+      },
+      {
+        id: "6-2",
+        questionText: "How did Mesoamerican pyramids typically differ architecturally from Egyptian ones?",
+        options: [
+          { text: "They were smoother and made of a single stone type.", isCorrect: false },
+          { text: "They were smaller and used exclusively for burials.", isCorrect: false },
+          { text: "They were generally stepped and had temples on top.", isCorrect: true },
+          { text: "They were built underground for better preservation.", isCorrect: false },
+        ],
+        explanation: "Las pirámides mesoamericanas 'eran generalmente pirámides escalonadas con templos en la cima', lo que las distingue de las egipcias.",
+      },
+      {
+        id: "6-3",
+        questionText: "Which civilization built smaller, steeper pyramids in Sudan?",
+        options: [
+          { text: "The Romans", isCorrect: false },
+          { text: "The Greeks", isCorrect: false },
+          { text: "The Kushite kingdoms", isCorrect: true },
+          { text: "The Persian Empire", isCorrect: false },
+        ],
+        explanation: "Las pirámides nubias en Sudán 'fueron construidas por los gobernantes de los reinos de Kush'.",
+      },
+      {
+        id: "6-4",
+        questionText: "What does the term 'chronological development' refer to in the context of pyramids?",
+        options: [
+          { text: "The order in which different pyramid types were discovered by archaeologists.", isCorrect: false },
+          { text: "The historical timeline and evolution of pyramid construction across different cultures.", isCorrect: true },
+          { text: "The time it took to build a single pyramid.", isCorrect: false },
+          { text: "The lifespan of the rulers buried within the pyramids.", isCorrect: false },
+        ],
+        explanation: "'Desarrollo cronológico' se refiere a 'la línea de tiempo histórica y la evolución de la construcción de pirámides' en diversas culturas.",
+      },
+      {
+        id: "6-5",
+        questionText: "What is the main idea of the passage?",
+        options: [
+          { text: "All pyramids worldwide served the exact same purpose.", isCorrect: false },
+          { text: "Egyptian pyramids are the only true pyramids.", isCorrect: false },
+          { text: "Pyramids in different regions, while sharing a shape, had distinct purposes and construction styles.", isCorrect: true },
+          { text: "Pyramid construction ceased after the Egyptian Old Kingdom.", isCorrect: false },
+        ],
+        explanation: "La idea principal es que, aunque comparten una forma general, las pirámides en Egipto, Mesoamérica y Sudán 'diferían significativamente en su propósito, técnicas de construcción y significado cultural'.",
+      },
+    ],
+  },
+  {
+    id: 7,
+    title: "Sección 7: Comprensión Lectora",
+    topic: "El Ciclo de Vida de las Ranas",
+    passage: `The life cycle of a frog is a classic example of metamorphosis, a biological process involving a conspicuous and relatively abrupt change in the animal's body structure through cell growth and differentiation. Most frogs begin life as eggs, typically laid in water or moist environments to prevent desiccation. These eggs hatch into aquatic larvae known as tadpoles.
+Tadpoles are distinctly different from adult frogs. They possess gills for breathing underwater, a finned tail for swimming, and lack limbs. They are primarily herbivorous, feeding on algae and plant matter. Over several weeks to months, depending on the species and environmental conditions, tadpoles undergo a remarkable transformation. Hind legs begin to appear, followed by front legs. The tail gradually shortens as it is absorbed by the body, and lungs develop to replace the gills, preparing the tadpole for a terrestrial existence. Internally, the digestive system also changes to adapt to a carnivorous diet of insects and other small invertebrates.
+Once metamorphosis is complete, the young frog, or froglet, emerges onto land, though many species remain close to water. Adult frogs are characterized by their strong hind legs for jumping, protruding eyes, and a sticky tongue used to catch prey. They breathe through both lungs and their permeable skin, which must remain moist.
+Frogs play a vital role in their ecosystems as both predators and prey. However, many frog populations worldwide are declining due to habitat loss, pollution, climate change, and infectious diseases like chytridiomycosis. Conservation efforts are critical to protect these amphibians and the delicate balance of their environments.`,
+    questions: [
+      {
+        id: "7-1",
+        questionText: "What is the term for the aquatic larval stage of a frog?",
+        options: [
+          { text: "Nymph", isCorrect: false },
+          { text: "Pupa", isCorrect: false },
+          { text: "Tadpole", isCorrect: true },
+          { text: "Polliwog", isCorrect: false }, // Polliwog is another name for tadpole, but tadpole is used in the text.
+        ],
+        explanation: "La etapa larval acuática de una rana se conoce como 'renacuajo' (tadpole).",
+      },
+      {
+        id: "7-2",
+        questionText: "Which of these features is characteristic of a tadpole but NOT an adult frog?",
+        options: [
+          { text: "Lungs for breathing air", isCorrect: false },
+          { text: "A diet of insects", isCorrect: false },
+          { text: "Gills and a finned tail", isCorrect: true },
+          { text: "Strong hind legs for jumping", isCorrect: false },
+        ],
+        explanation: "Los renacuajos poseen 'branquias para respirar bajo el agua y una cola con aletas para nadar', características que pierden al convertirse en ranas adultas.",
+      },
+      {
+        id: "7-3",
+        questionText: "The word 'desiccation' in the first paragraph most nearly means:",
+        options: [
+          { text: "Freezing", isCorrect: false },
+          { text: "Predation", isCorrect: false },
+          { text: "Drying out", isCorrect: true },
+          { text: "Contamination", isCorrect: false },
+        ],
+        explanation: "En el contexto de los huevos puestos en agua, 'desecación' (desiccation) significa 'secarse' o perder humedad.",
+      },
+      {
+        id: "7-4",
+        questionText: "What can be inferred about the dietary needs of frogs during their life cycle?",
+        options: [
+          { text: "They remain herbivorous throughout their lives.", isCorrect: false },
+          { text: "They switch from a herbivorous diet as tadpoles to a carnivorous diet as adults.", isCorrect: true },
+          { text: "They primarily eat fish at all stages.", isCorrect: false },
+          { text: "Adult frogs do not need to eat frequently.", isCorrect: false },
+        ],
+        explanation: "El pasaje indica que los renacuajos son herbívoros y que su sistema digestivo cambia para adaptarse a una dieta carnívora de adultos.",
+      },
+      {
+        id: "7-5",
+        questionText: "Which is NOT mentioned as a threat to frog populations?",
+        options: [
+          { text: "Habitat loss", isCorrect: false },
+          { text: "Over-hunting for food", isCorrect: true },
+          { text: "Pollution", isCorrect: false },
+          { text: "Chytridiomycosis", isCorrect: false },
+        ],
+        explanation: "El texto menciona la pérdida de hábitat, la contaminación, el cambio climático y enfermedades como la quitridiomicosis como amenazas, pero no la caza excesiva para alimento.",
+      },
+    ],
+  },
+  {
+    id: 8,
+    title: "Sección 8: Comprensión Lectora",
+    topic: "Los Orígenes del Cacao",
+    passage: `Cacao, the plant from which chocolate is made, has a rich history deeply rooted in Mesoamerican civilizations. The Olmecs, one of the earliest major civilizations in Mexico (circa 1500–400 BC), were likely the first to cultivate and use cacao beans. They consumed it as a bitter, frothy beverage. Later, the Mayans (circa 250–900 AD) revered cacao, considering it a food of the gods. Mayan texts and pottery depict cacao in religious ceremonies, and the beans were so valuable they were used as currency. They mixed ground cacao with water, chili peppers, cornmeal, and spices.
+The Aztecs (circa 1300–1521 AD) adopted cacao cultivation and customs from the Maya. They also consumed it as a drink called "xocolatl" (meaning "bitter water"), which was often reserved for royalty, warriors, and priests due to its esteemed status. It was believed to impart strength and wisdom.
+Christopher Columbus encountered cacao beans on his fourth voyage in 1502, but it was Hernán Cortés who recognized its economic potential after observing its use in the Aztec empire. Cortés introduced cacao to Spain in the early 16th century. Initially, the Spanish kept chocolate a secret, adding sugar, honey, and vanilla to counteract its bitterness, transforming it into a sweet, warm beverage popular among the aristocracy.
+From Spain, chocolate's popularity slowly spread across Europe throughout the 17th and 18th centuries, becoming a luxury item. The Industrial Revolution in the 19th century brought technological advancements like the cocoa press, which allowed for the creation of solid chocolate and made it more affordable and accessible to the masses, leading to the global phenomenon it is today.`,
+    questions: [
+      {
+        id: "8-1",
+        questionText: "Which Mesoamerican civilization is believed to have been the first to cultivate cacao?",
+        options: [
+          { text: "The Aztecs", isCorrect: false },
+          { text: "The Incas", isCorrect: false },
+          { text: "The Olmecs", isCorrect: true },
+          { text: "The Toltecs", isCorrect: false },
+        ],
+        explanation: "Se cree que los 'olmecas' fueron 'probablemente los primeros en cultivar y usar los granos de cacao'.",
+      },
+      {
+        id: "8-2",
+        questionText: "How did the Mayans primarily use cacao beans, according to the passage?",
+        options: [
+          { text: "As a building material", isCorrect: false },
+          { text: "As a common food staple for everyone", isCorrect: false },
+          { text: "In religious ceremonies and as currency", isCorrect: true },
+          { text: "Exclusively for making sweet desserts", isCorrect: false },
+        ],
+        explanation: "Los mayas usaban el cacao 'en ceremonias religiosas' y los granos 'eran tan valiosos que se usaban como moneda'.",
+      },
+      {
+        id: "8-3",
+        questionText: "Who is credited with introducing cacao to Spain?",
+        options: [
+          { text: "Christopher Columbus", isCorrect: false },
+          { text: "Montezuma II", isCorrect: false },
+          { text: "Ferdinand Magellan", isCorrect: false },
+          { text: "Hernán Cortés", isCorrect: true },
+        ],
+        explanation: "Fue 'Hernán Cortés quien reconoció su potencial económico... e introdujo el cacao en España'.",
+      },
+      {
+        id: "8-4",
+        questionText: "How did the Spanish initially alter the Mesoamerican cacao beverage?",
+        options: [
+          { text: "They made it more bitter and spicy.", isCorrect: false },
+          { text: "They added sugar, honey, and vanilla.", isCorrect: true },
+          { text: "They fermented it to create an alcoholic drink.", isCorrect: false },
+          { text: "They served it cold with ice.", isCorrect: false },
+        ],
+        explanation: "Los españoles 'añadieron azúcar, miel y vainilla para contrarrestar su amargor'.",
+      },
+      {
+        id: "8-5",
+        questionText: "What major development in the 19th century made chocolate more accessible to the general public?",
+        options: [
+          { text: "The discovery of new cacao plantations in Africa.", isCorrect: false },
+          { text: "A royal decree making chocolate available to all.", isCorrect: false },
+          { text: "Technological advancements like the cocoa press.", isCorrect: true },
+          { text: "A significant drop in the price of sugar.", isCorrect: false },
+        ],
+        explanation: "La Revolución Industrial trajo 'avances tecnológicos como la prensa de cacao', lo que permitió la creación de chocolate sólido y lo hizo más accesible.",
+      },
+    ],
+  },
+  {
+    id: 9,
+    title: "Sección 9: Comprensión Lectora",
+    topic: "Energía Nuclear: Pros y Contras",
+    passage: `Nuclear energy, derived from atomic reactions, presents a complex dichotomy of substantial benefits and significant risks. The primary method, nuclear fission, involves splitting heavy atomic nuclei (usually uranium or plutonium) to release a large amount of energy, which is used to heat water, produce steam, and drive turbines to generate electricity. A potential future method, nuclear fusion, aims to replicate the sun's process by fusing light atomic nuclei, promising even greater energy yields with less radioactive waste, though it remains technologically challenging.
+One of the main advantages of nuclear power is its high energy density and low greenhouse gas emissions during operation. Unlike fossil fuels, nuclear reactors do not directly produce carbon dioxide, making nuclear energy a potential tool in combating climate change. It also provides a stable and reliable baseload power supply, not dependent on weather conditions like solar or wind power.
+However, nuclear energy carries inherent risks. The radioactive materials used and produced are hazardous, requiring careful management and long-term storage of nuclear waste, which can remain dangerous for thousands of years. The potential for catastrophic accidents, though statistically low, is a major public concern, underscored by incidents like Chernobyl (1986) and Fukushima Daiichi (2011). These events have led to heightened safety regulations and, in some countries, a re-evaluation or phasing out of nuclear power.
+The proliferation of nuclear materials for weapons development is another significant concern. Public perception of nuclear energy is often polarized, influenced by safety records, waste disposal issues, and the association with nuclear weapons. Balancing the promise of clean, abundant energy with these profound challenges remains a critical global debate.`,
+    questions: [
+      {
+        id: "9-1",
+        questionText: "What is the primary process used in current nuclear power plants to generate energy?",
+        options: [
+          { text: "Nuclear fusion", isCorrect: false },
+          { text: "Geothermal extraction", isCorrect: false },
+          { text: "Nuclear fission", isCorrect: true },
+          { text: "Solar concentration", isCorrect: false },
+        ],
+        explanation: "El método principal es la 'fisión nuclear, que implica la división de núcleos atómicos pesados'.",
+      },
+      {
+        id: "9-2",
+        questionText: "What is a major environmental benefit of nuclear energy during its operation, as mentioned in the passage?",
+        options: [
+          { text: "It produces no waste products.", isCorrect: false },
+          { text: "It has low greenhouse gas emissions.", isCorrect: true },
+          { text: "It enhances local biodiversity.", isCorrect: false },
+          { text: "It replenishes uranium resources.", isCorrect: false },
+        ],
+        explanation: "Una ventaja principal es sus 'bajas emisiones de gases de efecto invernadero durante la operación'.",
+      },
+      {
+        id: "9-3",
+        questionText: "The word 'dichotomy' in the first sentence most nearly means:",
+        options: [
+          { text: "Agreement", isCorrect: false },
+          { text: "A division into two contrasting parts", isCorrect: true },
+          { text: "A complex solution", isCorrect: false },
+          { text: "A source of confusion", isCorrect: false },
+        ],
+        explanation: "'Dicotomía' se refiere a una 'división en dos partes o ideas opuestas o muy diferentes', como los beneficios y riesgos de la energía nuclear.",
+      },
+      {
+        id: "9-4",
+        questionText: "Which of the following is NOT listed as a significant concern or risk associated with nuclear energy?",
+        options: [
+          { text: "The high cost of uranium fuel", isCorrect: true },
+          { text: "Long-term storage of radioactive waste", isCorrect: false },
+          { text: "Potential for catastrophic accidents", isCorrect: false },
+          { text: "Proliferation of nuclear materials for weapons", isCorrect: false },
+        ],
+        explanation: "El pasaje menciona el almacenamiento de residuos, accidentes y proliferación de armas como preocupaciones, pero no el alto costo del uranio específicamente.",
+      },
+      {
+        id: "9-5",
+        questionText: "What is implied about nuclear fusion compared to nuclear fission?",
+        options: [
+          { text: "It is currently the most widely used nuclear technology.", isCorrect: false },
+          { text: "It produces more long-lived radioactive waste.", isCorrect: false },
+          { text: "It is technologically simpler to achieve.", isCorrect: false },
+          { text: "It promises greater energy with less radioactive waste but is difficult to achieve.", isCorrect: true },
+        ],
+        explanation: "La fusión nuclear 'promete mayores rendimientos energéticos con menos residuos radiactivos, aunque sigue siendo tecnológicamente desafiante'.",
+      },
+    ],
+  },
+  {
+    id: 10,
+    title: "Sección 10: Comprensión Lectora",
+    topic: "La Carrera Espacial Soviético-Estadounidense",
+    passage: `The Soviet-American Space Race was a critical component of the Cold War, a period of geopolitical tension between the United States and the Soviet Union and their respective allies. Spanning roughly from 1957 to 1975, this competition saw both superpowers vie for supremacy in spaceflight capability, driven by national pride, ideological rivalry, and strategic military implications.
+The race effectively began with the Soviet launch of Sputnik 1, the first artificial satellite, on October 4, 1957. This event shocked the United States, spurring significant investment in science education and aerospace research, and leading to the creation of NASA in 1958. The Soviets achieved further milestones, including sending the first animal (Laika) into orbit in 1957, the first human (Yuri Gagarin) into space in 1961, and the first spacewalk (Alexei Leonov) in 1965.
+The United States, initially lagging, focused its efforts on President John F. Kennedy's ambitious goal, set in 1961, of landing a man on the Moon and returning him safely to Earth before the end of the decade. This culminated in the Apollo 11 mission, which successfully landed Neil Armstrong and Buzz Aldrin on the Moon on July 20, 1969. This achievement is widely regarded as a turning point, effectively marking a major victory for the U.S. in the Space Race.
+While the Moon landing was a pinnacle, the Space Race continued with further missions, including the development of space stations like the Soviet Salyut and the American Skylab. The competition fostered rapid advancements in rocketry, materials science, and telecommunications. Eventually, tensions eased, leading to cooperative ventures such as the Apollo-Soyuz Test Project in 1975, which symbolized a new era of détente and collaboration in space exploration.`,
+    questions: [
+      {
+        id: "10-1",
+        questionText: "What event is considered the effective start of the Space Race?",
+        options: [
+          { text: "The creation of NASA", isCorrect: false },
+          { text: "Yuri Gagarin's spaceflight", isCorrect: false },
+          { text: "The Soviet launch of Sputnik 1", isCorrect: true },
+          { text: "The Apollo 11 Moon landing", isCorrect: false },
+        ],
+        explanation: "La carrera 'comenzó efectivamente con el lanzamiento soviético del Sputnik 1'.",
+      },
+      {
+        id: "10-2",
+        questionText: "Which of these was a direct response by the United States to the launch of Sputnik 1?",
+        options: [
+          { text: "The immediate launch of its own manned Moon mission.", isCorrect: false },
+          { text: "A proposal for joint space exploration with the Soviets.", isCorrect: false },
+          { text: "Increased investment in science education and the creation of NASA.", isCorrect: true },
+          { text: "A reduction in military spending to focus on space.", isCorrect: false },
+        ],
+        explanation: "El lanzamiento del Sputnik 1 'impulsó una inversión significativa en educación científica e investigación aeroespacial, y llevó a la creación de la NASA'.",
+      },
+      {
+        id: "10-3",
+        questionText: "Who was the first human to travel into space?",
+        options: [
+          { text: "Neil Armstrong", isCorrect: false },
+          { text: "Alexei Leonov", isCorrect: false },
+          { text: "Yuri Gagarin", isCorrect: true },
+          { text: "Buzz Aldrin", isCorrect: false },
+        ],
+        explanation: "Los soviéticos lograron enviar al 'primer humano (Yuri Gagarin) al espacio en 1961'.",
+      },
+      {
+        id: "10-4",
+        questionText: "What major achievement by the United States is considered a turning point in the Space Race?",
+        options: [
+          { text: "The launch of the Skylab space station.", isCorrect: false },
+          { text: "The first successful spacewalk.", isCorrect: false },
+          { text: "The Apollo 11 Moon landing.", isCorrect: true },
+          { text: "Sending the first animal into orbit.", isCorrect: false },
+        ],
+        explanation: "El 'aterrizaje lunar del Apolo 11... es ampliamente considerado como un punto de inflexión'.",
+      },
+      {
+        id: "10-5",
+        questionText: "What did the Apollo-Soyuz Test Project in 1975 symbolize?",
+        options: [
+          { text: "The continuation of intense rivalry in space.", isCorrect: false },
+          { text: "A new era of détente and collaboration.", isCorrect: true },
+          { text: "The Soviet Union's dominance in space station technology.", isCorrect: false },
+          { text: "The United States' withdrawal from space exploration.", isCorrect: false },
+        ],
+        explanation: "El Proyecto de Prueba Apolo-Soyuz 'simbolizó una nueva era de distensión y colaboración en la exploración espacial'.",
+      },
+    ],
+  },
 ];
 
 export type UserInfo = {
@@ -372,7 +702,7 @@ export type ToeflTestState = {
   timeRemaining: number; // in seconds
 };
 
-export const INITIAL_TEST_DURATION = 25 * 60; // 25 minutes in seconds
-export const TOTAL_SECTIONS = 5;
+export const INITIAL_TEST_DURATION = 50 * 60; // 50 minutes in seconds
+export const TOTAL_SECTIONS = 10; // Total number of sections
 
     
