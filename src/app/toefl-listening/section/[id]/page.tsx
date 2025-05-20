@@ -169,12 +169,13 @@ const ToeflListeningSectionPage = () => {
         window.speechSynthesis.cancel(); // Stop any current speech
       }
 
-      const scriptToPlay = currentAudioContent.type === 'mini-dialogue' 
-        ? currentAudioContent.dialogues.map(d => `${d.speaker}: ${d.line}`).join('\n')
-        : currentAudioContent.script;
+      const scriptToPlay = currentAudioContent.type === 'mini-dialogue' && currentAudioContent.dialogues
+        ? currentAudioContent.dialogues.map(d => `${d.speaker}: ${d.line}`).join('\n\n') // Add more pause between speakers
+        : currentAudioContent.script || '';
 
       utteranceRef.current = new SpeechSynthesisUtterance(scriptToPlay);
       utteranceRef.current.rate = 0.9; // Slightly slower for clarity
+      utteranceRef.current.lang = 'en-US'; // Explicitly set language
       setIsAudioPlaying(true);
 
       utteranceRef.current.onend = () => {
@@ -198,9 +199,10 @@ const ToeflListeningSectionPage = () => {
         }
       };
 
-      utteranceRef.current.onerror = () => {
+      utteranceRef.current.onerror = (event) => {
         setIsAudioPlaying(false);
-        toast({ title: "Audio Error", description: "Could not play audio.", variant: "destructive" });
+        console.error("SpeechSynthesis Error:", event.error);
+        toast({ title: "Audio Error", description: "Could not play audio. Please check console for details.", variant: "destructive" });
       };
       
       window.speechSynthesis.speak(utteranceRef.current);
@@ -232,13 +234,18 @@ const ToeflListeningSectionPage = () => {
     if (isTimeUp || !testState) return;
     setTestState(prev => {
         if (!prev) return null;
-        const newAnswers = prev.answers.map(ans =>
-            ans.questionId === questionId ? { ...ans, isMarkedForReview: !ans.isMarkedForReview } : ans
-        );
-        // If the question wasn't answered yet, add it with mark for review
-        if (!newAnswers.find(ans => ans.questionId === questionId)) {
-            newAnswers.push({ questionId, selectedOptionIndex: null, isMarkedForReview: true });
+        const existingAnswer = prev.answers.find(ans => ans.questionId === questionId);
+        let newAnswers;
+
+        if (existingAnswer) {
+            newAnswers = prev.answers.map(ans =>
+                ans.questionId === questionId ? { ...ans, isMarkedForReview: !ans.isMarkedForReview } : ans
+            );
+        } else {
+            // If question hasn't been answered yet, add it with isMarkedForReview true
+            newAnswers = [...prev.answers, { questionId, selectedOptionIndex: null, isMarkedForReview: true }];
         }
+        
         const newState = { ...prev, answers: newAnswers };
         localStorage.setItem('toeflListeningTestState', JSON.stringify(newState));
         return newState;
@@ -253,7 +260,8 @@ const ToeflListeningSectionPage = () => {
   };
 
   const allQuestionsInSectionAnswered = currentQuestions.every(q =>
-    testState?.answers.find(a => a.questionId === q.id)?.selectedOptionIndex !== null
+    testState?.answers.find(a => a.questionId === q.id)?.selectedOptionIndex !== null &&
+    testState?.answers.find(a => a.questionId === q.id)?.selectedOptionIndex !== undefined
   );
 
   const handleNextPart = () => {
@@ -269,7 +277,7 @@ const ToeflListeningSectionPage = () => {
     setShowNextPartDialog(false);
     if (!currentAudioContent || !testState) return;
 
-    if (window.speechSynthesis.speaking) {
+    if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         setIsAudioPlaying(false);
     }
@@ -285,7 +293,7 @@ const ToeflListeningSectionPage = () => {
   };
 
   const handleCancelTest = () => {
-    if (window.speechSynthesis.speaking) {
+    if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         setIsAudioPlaying(false);
     }
@@ -301,9 +309,6 @@ const ToeflListeningSectionPage = () => {
     return "No Replays Left";
   };
   
-  const totalQuestionsInTest = toeflListeningSections.reduce((sum, sec) => sum + sec.questions.length, 0);
-  // This needs a robust way to map current part to global question progress.
-  // For simplicity, we'll just show part progress for now.
   const currentPartFirstGlobalQuestionIndex = toeflListeningSections
     .slice(0, currentAudioPartId - 1)
     .reduce((sum, sec) => sum + sec.questions.length, 0);
@@ -358,9 +363,11 @@ const ToeflListeningSectionPage = () => {
             {currentAudioContent.type === 'mini-dialogue' ? 'Mini-Dialogue Set' : currentAudioContent.title}
           </CardTitle>
           <CardDescription>
-            {currentAudioContent.type === 'lecture' && "Listen to a lecture."}
-            {currentAudioContent.type === 'conversation' && "Listen to a conversation."}
-            {currentAudioContent.type === 'mini-dialogue' && "Listen to several short dialogues."}
+            {currentAudioContent.instructions || 
+              (currentAudioContent.type === 'lecture' && "Listen to a lecture.") ||
+              (currentAudioContent.type === 'conversation' && "Listen to a conversation.") ||
+              (currentAudioContent.type === 'mini-dialogue' && "Listen to several short dialogues.")
+            }
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
@@ -372,9 +379,6 @@ const ToeflListeningSectionPage = () => {
                 {isAudioPlaying ? <Volume2 className="mr-2 h-5 w-5 animate-pulse" /> : <Play className="mr-2 h-5 w-5" />}
                 {getPlayButtonText()}
             </Button>
-             <p className="text-xs text-muted-foreground">
-                {currentAudioContent.instructions || "Listen carefully to the audio. You will only be able to play it twice."}
-            </p>
         </CardContent>
       </Card>
 
@@ -450,3 +454,4 @@ const ToeflListeningSectionPage = () => {
 };
 
 export default ToeflListeningSectionPage;
+    

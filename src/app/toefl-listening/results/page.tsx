@@ -63,7 +63,7 @@ const ToeflListeningResultsPage = () => {
       let correctAnswersCount = 0;
       (testState.answers || []).forEach((ans: ToeflListeningAnswer) => {
         const question = getQuestionById(ans.questionId);
-        if (question && ans.selectedOptionIndex !== null && question.options[ans.selectedOptionIndex!]?.isCorrect) {
+        if (question && ans.selectedOptionIndex !== null && ans.selectedOptionIndex !== undefined && question.options[ans.selectedOptionIndex!]?.isCorrect) {
           correctAnswersCount++;
         }
       });
@@ -399,5 +399,4 @@ const ToeflListeningResultsPage = () => {
 };
 
 export default ToeflListeningResultsPage;
-
     
