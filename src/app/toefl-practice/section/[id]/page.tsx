@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { Home } from 'lucide-react'; // Import Home icon
 
 const ToeflSectionPage = () => {
   const router = useRouter();
@@ -21,28 +22,25 @@ const ToeflSectionPage = () => {
   const [testState, setTestState] = useState<ToeflTestState | null>(null);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [showNextSectionDialog, setShowNextSectionDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false); // New state for cancel dialog
 
   const loadState = useCallback(() => {
     const savedStateRaw = localStorage.getItem('toeflTestState');
     if (savedStateRaw) {
       const savedState: ToeflTestState = JSON.parse(savedStateRaw);
       
-      // Preserve answers and startTime from savedState. Update currentSection and recalculate time.
       const elapsed = savedState.startTime ? Math.floor((Date.now() - savedState.startTime) / 1000) : 0;
       const timeRemaining = Math.max(0, INITIAL_TEST_DURATION - elapsed);
 
       const newState: ToeflTestState = {
-        ...savedState, // Carry over existing answers and potentially startTime
-        currentSection: sectionId, // Update to the current section being loaded
+        ...savedState, 
+        currentSection: sectionId, 
         timeRemaining: timeRemaining,
       };
 
-      // If startTime was not in savedState (e.g. first load or an old state format)
-      // or if for some reason answers were not initialized.
       if (!savedState.startTime || !savedState.answers || savedState.answers.length === 0) {
-        newState.startTime = savedState.startTime || Date.now(); // Use existing if there, else set new
+        newState.startTime = savedState.startTime || Date.now(); 
         newState.timeRemaining = savedState.startTime ? timeRemaining : INITIAL_TEST_DURATION;
-        // Ensure answers array is fully populated if it wasn't or was empty
         if (!savedState.answers || savedState.answers.length === 0) {
              newState.answers = toeflTestSections.flatMap(sec =>
                 sec.questions.map(q => ({ questionId: q.id, selectedOptionIndex: null }))
@@ -51,11 +49,10 @@ const ToeflSectionPage = () => {
       }
       
       setTestState(newState);
-      localStorage.setItem('toeflTestState', JSON.stringify(newState)); // Save updated state
-      if (newState.timeRemaining === 0) setIsTimeUp(true);
+      localStorage.setItem('toeflTestState', JSON.stringify(newState)); 
+      if (newState.timeRemaining <= 0 && !isTimeUp) setIsTimeUp(true);
 
     } else {
-      // First time loading any section (no saved state at all)
       const initialAnswers = toeflTestSections.flatMap(sec =>
         sec.questions.map(q => ({ questionId: q.id, selectedOptionIndex: null }))
       );
@@ -68,7 +65,7 @@ const ToeflSectionPage = () => {
       setTestState(newState);
       localStorage.setItem('toeflTestState', JSON.stringify(newState));
     }
-  }, [sectionId]);
+  }, [sectionId, isTimeUp]);
 
   useEffect(() => {
     loadState();
@@ -86,15 +83,14 @@ const ToeflSectionPage = () => {
         
         const updatedState = { ...prev, timeRemaining: remaining };
         
-        if (remaining === 0 && !isTimeUp) { // prevent multiple triggers
+        if (remaining <= 0 && !isTimeUp) { 
           setIsTimeUp(true);
           clearInterval(timerInterval);
           toast({ title: "Time's Up!", description: "Navigating to results.", variant: 'destructive' });
-          localStorage.setItem('toeflTestState', JSON.stringify(updatedState)); // Save final state before navigating
+          localStorage.setItem('toeflTestState', JSON.stringify(updatedState)); 
           router.push('/toefl-practice/results');
           return updatedState;
         }
-        // Save state periodically only if time is not up
         if (remaining > 0) {
             localStorage.setItem('toeflTestState', JSON.stringify(updatedState));
         }
@@ -143,16 +139,19 @@ const ToeflSectionPage = () => {
     if (!currentSectionData || !testState) return;
 
     const nextSectionId = currentSectionData.id + 1;
-    // Save current complete state before navigating
     localStorage.setItem('toeflTestState', JSON.stringify(testState)); 
     
     if (nextSectionId <= TOTAL_SECTIONS) {
-      // No need to update state here as loadState in the next section will handle it.
       router.push(`/toefl-practice/section/${nextSectionId}`);
     } else {
-      // Last section completed, go to results
       router.push('/toefl-practice/results');
     }
+  };
+
+  const handleCancelTest = () => {
+    localStorage.removeItem('toeflTestState');
+    sessionStorage.removeItem('toeflUserInfo'); // Ensure user info is also cleared
+    router.push('/');
   };
 
 
@@ -163,11 +162,41 @@ const ToeflSectionPage = () => {
   return (
     <div className="min-h-screen bg-background text-foreground p-4">
       <header className="flex justify-between items-center mb-6 sticky top-0 bg-background py-2 z-10">
-        <h1 className="text-2xl font-bold text-primary">{currentSectionData.title} - {currentSectionData.topic}</h1>
+        <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="text-sm">
+                <Home className="mr-2 h-4 w-4" /> Cancelar y Volver al Inicio
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Si vuelves al inicio, tu progreso en esta prueba se perderá. ¿Deseas continuar?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Continuar Prueba</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCancelTest} className="bg-destructive hover:bg-destructive/90">
+                Salir y Perder Progreso
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <div className="text-center">
+            <h1 className="text-xl md:text-2xl font-bold text-primary">
+                {currentSectionData.title}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+                {currentSectionData.topic} (Sección {currentSectionData.id} de {TOTAL_SECTIONS})
+            </p>
+        </div>
+
         <div className="text-right">
-          <div className="text-sm text-muted-foreground">Progress: Section {currentSectionData.id} of {TOTAL_SECTIONS}</div>
-          <div className={`text-xl font-semibold ${testState.timeRemaining < 60 && testState.timeRemaining > 0 ? 'text-destructive' : 'text-foreground'}`}>
-            Time: {formatTime(testState.timeRemaining)}
+          <div className="text-sm text-muted-foreground">Progreso Global</div>
+          <div className={`text-xl font-semibold ${testState.timeRemaining < 300 && testState.timeRemaining > 0 ? 'text-destructive' : 'text-foreground'}`}>
+            Tiempo: {formatTime(testState.timeRemaining)}
           </div>
         </div>
       </header>
@@ -189,6 +218,8 @@ const ToeflSectionPage = () => {
             <Card key={q.id} className="bg-card p-4 rounded-lg shadow">
               <p className="text-lg font-semibold mb-3 text-card-foreground">{qIndex + 1}. {q.questionText}</p>
               <RadioGroup
+                // Ensure key changes when question changes to reset RadioGroup internal state if needed
+                key={`${q.id}-options`} 
                 value={testState.answers.find(a => a.questionId === q.id)?.selectedOptionIndex?.toString()}
                 onValueChange={(value) => handleAnswerChange(q.id, parseInt(value))}
                 disabled={isTimeUp}

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image'; 
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import type { GameType } from '@/app/page';
-import { BookOpenCheck } from 'lucide-react'; // Icon for TOEFL
+import { BookOpenCheck, SpellCheck2 } from 'lucide-react'; // Added SpellCheck2 for Grammar
 
 interface GameSelectionProps {
   onSelectGame: (type: GameType) => void;
@@ -18,10 +18,10 @@ interface GameCardData {
   type: GameType;
   title: string;
   description: string;
-  imageSrc?: string; // Optional for TOEFL
-  imageAlt?: string; // Optional for TOEFL
-  aiHint?: string;   // Optional for TOEFL
-  icon?: React.ReactNode; // For TOEFL
+  imageSrc?: string; 
+  imageAlt?: string; 
+  aiHint?: string;   
+  icon?: React.ReactNode; 
   buttonText: string;
 }
 
@@ -32,7 +32,14 @@ const gameCategories: Record<string, GameCardData[]> = {
       title: 'TOEFL Reading Practice',
       description: 'Prepare for the TOEFL test with reading comprehension passages and multiple-choice questions. Timed sections and PDF results.',
       icon: <BookOpenCheck className="w-24 h-24 text-primary mx-auto my-6" />,
-      buttonText: 'Start TOEFL Practice',
+      buttonText: 'Start TOEFL Reading',
+    },
+    { // New TOEFL Grammar Test Card
+      type: 'toeflGrammar',
+      title: 'TOEFL Grammar Practice',
+      description: 'Sharpen your English grammar with varied question types. Timed sections and detailed feedback.',
+      icon: <SpellCheck2 className="w-24 h-24 text-primary mx-auto my-6" />, // Using a different icon
+      buttonText: 'Start TOEFL Grammar',
     },
   ],
   trivia: [
@@ -49,7 +56,7 @@ const gameCategories: Record<string, GameCardData[]> = {
       type: 'spanishEnglishTrivia',
       title: 'Spanish to English Verb Trivia',
       description: 'Translate Spanish infinitive verbs to their English base form. ¡Buena suerte!',
-      imageSrc: 'https://picsum.photos/400/200?random=12', // New random seed
+      imageSrc: 'https://picsum.photos/400/200?random=12', 
       imageAlt: 'Abstract representation of language translation',
       aiHint: 'translation dictionary',
       buttonText: 'Play ES to EN Trivia',
@@ -191,7 +198,8 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
                      </div>
                   ) : (
                     <div className="w-full h-48 flex items-center justify-center bg-muted">
-                      <BookOpenCheck className="w-16 h-16 text-primary" />
+                      {/* Default icon if none specified */}
+                      <BookOpenCheck className="w-16 h-16 text-primary" /> 
                     </div>
                   )}
                 </CardHeader>
@@ -204,9 +212,13 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
                 <CardFooter className="p-6 pt-0 mt-auto">
                   <Button 
                     onClick={() => {
+                      // Updated to handle 'toeflGrammar'
                       if (game.type === 'toeflPractice') {
                         router.push('/toefl-practice/start');
-                      } else {
+                      } else if (game.type === 'toeflGrammar') {
+                        router.push('/toefl-grammar/start');
+                      }
+                       else {
                         onSelectGame(game.type);
                       }
                     }} 
@@ -243,5 +255,3 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelectGame }) => {
 };
 
 export default GameSelection;
-
-    
