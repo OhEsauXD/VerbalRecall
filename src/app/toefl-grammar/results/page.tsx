@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Printer, FileText, Home, RotateCcw } from 'lucide-react';
@@ -367,7 +367,7 @@ const ToeflGrammarResultsPage = () => {
     // matching answers to questions from toeflGrammarTestSections,
     // and categorizing based on question.category.
     // For now, a simple placeholder.
-    const categories = ['Subject-Verb Agreement', 'Basic Tenses', 'Modifiers', 'Parallelism', 'Reduction Clauses', 'Inversions', 'Transition Words', 'Cohesion', 'Mixed Concepts', 'Word Order'];
+    const categories = ['Subject-Verb Agreement', 'Basic Tenses', 'Modifiers', 'Parallelism', 'Reduction Clauses', 'Inversions', 'Transition Words', 'Cohesion', 'Mixed Concepts', 'Word Order', 'Prepositions', 'Articles', 'Pronouns', 'Conditionals', 'Relative Clauses', 'Verb Patterns (Gerunds/Infinitives)', 'Conjunctions/Prepositions', 'Sentence Structure', 'Emphasis/Connectors', 'Participle Clauses/Adverbs', 'Correlative Conjunctions', 'Vocabulary in Context', 'Word Choice (Affect/Effect)', 'Word Choice (Less/Fewer)', 'Subject-Verb Agreement (Interrupting Phrases)', 'Cohesion/Pronoun Reference', 'Sentence Combining', 'Relative Clauses (Non-restrictive)', 'Conditionals (Inversion)', 'Verb Patterns (Preposition + Gerund)', 'Participle Clauses', 'Subjunctive Mood', 'Comparative Adjectives', 'Subject-Verb Agreement (Each/Every)', 'Conjunctions/Prepositions/Tenses', 'Punctuation/Sentence Combining', 'Conditionals (Mixed)'];
     const analysis: { [key: string]: { correct: number, total: number } } = {};
 
     if (testState) {
@@ -381,6 +381,13 @@ const ToeflGrammarResultsPage = () => {
                     if (isAnswerCorrect(q, userAnswer)) {
                         analysis[q.category].correct++;
                     }
+                } else { // If category is not pre-defined, add it.
+                    analysis[q.category] = { correct: 0, total: 0 };
+                    analysis[q.category].total++;
+                    const userAnswer = sectionAnswers.find(ans => ans.questionId === q.id);
+                     if (isAnswerCorrect(q, userAnswer)) {
+                        analysis[q.category].correct++;
+                    }
                 }
             });
         });
@@ -389,11 +396,11 @@ const ToeflGrammarResultsPage = () => {
     return (
         <div className="mt-6">
             <h3 className="text-xl font-semibold mb-3 text-center text-primary">Desglose de Competencias</h3>
-            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+            <ul className="list-disc pl-5 space-y-1 text-muted-foreground columns-1 sm:columns-2 md:columns-3">
                 {Object.entries(analysis).map(([category, data]) => (
                     data.total > 0 && (
-                        <li key={category}>
-                            {category}: {data.correct} de {data.total} correctas ({data.total > 0 ? ((data.correct / data.total) * 100).toFixed(0) : 0}%)
+                        <li key={category} className="break-inside-avoid mb-1">
+                            {category}: {data.correct} de {data.total} ({data.total > 0 ? ((data.correct / data.total) * 100).toFixed(0) : 0}%)
                         </li>
                     )
                 ))}
@@ -527,7 +534,7 @@ const ToeflGrammarResultsPage = () => {
                                     const isGapCorrect = userGapAnsText === correctGapOpt?.text;
                                     return (
                                         <div key={gapNum} className="text-sm">
-                                            <strong>Gap [{gapNum}]:</strong> Tu respuesta: <span className={cn(isGapCorrect ? "text-green-600" : "text-red-600")}>{userGapAnsText || "(sin respuesta)"} {isGapCorrect ? "✓" : "✗"}</span>.
+                                            <strong>Gap [{gapNum}]{gapData.prompt ? `: ${gapData.prompt}` : ''}:</strong> Tu respuesta: <span className={cn(isGapCorrect ? "text-green-600" : "text-red-600")}>{userGapAnsText || "(sin respuesta)"} {isGapCorrect ? "✓" : "✗"}</span>.
                                             {!isGapCorrect && <span className="text-green-700 font-semibold"> Correcta: {correctGapOpt?.text}</span>}
                                         </div>
                                     );
