@@ -6,9 +6,21 @@ const allListeningTestAudioScripts = [
     title: 'Mini-Dialogue Set 1',
     type: 'mini-dialogue',
     content: [
+      // Dialogue 1
       { speaker: "Man", line: "The math class was brutal today, wasn't it?" },
       { speaker: "Woman", line: "Tell me about it! And the professor said the final will be even harder." },
-      // ... (Add 4 more dialogues here for the TTS tool)
+      // Dialogue 2
+      { speaker: "Woman", line: "I can't believe how expensive textbooks have become this semester." },
+      { speaker: "Man", line: "I know, right? I'm thinking of looking for used copies online." },
+      // Dialogue 3
+      { speaker: "Man", line: "Are you going to the career fair on Friday?" },
+      { speaker: "Woman", line: "Definitely! I need to start looking for internships for the summer." },
+      // Dialogue 4
+      { speaker: "Woman", line: "This traffic is terrible. We're going to be late for the movie." },
+      { speaker: "Man", line: "Maybe we should have taken the subway instead." },
+      // Dialogue 5
+      { speaker: "Man", line: "I'm really struggling with this physics assignment." },
+      { speaker: "Woman", line: "Have you tried asking Professor Davis for help during his office hours?" },
     ],
     instructions: "Listen to several short dialogues. After each dialogue, you will be asked a question about it. You can play each dialogue only twice.",
   },
@@ -54,8 +66,4 @@ const allListeningTestAudioScripts = [
   }
 ];
 
-// Helper to format dialogues for TTS if needed:
-// const formatDialoguesForTTS = (dialogues) => {
-//   return dialogues.map(d => `${d.speaker}: ${d.line}`).join('\n\n');
-// };
-// Example: console.log(formatDialoguesForTTS(allListeningTestAudioScripts.find(item => item.id === 1).content));
+    

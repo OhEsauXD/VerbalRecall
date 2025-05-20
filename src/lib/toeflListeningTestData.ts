@@ -31,7 +31,7 @@ export interface ToeflListeningSectionData {
 }
 
 export const toeflListeningSections: ToeflListeningSectionData[] = [
-  // Part 1: Mini Dialogues
+  // Part 1: Mini Dialogues (5 dialogues, 2 questions each = 10 questions total)
   {
     id: 1,
     audioContent: {
@@ -39,12 +39,25 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       title: 'Mini-Dialogue Set 1',
       instructions: "Listen to several short dialogues. After each dialogue, you will be asked a question about it. You can play each dialogue only twice.",
       dialogues: [
+        // Dialogue 1
         { speaker: "Man", line: "The math class was brutal today, wasn't it?" },
         { speaker: "Woman", line: "Tell me about it! And the professor said the final will be even harder." },
-        // Add 4 more dialogues here for a total of 5
+        // Dialogue 2
+        { speaker: "Woman", line: "I can't believe how expensive textbooks have become this semester." },
+        { speaker: "Man", line: "I know, right? I'm thinking of looking for used copies online." },
+        // Dialogue 3
+        { speaker: "Man", line: "Are you going to the career fair on Friday?" },
+        { speaker: "Woman", line: "Definitely! I need to start looking for internships for the summer." },
+        // Dialogue 4
+        { speaker: "Woman", line: "This traffic is terrible. We're going to be late for the movie." },
+        { speaker: "Man", line: "Maybe we should have taken the subway instead." },
+        // Dialogue 5
+        { speaker: "Man", line: "I'm really struggling with this physics assignment." },
+        { speaker: "Woman", line: "Have you tried asking Professor Davis for help during his office hours?" },
       ],
     },
-    questions: [ // 2 questions per mini-dialogue
+    questions: [
+      // Questions for Dialogue 1
       {
         id: "md1-q1",
         questionText: "What does the woman imply about the final exam?",
@@ -67,7 +80,98 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "Dado que la clase ya fue 'brutal', escuchar que el final será peor probablemente lo desanime.",
       },
-      // Add 8 more questions here for the 4 additional mini-dialogues
+      // Questions for Dialogue 2
+      {
+        id: "md1-q3",
+        questionText: "What are the speakers mainly discussing?",
+        options: [
+          { text: "Their favorite online stores.", isCorrect: false },
+          { text: "The high cost of textbooks.", isCorrect: true },
+          { text: "A difficult class assignment.", isCorrect: false },
+          { text: "How to save money on transportation.", isCorrect: false },
+        ],
+        explanation: "La mujer menciona lo 'caros que se han vuelto los libros de texto', y el hombre está de acuerdo.",
+      },
+      {
+        id: "md1-q4",
+        questionText: "What is the man considering doing?",
+        options: [
+          { text: "Dropping the course.", isCorrect: false },
+          { text: "Asking the professor for cheaper options.", isCorrect: false },
+          { text: "Sharing textbooks with the woman.", isCorrect: false },
+          { text: "Searching for used textbooks online.", isCorrect: true },
+        ],
+        explanation: "El hombre dice: 'Estoy pensando en buscar copias usadas en línea'.",
+      },
+      // Questions for Dialogue 3
+      {
+        id: "md1-q5",
+        questionText: "Why is the woman planning to go to the career fair?",
+        options: [
+          { text: "To meet new people.", isCorrect: false },
+          { text: "To look for summer internships.", isCorrect: true },
+          { text: "To attend a company presentation.", isCorrect: false },
+          { text: "To help her friend find a job.", isCorrect: false },
+        ],
+        explanation: "La mujer dice: '¡Definitivamente! Necesito empezar a buscar pasantías para el verano'.",
+      },
+      {
+        id: "md1-q6",
+        questionText: "What event are they talking about?",
+        options: [
+          { text: "A summer festival.", isCorrect: false },
+          { text: "A job interview.", isCorrect: false },
+          { text: "A career fair.", isCorrect: true },
+          { text: "A company recruitment drive.", isCorrect: false },
+        ],
+        explanation: "El hombre pregunta si ella va a 'la feria de empleo (career fair) el viernes'.",
+      },
+      // Questions for Dialogue 4
+      {
+        id: "md1-q7",
+        questionText: "What problem are the speakers encountering?",
+        options: [
+          { text: "Their car broke down.", isCorrect: false },
+          { text: "They missed the movie start time.", isCorrect: false },
+          { text: "They are stuck in heavy traffic.", isCorrect: true },
+          { text: "They cannot find parking.", isCorrect: false },
+        ],
+        explanation: "La mujer dice: 'Este tráfico es terrible. Vamos a llegar tarde a la película'.",
+      },
+      {
+        id: "md1-q8",
+        questionText: "What alternative transportation does the man suggest they could have used?",
+        options: [
+          { text: "A bicycle.", isCorrect: false },
+          { text: "A taxi.", isCorrect: false },
+          { text: "The bus.", isCorrect: false },
+          { text: "The subway.", isCorrect: true },
+        ],
+        explanation: "El hombre dice: 'Quizás deberíamos haber tomado el metro (subway) en su lugar'.",
+      },
+      // Questions for Dialogue 5
+      {
+        id: "md1-q9",
+        questionText: "What is the man's problem?",
+        options: [
+          { text: "He missed his physics class.", isCorrect: false },
+          { text: "He doesn't understand the professor.", isCorrect: false },
+          { text: "He finds his physics assignment difficult.", isCorrect: true },
+          { text: "He doesn't have enough time to do his assignment.", isCorrect: false },
+        ],
+        explanation: "El hombre dice: 'Realmente estoy batallando con esta tarea de física'.",
+      },
+      {
+        id: "md1-q10",
+        questionText: "What does the woman suggest the man do?",
+        options: [
+          { text: "Work on the assignment with her.", isCorrect: false },
+          { text: "Drop the physics course.", isCorrect: false },
+          { text: "Ask Professor Davis for help.", isCorrect: true },
+          { text: "Find a tutor for physics.", isCorrect: false },
+        ],
+        explanation: "La mujer pregunta: '¿Has intentado pedirle ayuda al Profesor Davis durante sus horas de oficina?'.",
+      },
     ],
   },
   // Part 2: Longer Conversation
@@ -110,7 +214,95 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "Sarah menciona explícitamente 'Yellowstone y el Gran Cañón' como posibles destinos.",
       },
-      // ... Add 8 more questions for this conversation
+      // ... Add 8 more questions for this conversation (Placeholder)
+       {
+        id: "conv1-q3",
+        questionText: "What does Mark suggest they need to budget for?",
+        options: [
+          { text: "Hotel accommodations.", isCorrect: false },
+          { text: "Gas and food.", isCorrect: true },
+          { text: "Park entrance fees only.", isCorrect: false },
+          { text: "New camping gear.", isCorrect: false },
+        ],
+        explanation: "Mark dice: 'Y tendríamos que presupuestar para gasolina y comida'.",
+      },
+      {
+        id: "conv1-q4",
+        questionText: "What is the ideal duration Sarah suggests for the trip?",
+        options: [
+          { text: "One week.", isCorrect: false },
+          { text: "Two weeks.", isCorrect: false },
+          { text: "Three weeks.", isCorrect: true },
+          { text: "One month.", isCorrect: false },
+        ],
+        explanation: "Sarah dice: 'Tres semanas serían ideales para explorar de verdad'.",
+      },
+      {
+        id: "conv1-q5",
+        questionText: "Who else does Sarah suggest inviting on the trip?",
+        options: [
+          { text: "Their professors.", isCorrect: false },
+          { text: "Mark's parents.", isCorrect: false },
+          { text: "Jenny and Tom.", isCorrect: true },
+          { text: "Their roommates.", isCorrect: false },
+        ],
+        explanation: "Sarah dice: 'También podríamos invitar a Jenny y Tom'.",
+      },
+      {
+        id: "conv1-q6",
+        questionText: "What is one reason Sarah suggests inviting more people?",
+        options: [
+          { text: "To have more fun.", isCorrect: false },
+          { text: "To share driving and costs.", isCorrect: true },
+          { text: "Because Jenny has a larger car.", isCorrect: false },
+          { text: "Because Tom knows the national parks well.", isCorrect: false },
+        ],
+        explanation: "Ella menciona que 'cuantos más, mejor para compartir la conducción y los costos'.",
+      },
+      {
+        id: "conv1-q7",
+        questionText: "What does Mark think they should start doing soon if they are serious about the trip?",
+        options: [
+          { text: "Saving money.", isCorrect: false },
+          { text: "Learning how to camp.", isCorrect: false },
+          { text: "Looking at maps and park reservations.", isCorrect: true },
+          { text: "Buying a new car.", isCorrect: false },
+        ],
+        explanation: "Mark sugiere: 'Probablemente deberíamos empezar a mirar mapas y reservas de parques pronto'.",
+      },
+      {
+        id: "conv1-q8",
+        questionText: "How does Sarah feel about the potential trip at the end of the conversation?",
+        options: [
+          { text: "Nervous and unsure.", isCorrect: false },
+          { text: "Indifferent.", isCorrect: false },
+          { text: "Excited.", isCorrect: true },
+          { text: "Worried about the cost.", isCorrect: false },
+        ],
+        explanation: "Sarah dice: '¡Ya estoy emocionada! Esto podría ser una aventura épica'.",
+      },
+      {
+        id: "conv1-q9",
+        questionText: "What practical aspect of planning does Mark emphasize?",
+        options: [
+          { text: "Choosing the right music for the road trip.", isCorrect: false },
+          { text: "Planning the route and camping spots.", isCorrect: true },
+          { text: "Deciding on the type of snacks to bring.", isCorrect: false },
+          { text: "Figuring out sightseeing activities.", isCorrect: false },
+        ],
+        explanation: "Mark menciona la necesidad de 'planificar la ruta y averiguar los lugares para acampar'.",
+      },
+      {
+        id: "conv1-q10",
+        questionText: "What is implied about Jenny and Tom's interest in a road trip?",
+        options: [
+          { text: "They are not interested.", isCorrect: false },
+          { text: "They have already planned their own trip.", isCorrect: false },
+          { text: "They had previously mentioned wanting to do something similar.", isCorrect: true },
+          { text: "They prefer to travel by plane.", isCorrect: false },
+        ],
+        explanation: "Sarah dice que Jenny y Tom 'mencionaron que querían hacer algo similar'.",
+      },
     ],
   },
   // Part 3: Lecture 1
@@ -134,10 +326,108 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "El profesor introduce el tema como 'el impacto del cambio climático en nuestros ecosistemas costeros'.",
       },
-      // ... Add 9 more questions for this lecture
+       {
+        id: "lec1-q2",
+        questionText: "What are the two primary causes of sea level rise mentioned?",
+        options: [
+          { text: "Increased rainfall and river discharge.", isCorrect: false },
+          { text: "Thermal expansion of water and melting glaciers/ice sheets.", isCorrect: true },
+          { text: "Coastal subsidence and tectonic plate movement.", isCorrect: false },
+          { text: "Deforestation and soil erosion.", isCorrect: false },
+        ],
+        explanation: "El aumento del nivel del mar se debe 'principalmente a la expansión térmica del agua y al derretimiento de glaciares y capas de hielo'.",
+      },
+      {
+        id: "lec1-q3",
+        questionText: "Which of these is a direct consequence of sea level rise?",
+        options: [
+          { text: "Increased fish populations.", isCorrect: false },
+          { text: "Strengthening of coral reefs.", isCorrect: false },
+          { text: "Coastal erosion and saltwater intrusion.", isCorrect: true },
+          { text: "Decreased ocean temperatures.", isCorrect: false },
+        ],
+        explanation: "El aumento del nivel del mar 'conduce a la erosión costera, la intrusión de agua salada en los acuíferos de agua dulce'.",
+      },
+      {
+        id: "lec1-q4",
+        questionText: "What causes ocean acidification?",
+        options: [
+          { text: "Pollution from ships.", isCorrect: false },
+          { text: "The absorption of excess atmospheric carbon dioxide.", isCorrect: true },
+          { text: "Underwater volcanic activity.", isCorrect: false },
+          { text: "Runoff of agricultural fertilizers.", isCorrect: false },
+        ],
+        explanation: "La acidificación de los océanos es 'causada por la absorción del exceso de dióxido de carbono atmosférico'.",
+      },
+      {
+        id: "lec1-q5",
+        questionText: "Which marine organisms are particularly vulnerable to ocean acidification?",
+        options: [
+          { text: "Large fish like sharks.", isCorrect: false },
+          { text: "Sea mammals like dolphins.", isCorrect: false },
+          { text: "Organisms with calcium carbonate shells, like corals.", isCorrect: true },
+          { text: "Seaweed and marine plants.", isCorrect: false },
+        ],
+        explanation: "La acidificación impacta severamente a 'organismos marinos con conchas de carbonato de calcio, como corales y mariscos'.",
+      },
+      {
+        id: "lec1-q6",
+        questionText: "What are coral reefs described as in the lecture?",
+        options: [
+          { text: "Areas with low marine life.", isCorrect: false },
+          { text: "Resistant to temperature changes.", isCorrect: false },
+          { text: "Biodiversity hotspots.", isCorrect: true },
+          { text: "Primarily composed of rock formations.", isCorrect: false },
+        ],
+        explanation: "Los arrecifes de coral son descritos como 'puntos calientes de biodiversidad (biodiversity hotspots)'.",
+      },
+      {
+        id: "lec1-q7",
+        questionText: "What is one effect of warmer waters on marine ecosystems mentioned?",
+        options: [
+          { text: "Decreased species distribution.", isCorrect: false },
+          { text: "An increase in harmful algal blooms.", isCorrect: true },
+          { text: "Stronger shells in shellfish.", isCorrect: false },
+          { text: "Reduced coastal erosion.", isCorrect: false },
+        ],
+        explanation: "Las aguas más cálidas 'pueden llevar a un aumento de las floraciones de algas nocivas'.",
+      },
+      {
+        id: "lec1-q8",
+        questionText: "The phrase 'intricate web of life' refers to:",
+        options: [
+          { text: "Fishing nets used in coastal areas.", isCorrect: false },
+          { text: "The complex interconnections between organisms in an ecosystem.", isCorrect: true },
+          { text: "The patterns of ocean currents.", isCorrect: false },
+          { text: "The structure of coral reefs.", isCorrect: false },
+        ],
+        explanation: "La 'intrincada red de la vida' se refiere a las 'complejas interconexiones entre los organismos en un ecosistema'.",
+      },
+      {
+        id: "lec1-q9",
+        questionText: "Why is understanding the mechanisms of climate change impact important?",
+        options: [
+          { text: "To accurately predict weather patterns.", isCorrect: false },
+          { text: "To develop new types of fishing equipment.", isCorrect: false },
+          { text: "To formulate effective mitigation and adaptation strategies.", isCorrect: true },
+          { text: "To increase tourism in coastal areas.", isCorrect: false },
+        ],
+        explanation: "Entender estos mecanismos es 'clave para formular estrategias efectivas de mitigación y adaptación'.",
+      },
+      {
+        id: "lec1-q10",
+        questionText: "What will be discussed in the next session, according to the lecturer?",
+        options: [
+          { text: "The history of coastal settlements.", isCorrect: false },
+          { text: "The formation of glaciers and ice sheets.", isCorrect: false },
+          { text: "The chemical composition of seawater.", isCorrect: false },
+          { text: "Strategies for mitigation and adaptation.", isCorrect: true },
+        ],
+        explanation: "El profesor concluye diciendo: 'Exploraremos algunas de estas estrategias en nuestra próxima sesión'.",
+      },
     ],
   },
-  // Part 4: Lecture 2 - History of Cacao (NEW)
+  // Part 4: Lecture 2 - History of Cacao
   {
     id: 4,
     audioContent: {
@@ -259,7 +549,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       },
     ],
   },
-  // Part 5: Lecture 3 - Volcanoes Around the World (NEW)
+  // Part 5: Lecture 3 - Volcanoes Around the World
   {
     id: 5,
     audioContent: {
@@ -384,9 +674,9 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
 ];
 
 export const INITIAL_LISTENING_TEST_DURATION = 40 * 60; // 40 minutes
-export const TOTAL_LISTENING_PARTS = toeflListeningSections.length; // Now 5
+export const TOTAL_LISTENING_PARTS = toeflListeningSections.length; 
 
-export type { UserInfo } from './toeflTestData';
+export type { UserInfo } from './toeflTestData'; // Assuming UserInfo structure is the same
 
 export type ToeflListeningAnswer = {
   questionId: string;
@@ -400,9 +690,10 @@ export type ToeflListeningTestState = {
   startTime: number | null;
   timeRemaining: number;
   userInfo?: UserInfo;
-  audioPlayCounts: { [audioPartId: number]: number };
+  audioPlayCounts: { [audioPartId: number]: number }; // Tracks plays per audio part ID
 };
 
+// Helper to map a global question index to its part and index within that part
 export const getListeningPartAndQuestionIndex = (
   globalIndex: number,
   sections: ToeflListeningSectionData[]
@@ -417,5 +708,11 @@ export const getListeningPartAndQuestionIndex = (
     }
     questionsCounted += section.questions.length;
   }
-  return { partId: sections[sections.length-1].id, questionIndexInPart: sections[sections.length-1].questions.length -1 };
+  // Fallback if globalIndex is out of bounds (shouldn't happen in normal flow)
+  return { 
+    partId: sections[sections.length - 1].id, 
+    questionIndexInPart: sections[sections.length - 1].questions.length - 1 
+  };
 };
+
+    
