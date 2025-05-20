@@ -167,18 +167,28 @@ const ToeflGrammarSectionPage = () => {
         // Set instruction visibility based on question index in section
         setIsInstructionVisible(targetQIndexInSection === 0);
       } else {
-        router.push('/toefl-grammar/results');
+        // This case could mean end of test or invalid index.
+        // If currentGlobalIdxFromStorage is beyond the last question, navigate to results.
+        if (currentGlobalIdxFromStorage >= TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION) {
+            router.push('/toefl-grammar/results');
+        }
+        // If it's just an issue finding current section data for a valid index, might indicate bad state or navigation.
+        // For now, a push to results might be too aggressive. Consider logging or a soft redirect.
+        // console.error("Could not load question data for index:", currentGlobalIdxFromStorage);
+        // If section data is fine but specific question not found, it's also an issue.
       }
     } else {
       router.push('/toefl-grammar/start');
     }
-  }, [router, isTimeUp]); 
+  }, [router, isTimeUp]); // Removed params.id as it's not directly used here, loadStateAndQuestion is the primary dep
 
   useEffect(() => {
     loadStateAndQuestion();
   }, [params.id, loadStateAndQuestion]); 
 
    useEffect(() => {
+    // This effect now specifically listens to changes in the global question index
+    // in the testState, which is modified by navigation actions.
     if (testState?.currentGlobalQuestionIndex !== undefined) {
         loadStateAndQuestion();
     }
@@ -205,6 +215,9 @@ const ToeflGrammarSectionPage = () => {
           return updatedState;
         }
         if (remaining > 0) {
+            // Save state periodically only if time is not up
+            // Consider throttling this if performance becomes an issue,
+            // but for now, saving every second is usually fine.
             localStorage.setItem('toeflGrammarTestState', JSON.stringify(updatedState));
         }
         return updatedState;
@@ -218,12 +231,15 @@ const ToeflGrammarSectionPage = () => {
     if (isTimeUp || !currentQuestion || !testState) return;
 
     setCurrentAnswer(prev => {
-        const newAnswerData = { ...(prev || { questionId: currentQuestion.id, isMarkedForReview: false }), ...answerUpdate };
+        // Ensure newAnswerData is correctly formed for the *current* question
+        const newAnswerData = { ...(prev && prev.questionId === currentQuestion.id ? prev : { questionId: currentQuestion.id, isMarkedForReview: false }), ...answerUpdate };
         
         setTestState(currentState => {
             if (!currentState) return null;
             const { sectionId: currentSId } = getGrammarSectionAndQuestionIndex(currentState.currentGlobalQuestionIndex);
-            const sectionAnswers = [...(currentState.sectionStates[currentSId]?.answers || [])];
+            // Ensure sectionStates[currentSId] exists
+            const currentSectionState = currentState.sectionStates[currentSId] || { answers: [] };
+            const sectionAnswers = [...currentSectionState.answers];
             const existingAnswerIndex = sectionAnswers.findIndex(a => a.questionId === currentQuestion.id);
 
             if (existingAnswerIndex > -1) {
@@ -233,7 +249,7 @@ const ToeflGrammarSectionPage = () => {
             }
             const updatedSectionStates = {
                 ...currentState.sectionStates,
-                [currentSId]: { ...currentState.sectionStates[currentSId], answers: sectionAnswers }
+                [currentSId]: { ...currentSectionState, answers: sectionAnswers }
             };
             const updatedTestState = { ...currentState, sectionStates: updatedSectionStates };
             localStorage.setItem('toeflGrammarTestState', JSON.stringify(updatedTestState));
@@ -270,31 +286,42 @@ const ToeflGrammarSectionPage = () => {
     const isLastOfCurrentSection = questionIndexInSection === QUESTIONS_PER_GRAMMAR_SECTION -1;
     
     if (newSectionId !== oldSectionId && direction === 'next') {
+      // This case means user is trying to go from, e.g., Q10 of S1 to S2.
+      // The actual navigation to the new section page will happen in confirmProceedToNextSection or confirmReviewAndProceed
+      // This dialog confirms if they want to leave the current section.
       setShowNextSectionDialog(true); 
     } else if (isLastOfCurrentSection && direction === 'next') { 
+       // This means user is on the last question of a section (e.g., Q10 of S1) and clicks "Next".
+       // Show the review dialog for the current section.
        setShowReviewDialog(true);
     }
     else {
+      // Regular navigation within the same section
       setTestState(prev => {
         if (!prev) return null;
         const newState = { ...prev, currentGlobalQuestionIndex: newGlobalIndex };
-        localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState)); 
+        localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState)); // Save updated state
         return newState;
       });
     }
   };
   
   const handleFinishSection = () => {
-      setShowReviewDialog(true); 
+      // This is called when the user clicks the "Finish Section" button (which appears on the last question of a section)
+      // or "Finish Test" (if it's the last question of the entire test).
+      setShowReviewDialog(true); // Always show review dialog for the current section before proceeding
   };
 
   const confirmProceedToNextSection = () => {
+    // This is called from the dialog that appears when trying to cross section boundaries
+    // (e.g. from S1 Q10 to S2 Q1 by clicking "Next" on S1 Q10).
     setShowNextSectionDialog(false);
     if (!testState) return;
     
-    const currentSectId = actualCurrentSectionId;
-    const nextSectionFirstGlobalIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION; // This calculates the first question index of the *next* section (if currentSectId were 0-indexed)
-                                                                                      // Since actualCurrentSectionId is 1-indexed, it correctly points to the start of the next one.
+    // Calculate the global index of the first question of the *next* section.
+    // actualCurrentSectionId is 1-indexed. If we are on section 1, next is section 2.
+    // The first question of section 2 is at global index (2-1) * Q_PER_S = 1 * 10 = 10.
+    const nextSectionFirstGlobalIndex = actualCurrentSectionId * QUESTIONS_PER_GRAMMAR_SECTION; 
 
     if (nextSectionFirstGlobalIndex < (TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION)) {
          setTestState(prev => {
@@ -303,25 +330,25 @@ const ToeflGrammarSectionPage = () => {
              localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState));
              return newState;
          });
-         router.push(`/toefl-grammar/section/${currentSectId + 1}`);
-    } else { // This case might not be reached if the "Finish Test" dialog handles it
+         router.push(`/toefl-grammar/section/${actualCurrentSectionId + 1}`);
+    } else { // Should not happen if TOTAL_GRAMMAR_SECTIONS is correct, implies trying to go beyond last section.
       localStorage.setItem('toeflGrammarTestState', JSON.stringify(testState)); 
       router.push('/toefl-grammar/results');
     }
   };
   
   const confirmReviewAndProceed = () => {
+    // Called from the "Finish Section" / "Finish Test" review dialog.
     setShowReviewDialog(false);
     if (!testState) return;
 
-    const currentGlobalIdx = testState.currentGlobalQuestionIndex;
-    const { sectionId: currentSectId, questionIndexInSection: qIdxInSect } = getGrammarSectionAndQuestionIndex(currentGlobalIdx);
+    // actualCurrentSectionId is 1-indexed.
+    const nextSectionId = actualCurrentSectionId + 1;
     
-    // This dialog is shown when the user is at the end of a section
-    // (either by clicking "Finish Section" or "Next" on the last question of a section)
-    const nextSectionId = currentSectId + 1; // currentSectId is 1-indexed
     if (nextSectionId <= TOTAL_GRAMMAR_SECTIONS) {
-        const nextGlobalQuestionIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION; // Start of next section (0-indexed global)
+        // Calculate the global index of the first question of the next section.
+        // If current actualCurrentSectionId is 1, next global index is 1 * 10 = 10 (start of section 2).
+        const nextGlobalQuestionIndex = actualCurrentSectionId * QUESTIONS_PER_GRAMMAR_SECTION;
         setTestState(prev => {
             if (!prev) return null;
             const newState = { ...prev, currentGlobalQuestionIndex: nextGlobalQuestionIndex };
@@ -330,6 +357,7 @@ const ToeflGrammarSectionPage = () => {
         });
         router.push(`/toefl-grammar/section/${nextSectionId}`);
     } else { 
+        // This means it was the last section, go to results.
         localStorage.setItem('toeflGrammarTestState', JSON.stringify(testState)); 
         router.push('/toefl-grammar/results');
     }
@@ -437,6 +465,7 @@ const ToeflGrammarSectionPage = () => {
         </CardHeader>
         <CardContent>
           <GrammarQuestionRenderer 
+            key={currentQuestion.id} 
             question={currentQuestion} 
             currentAnswer={currentAnswer}
             onAnswerChange={handleAnswerChange}
