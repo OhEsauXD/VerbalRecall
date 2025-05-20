@@ -150,9 +150,6 @@ const ToeflGrammarSectionPage = () => {
       const currentGlobalIdxFromStorage = savedState.currentGlobalQuestionIndex;
       const updatedState = { ...savedState, timeRemaining, currentGlobalQuestionIndex: currentGlobalIdxFromStorage };
       
-      // Set testState first, as other derived states depend on it.
-      // This might cause a quick double setTestState if called from an effect that also set it,
-      // but ensures currentGlobalQuestionIndex from storage is prioritized for question fetching.
       setTestState(updatedState); 
 
       if (timeRemaining <= 0 && !isTimeUp) {
@@ -169,21 +166,18 @@ const ToeflGrammarSectionPage = () => {
         );
         setCurrentAnswer(existingAnswer || { questionId: sectionData.questions[targetQIndexInSection].id, isMarkedForReview: false });
       } else {
-        // End of test or invalid index
         router.push('/toefl-grammar/results');
       }
     } else {
-      // No saved state, should redirect to start
       router.push('/toefl-grammar/start');
     }
-  }, [router, isTimeUp]); // Removed currentGlobalQIndex from deps as it might cause loops if setTestState is called within
+  }, [router, isTimeUp]); 
 
   useEffect(() => {
     loadStateAndQuestion();
-  }, [params.id, loadStateAndQuestion]); // Reload when section ID from URL changes (e.g. direct nav) or loadStateAndQuestion itself changes (rare)
+  }, [params.id, loadStateAndQuestion]); 
 
    useEffect(() => {
-    // This effect specifically re-runs loadStateAndQuestion when currentGlobalQIndex changes due to navigation
     if (testState?.currentGlobalQuestionIndex !== undefined) {
         loadStateAndQuestion();
     }
@@ -280,7 +274,7 @@ const ToeflGrammarSectionPage = () => {
       setTestState(prev => {
         if (!prev) return null;
         const newState = { ...prev, currentGlobalQuestionIndex: newGlobalIndex };
-        localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState)); // Save the new state
+        localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState)); 
         return newState;
       });
     }
@@ -294,7 +288,6 @@ const ToeflGrammarSectionPage = () => {
     setShowNextSectionDialog(false);
     if (!testState) return;
     
-    // This implies we are at the end of a section, wanting to go to the first question of the next.
     const currentSectId = actualCurrentSectionId;
     const nextSectionFirstGlobalIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION;
     const { sectionId: nextSectionId } = getGrammarSectionAndQuestionIndex(nextSectionFirstGlobalIndex);
@@ -309,7 +302,7 @@ const ToeflGrammarSectionPage = () => {
          });
          router.push(`/toefl-grammar/section/${nextSectionId}`);
     } else {
-      // This case should not be hit if TOTAL_GRAMMAR_SECTIONS is correct
+      localStorage.setItem('toeflGrammarTestState', JSON.stringify(testState)); // Save before results
       router.push('/toefl-grammar/results');
     }
   };
@@ -321,11 +314,10 @@ const ToeflGrammarSectionPage = () => {
     const currentGlobalIdx = testState.currentGlobalQuestionIndex;
     const { sectionId: currentSectId, questionIndexInSection: qIdxInSect } = getGrammarSectionAndQuestionIndex(currentGlobalIdx);
     
-    // This function is called after finishing a section (last question of section)
     if (qIdxInSect === QUESTIONS_PER_GRAMMAR_SECTION - 1) { 
         const nextSectionId = currentSectId + 1;
         if (nextSectionId <= TOTAL_GRAMMAR_SECTIONS) {
-            const nextGlobalQuestionIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION; // Start of next section
+            const nextGlobalQuestionIndex = currentSectId * QUESTIONS_PER_GRAMMAR_SECTION; 
             setTestState(prev => {
                 if (!prev) return null;
                 const newState = { ...prev, currentGlobalQuestionIndex: nextGlobalQuestionIndex };
@@ -333,12 +325,56 @@ const ToeflGrammarSectionPage = () => {
                 return newState;
             });
             router.push(`/toefl-grammar/section/${nextSectionId}`);
-        } else { // Last section of the test finished
+        } else { 
+            localStorage.setItem('toeflGrammarTestState', JSON.stringify(testState)); // Save before results
             router.push('/toefl-grammar/results');
         }
     } else {
-        // This case should not happen if review dialog is only shown at section end
         console.error("Review dialog shown mid-section, this should not happen.");
+    }
+  };
+
+  const getQuestionTypeInstructions = (type: ToeflGrammarQuestion['type']): React.ReactNode => {
+    switch (type) {
+      case 'sentenceCompletion':
+        return (
+          <ul className="list-disc pl-5 space-y-1 text-sm text-left">
+            <li>Lee la oración completa para entender el contexto general.</li>
+            <li>Presta atención a las palabras clave que rodean el espacio en blanco; pueden indicar el tiempo verbal, la concordancia necesaria, o la preposición correcta.</li>
+            <li>Considera la estructura gramatical de la oración.</li>
+            <li>Evalúa cada opción para ver cuál encaja mejor gramaticalmente y en significado.</li>
+          </ul>
+        );
+      case 'errorIdentification':
+        return (
+          <ul className="list-disc pl-5 space-y-1 text-sm text-left">
+            <li>Lee la oración completa cuidadosamente primero.</li>
+            <li>Analiza cada parte subrayada (A, B, C, D) buscando errores comunes de gramática.</li>
+            <li>Busca errores en: concordancia sujeto-verbo, tiempos verbales, pronombres, adjetivos/adverbios, preposiciones, artículos, estructura de la oración, y elección de palabras.</li>
+            <li>Si no encuentras un error obvio, revisa si alguna parte suena extraña o poco natural en inglés formal.</li>
+          </ul>
+        );
+      case 'paragraphEditing':
+        return (
+          <ul className="list-disc pl-5 space-y-1 text-sm text-left">
+            <li>Lee el párrafo completo para captar la idea principal y el flujo del texto.</li>
+            <li>Para cada espacio numerado, considera el contexto de las oraciones que lo rodean.</li>
+            <li>Si hay una indicación (prompt) para el espacio, úsala como guía principal.</li>
+            <li>Evalúa las opciones para cada espacio, buscando la que mejor complete la idea, mantenga la coherencia, la cohesión (uso de conectores, pronombres) y la corrección gramatical.</li>
+            <li>Asegúrate de que los tiempos verbales sean consistentes y lógicos dentro del párrafo.</li>
+          </ul>
+        );
+      case 'sentenceRestructuring':
+        return (
+          <ul className="list-disc pl-5 space-y-1 text-sm text-left">
+            <li>Lee la oración original cuidadosamente para entender su significado completo.</li>
+            <li>Analiza la indicación (prompt) para entender qué aspecto de la oración se debe enfatizar, clarificar o cómo debe ser reestructurada (ej. voz pasiva, empezar con una frase específica).</li>
+            <li>Evalúa cada opción para ver cuál cumple mejor con la indicación, manteniendo el significado original (o el cambio de énfasis solicitado) y la corrección gramatical.</li>
+            <li>Presta atención a los cambios en el orden de las palabras, la voz (activa/pasiva), el uso de conjunciones y la puntuación.</li>
+          </ul>
+        );
+      default:
+        return <p>Selecciona la mejor opción para completar la pregunta.</p>;
     }
   };
 
@@ -371,20 +407,26 @@ const ToeflGrammarSectionPage = () => {
 
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl text-accent flex items-center">
-            {currentQuestion.type === 'sentenceRestructuring' ? (currentQuestion as SentenceRestructuringQuestion).prompt : `Pregunta ${questionIndexInSection + 1}`}
+          <CardTitle className="text-lg md:text-xl text-accent flex items-center justify-between">
+            <span>
+                {currentQuestion.type === 'sentenceRestructuring' ? (currentQuestion as SentenceRestructuringQuestion).prompt : `Pregunta ${questionIndexInSection + 1}`}
+            </span>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="ml-2 h-6 w-6">
                         <Info className="h-4 w-4" />
                     </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                    <p>{currentQuestion.category}</p> {/* Simple tooltip for now */}
+                <TooltipContent className="max-w-xs md:max-w-md p-4">
+                    <div className="text-sm text-popover-foreground">
+                        <p className="font-semibold text-base mb-2">Categoría: {currentQuestion.category}</p>
+                        <p className="font-semibold text-base mb-1">Cómo Abordar este Tipo de Pregunta:</p>
+                        {getQuestionTypeInstructions(currentQuestion.type)}
+                    </div>
                 </TooltipContent>
             </Tooltip>
           </CardTitle>
-          {currentQuestion.type === 'sentenceRestructuring' && <CardDescription>{(currentQuestion as SentenceRestructuringQuestion).originalSentence}</CardDescription>}
+          {currentQuestion.type === 'sentenceRestructuring' && <CardDescription>Oración Original: {(currentQuestion as SentenceRestructuringQuestion).originalSentence}</CardDescription>}
            {currentQuestion.type === 'sentenceCompletion' && <CardDescription>{(currentQuestion as SentenceCompletionQuestion).questionText.replace('___', '_____')}</CardDescription>}
 
         </CardHeader>
@@ -436,14 +478,13 @@ const ToeflGrammarSectionPage = () => {
         )}
       </footer>
 
-      {/* Section Review Dialog Placeholder */}
       <AlertDialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Revisión de Sección {actualCurrentSectionId}</AlertDialogTitle>
             <AlertDialogDescription>
-              Aquí se mostraría un resumen de las preguntas (respondidas, marcadas, no respondidas).
-              <br/> ¿Desea continuar a la siguiente sección o finalizar la prueba?
+              Has llegado al final de esta sección. Aquí podrías revisar tus respuestas (función pendiente).
+              <br/> ¿Deseas continuar a la siguiente sección o finalizar la prueba si es la última?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -455,13 +496,13 @@ const ToeflGrammarSectionPage = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Next Section Confirmation Dialog (simplified) */}
       <AlertDialog open={showNextSectionDialog} onOpenChange={setShowNextSectionDialog}>
         <AlertDialogContent>
             <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Navegación</AlertDialogTitle>
             <AlertDialogDescription>
-                ¿Está seguro que desea continuar a la siguiente sección? No podrá regresar a esta sección.
+                Estás a punto de pasar a la siguiente sección. No podrás regresar a la sección actual una vez que avances.
+                ¿Estás seguro que deseas continuar?
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
