@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Home, Volume2, Play, RotateCcw, Info } from 'lucide-react';
+import { Home, Volume2, Play, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -83,6 +83,18 @@ const ToeflListeningSectionPage = () => {
   const MAX_PLAYS = 2;
 
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const loadVoices = () => {
+        setVoices(window.speechSynthesis.getVoices());
+      };
+      loadVoices(); // Initial load
+      window.speechSynthesis.onvoiceschanged = loadVoices; // Update if voices change
+    }
+  }, []);
+
 
   const loadStateAndContent = useCallback(() => {
     const savedStateRaw = localStorage.getItem('toeflListeningTestState');
@@ -97,11 +109,11 @@ const ToeflListeningSectionPage = () => {
       if (partData) {
         setCurrentAudioContent(partData.audioContent);
         setCurrentQuestions(partData.questions);
-        setAudioPlayCount(savedState.audioPlayCounts?.[currentAudioPartId] || 0);
-        setHasAudioPlayedOnce( (savedState.audioPlayCounts?.[currentAudioPartId] || 0) > 0 );
+        const playCountForPart = savedState.audioPlayCounts?.[currentAudioPartId] || 0;
+        setAudioPlayCount(playCountForPart);
+        setHasAudioPlayedOnce(playCountForPart > 0);
       } else {
-        // Handle invalid part ID, maybe redirect or show error
-        router.push('/toefl-listening/results'); // Or home
+        router.push('/toefl-listening/results'); 
         return;
       }
       
@@ -122,7 +134,6 @@ const ToeflListeningSectionPage = () => {
 
   useEffect(() => {
     loadStateAndContent();
-     // Ensure speech synthesis is cancelled if component unmounts or audio part changes
     return () => {
         if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking) {
             window.speechSynthesis.cancel();
@@ -166,37 +177,46 @@ const ToeflListeningSectionPage = () => {
 
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel(); // Stop any current speech
+        window.speechSynthesis.cancel(); 
       }
 
       const scriptToPlay = currentAudioContent.type === 'mini-dialogue' && currentAudioContent.dialogues
-        ? currentAudioContent.dialogues.map(d => `${d.speaker}: ${d.line}`).join('\n\n') // Add more pause between speakers
+        ? currentAudioContent.dialogues.map(d => `${d.speaker}: ${d.line}`).join('\n\n')
         : currentAudioContent.script || '';
 
       utteranceRef.current = new SpeechSynthesisUtterance(scriptToPlay);
-      utteranceRef.current.rate = 0.9; // Slightly slower for clarity
-      utteranceRef.current.lang = 'en-US'; // Explicitly set language
+      utteranceRef.current.rate = 0.9; 
+      utteranceRef.current.lang = 'en-US';
+
+      // Attempt to select a preferred voice
+      const usVoices = voices.filter(voice => voice.lang === 'en-US');
+      let selectedVoice = usVoices.find(voice => voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.toLowerCase().includes('enhanced'));
+      if (!selectedVoice && usVoices.length > 0) {
+        selectedVoice = usVoices.find(voice => voice.default) || usVoices[0]; // Fallback to default or first available US voice
+      }
+      if (selectedVoice) {
+        utteranceRef.current.voice = selectedVoice;
+      }
+      
       setIsAudioPlaying(true);
 
       utteranceRef.current.onend = () => {
         setIsAudioPlaying(false);
-        setAudioPlayCount(prevCount => {
-            const newCount = prevCount + 1;
-            setTestState(prevTestState => {
-                if (!prevTestState) return null;
-                const newAudioPlayCounts = {
-                    ...(prevTestState.audioPlayCounts || {}),
-                    [currentAudioPartId]: newCount,
-                };
-                const updatedTestState = {...prevTestState, audioPlayCounts: newAudioPlayCounts};
-                localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedTestState));
-                return updatedTestState;
-            });
-            return newCount;
-        });
+        const newCount = (audioPlayCount || 0) + 1;
+        setAudioPlayCount(newCount);
         if (!hasAudioPlayedOnce) {
-          setHasAudioPlayedOnce(true);
+            setHasAudioPlayedOnce(true);
         }
+        setTestState(prevTestState => {
+            if (!prevTestState) return null;
+            const newAudioPlayCounts = {
+                ...(prevTestState.audioPlayCounts || {}),
+                [currentAudioPartId]: newCount,
+            };
+            const updatedTestState = {...prevTestState, audioPlayCounts: newAudioPlayCounts};
+            localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedTestState));
+            return updatedTestState;
+        });
       };
 
       utteranceRef.current.onerror = (event) => {
@@ -207,7 +227,7 @@ const ToeflListeningSectionPage = () => {
       
       window.speechSynthesis.speak(utteranceRef.current);
     }
-  }, [currentAudioContent, audioPlayCount, isAudioPlaying, currentAudioPartId, toast, hasAudioPlayedOnce]);
+  }, [currentAudioContent, audioPlayCount, isAudioPlaying, currentAudioPartId, toast, hasAudioPlayedOnce, voices]);
 
   const handleAnswerChange = (questionId: string, optionIndex: number) => {
     if (isTimeUp || !testState || !hasAudioPlayedOnce) return;
@@ -242,7 +262,6 @@ const ToeflListeningSectionPage = () => {
                 ans.questionId === questionId ? { ...ans, isMarkedForReview: !ans.isMarkedForReview } : ans
             );
         } else {
-            // If question hasn't been answered yet, add it with isMarkedForReview true
             newAnswers = [...prev.answers, { questionId, selectedOptionIndex: null, isMarkedForReview: true }];
         }
         
