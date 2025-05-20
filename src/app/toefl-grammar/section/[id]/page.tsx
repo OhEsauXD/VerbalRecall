@@ -21,9 +21,9 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from "@/components/ui/checkbox"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChevronDown, ChevronUp } from 'lucide-react'; // Import Chevron icons
+import { ChevronDown, ChevronUp, Home } from 'lucide-react'; // Import Chevron and Home icons
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -132,7 +132,8 @@ const ToeflGrammarSectionPage = () => {
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showNextSectionDialog, setShowNextSectionDialog] = useState(false);
-  const [isInstructionVisible, setIsInstructionVisible] = useState(true); // New state for instruction visibility
+  const [showCancelDialog, setShowCancelDialog] = useState(false); // New state for cancel dialog
+  const [isInstructionVisible, setIsInstructionVisible] = useState(true);
 
   const currentGlobalQIndex = testState?.currentGlobalQuestionIndex ?? 0;
   const { sectionId: actualCurrentSectionId, questionIndexInSection } = getGrammarSectionAndQuestionIndex(currentGlobalQIndex);
@@ -164,31 +165,22 @@ const ToeflGrammarSectionPage = () => {
           a => a.questionId === sectionData.questions[targetQIndexInSection].id
         );
         setCurrentAnswer(existingAnswer || { questionId: sectionData.questions[targetQIndexInSection].id, isMarkedForReview: false });
-        // Set instruction visibility based on question index in section
         setIsInstructionVisible(targetQIndexInSection === 0);
       } else {
-        // This case could mean end of test or invalid index.
-        // If currentGlobalIdxFromStorage is beyond the last question, navigate to results.
         if (currentGlobalIdxFromStorage >= TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION) {
             router.push('/toefl-grammar/results');
         }
-        // If it's just an issue finding current section data for a valid index, might indicate bad state or navigation.
-        // For now, a push to results might be too aggressive. Consider logging or a soft redirect.
-        // console.error("Could not load question data for index:", currentGlobalIdxFromStorage);
-        // If section data is fine but specific question not found, it's also an issue.
       }
     } else {
       router.push('/toefl-grammar/start');
     }
-  }, [router, isTimeUp]); // Removed params.id as it's not directly used here, loadStateAndQuestion is the primary dep
+  }, [router, isTimeUp]);
 
   useEffect(() => {
     loadStateAndQuestion();
   }, [params.id, loadStateAndQuestion]); 
 
    useEffect(() => {
-    // This effect now specifically listens to changes in the global question index
-    // in the testState, which is modified by navigation actions.
     if (testState?.currentGlobalQuestionIndex !== undefined) {
         loadStateAndQuestion();
     }
@@ -215,9 +207,6 @@ const ToeflGrammarSectionPage = () => {
           return updatedState;
         }
         if (remaining > 0) {
-            // Save state periodically only if time is not up
-            // Consider throttling this if performance becomes an issue,
-            // but for now, saving every second is usually fine.
             localStorage.setItem('toeflGrammarTestState', JSON.stringify(updatedState));
         }
         return updatedState;
@@ -231,13 +220,11 @@ const ToeflGrammarSectionPage = () => {
     if (isTimeUp || !currentQuestion || !testState) return;
 
     setCurrentAnswer(prev => {
-        // Ensure newAnswerData is correctly formed for the *current* question
         const newAnswerData = { ...(prev && prev.questionId === currentQuestion.id ? prev : { questionId: currentQuestion.id, isMarkedForReview: false }), ...answerUpdate };
         
         setTestState(currentState => {
             if (!currentState) return null;
             const { sectionId: currentSId } = getGrammarSectionAndQuestionIndex(currentState.currentGlobalQuestionIndex);
-            // Ensure sectionStates[currentSId] exists
             const currentSectionState = currentState.sectionStates[currentSId] || { answers: [] };
             const sectionAnswers = [...currentSectionState.answers];
             const existingAnswerIndex = sectionAnswers.findIndex(a => a.questionId === currentQuestion.id);
@@ -281,46 +268,31 @@ const ToeflGrammarSectionPage = () => {
 
     const { sectionId: newSectionId } = getGrammarSectionAndQuestionIndex(newGlobalIndex);
     const { sectionId: oldSectionId } = getGrammarSectionAndQuestionIndex(testState.currentGlobalQuestionIndex);
-
-    // Determine if it's the last question of the current section trying to go next
     const isLastOfCurrentSection = questionIndexInSection === QUESTIONS_PER_GRAMMAR_SECTION -1;
     
     if (newSectionId !== oldSectionId && direction === 'next') {
-      // This case means user is trying to go from, e.g., Q10 of S1 to S2.
-      // The actual navigation to the new section page will happen in confirmProceedToNextSection or confirmReviewAndProceed
-      // This dialog confirms if they want to leave the current section.
       setShowNextSectionDialog(true); 
     } else if (isLastOfCurrentSection && direction === 'next') { 
-       // This means user is on the last question of a section (e.g., Q10 of S1) and clicks "Next".
-       // Show the review dialog for the current section.
        setShowReviewDialog(true);
     }
     else {
-      // Regular navigation within the same section
       setTestState(prev => {
         if (!prev) return null;
         const newState = { ...prev, currentGlobalQuestionIndex: newGlobalIndex };
-        localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState)); // Save updated state
+        localStorage.setItem('toeflGrammarTestState', JSON.stringify(newState));
         return newState;
       });
     }
   };
   
   const handleFinishSection = () => {
-      // This is called when the user clicks the "Finish Section" button (which appears on the last question of a section)
-      // or "Finish Test" (if it's the last question of the entire test).
-      setShowReviewDialog(true); // Always show review dialog for the current section before proceeding
+      setShowReviewDialog(true);
   };
 
   const confirmProceedToNextSection = () => {
-    // This is called from the dialog that appears when trying to cross section boundaries
-    // (e.g. from S1 Q10 to S2 Q1 by clicking "Next" on S1 Q10).
     setShowNextSectionDialog(false);
     if (!testState) return;
     
-    // Calculate the global index of the first question of the *next* section.
-    // actualCurrentSectionId is 1-indexed. If we are on section 1, next is section 2.
-    // The first question of section 2 is at global index (2-1) * Q_PER_S = 1 * 10 = 10.
     const nextSectionFirstGlobalIndex = actualCurrentSectionId * QUESTIONS_PER_GRAMMAR_SECTION; 
 
     if (nextSectionFirstGlobalIndex < (TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION)) {
@@ -331,23 +303,19 @@ const ToeflGrammarSectionPage = () => {
              return newState;
          });
          router.push(`/toefl-grammar/section/${actualCurrentSectionId + 1}`);
-    } else { // Should not happen if TOTAL_GRAMMAR_SECTIONS is correct, implies trying to go beyond last section.
+    } else { 
       localStorage.setItem('toeflGrammarTestState', JSON.stringify(testState)); 
       router.push('/toefl-grammar/results');
     }
   };
   
   const confirmReviewAndProceed = () => {
-    // Called from the "Finish Section" / "Finish Test" review dialog.
     setShowReviewDialog(false);
     if (!testState) return;
 
-    // actualCurrentSectionId is 1-indexed.
     const nextSectionId = actualCurrentSectionId + 1;
     
     if (nextSectionId <= TOTAL_GRAMMAR_SECTIONS) {
-        // Calculate the global index of the first question of the next section.
-        // If current actualCurrentSectionId is 1, next global index is 1 * 10 = 10 (start of section 2).
         const nextGlobalQuestionIndex = actualCurrentSectionId * QUESTIONS_PER_GRAMMAR_SECTION;
         setTestState(prev => {
             if (!prev) return null;
@@ -357,10 +325,15 @@ const ToeflGrammarSectionPage = () => {
         });
         router.push(`/toefl-grammar/section/${nextSectionId}`);
     } else { 
-        // This means it was the last section, go to results.
         localStorage.setItem('toeflGrammarTestState', JSON.stringify(testState)); 
         router.push('/toefl-grammar/results');
     }
+  };
+
+  const handleCancelTest = () => {
+    localStorage.removeItem('toeflGrammarTestState');
+    sessionStorage.removeItem('toeflGrammarUserInfo');
+    router.push('/');
   };
 
   const getQuestionTypeInstructions = (type: ToeflGrammarQuestion['type'] | undefined): React.ReactNode => {
@@ -420,7 +393,29 @@ const ToeflGrammarSectionPage = () => {
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
       <header className="flex justify-between items-center mb-6 sticky top-0 bg-background py-2 z-10">
-        <div>
+        <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="text-sm">
+                <Home className="mr-2 h-4 w-4" /> Cancelar y Volver al Inicio
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Si vuelves al inicio, tu progreso en esta prueba se perderá. ¿Deseas continuar?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Continuar Prueba</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCancelTest} className="bg-destructive hover:bg-destructive/90">
+                Salir y Perder Progreso
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <div className="text-center">
             <h1 className="text-xl md:text-2xl font-bold text-primary">
                 TOEFL Gramática - Sección {actualCurrentSectionId}
             </h1>
@@ -561,3 +556,4 @@ const ToeflGrammarSectionPage = () => {
 };
 
 export default ToeflGrammarSectionPage;
+
