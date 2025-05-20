@@ -19,24 +19,25 @@ import { foodPairs } from '@/lib/food';
 import { transportBuildingPairs } from '@/lib/transportBuildings';
 import { verbLockSources } from '@/lib/verbLock';
 import { combinationLockSubjects } from '@/lib/combinationLock';
-import { toeflTestSections } from '@/lib/toeflTestData'; 
-import { TOTAL_GRAMMAR_SECTIONS, QUESTIONS_PER_GRAMMAR_SECTION } from '@/lib/toeflGrammarTestData';
+import { toeflTestSections, TOTAL_SECTIONS } from '@/lib/toeflTestData';
+import { TOTAL_GRAMMAR_SECTIONS, QUESTIONS_PER_GRAMMAR_SECTION, toeflGrammarTestSections } from '@/lib/toeflGrammarTestData';
+import { TOTAL_LISTENING_PARTS, toeflListeningSections as toeflListeningSectionsData } from '@/lib/toeflListeningTestData';
 
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-// Added 'toeflGrammar' to GameType
-export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock' | 'toeflPractice' | 'toeflGrammar'; 
-type ViewState = 'selection' | 'difficulty' | 'game'; 
+// Added 'toeflGrammar' and 'toeflListening' to GameType
+export type GameType = 'verbs' | 'adjectives' | 'animals' | 'plants' | 'food' | 'transportBuildings' | 'pastTense' | 'regularPastTense' | 'nations' | 'trivia' | 'verbLock' | 'spanishEnglishTrivia' | 'combinationLock' | 'toeflPractice' | 'toeflGrammar' | 'toeflListening';
+type ViewState = 'selection' | 'difficulty' | 'game';
 
 interface CompletionDialogState {
   isOpen: boolean;
-  moves: number; 
-  time: number;  
+  moves: number;
+  time: number;
   itemType: GameType | null;
 }
 
 export default function Home() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [view, setView] = useState<ViewState>('selection');
   const [currentGameType, setCurrentGameType] = useState<GameType | null>(null);
   const [currentDifficulty, setCurrentDifficulty] = useState<Difficulty | null>(null);
@@ -58,11 +59,15 @@ export default function Home() {
 
   const handleSelectGameType = (type: GameType) => {
     if (type === 'toeflPractice') {
-      router.push('/toefl-practice/start'); 
+      router.push('/toefl-practice/start');
       return;
     }
-    if (type === 'toeflGrammar') { // Handle new TOEFL Grammar Test
+    if (type === 'toeflGrammar') {
       router.push('/toefl-grammar/start');
+      return;
+    }
+    if (type === 'toeflListening') {
+      router.push('/toefl-listening/start');
       return;
     }
     setCurrentGameType(type);
@@ -98,8 +103,8 @@ export default function Home() {
 
   const handleGameComplete = (result: { moves?: number; time?: number; score?: number; questionsAttempted?: number; locksSolved?: number }) => {
     if (currentGameType) {
-      let dialogMoves = 0; 
-      let dialogTime = 0; 
+      let dialogMoves = 0;
+      let dialogTime = 0;
 
       if (currentGameType === 'trivia' || currentGameType === 'spanishEnglishTrivia') {
         dialogMoves = result.questionsAttempted || 0;
@@ -152,15 +157,18 @@ export default function Home() {
       case 'spanishEnglishTrivia':
         return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) };
       case 'verbLock':
-        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) }; 
+        return { easy: 10, medium: 15, hard: Math.min(20, verbLockSources.length) };
       case 'combinationLock':
         return { easy: 3, medium: 5, hard: Math.min(7, combinationLockSubjects.length) };
-      case 'toeflPractice': 
+      case 'toeflPractice':
         const totalToeflQuestions = toeflTestSections.reduce((sum, sec) => sum + sec.questions.length, 0);
-        return { easy: totalToeflQuestions, medium: totalToeflQuestions, hard: totalToeflQuestions }; 
-      case 'toeflGrammar': // Difficulty not applicable for TOEFL Grammar in the same way
+        return { easy: totalToeflQuestions, medium: totalToeflQuestions, hard: totalToeflQuestions };
+      case 'toeflGrammar':
         const totalGrammarQuestions = TOTAL_GRAMMAR_SECTIONS * QUESTIONS_PER_GRAMMAR_SECTION;
         return { easy: totalGrammarQuestions, medium: totalGrammarQuestions, hard: totalGrammarQuestions };
+      case 'toeflListening':
+        const totalListeningQuestions = toeflListeningSectionsData.reduce((sum, sec) => sum + sec.questions.length, 0);
+        return { easy: totalListeningQuestions, medium: totalListeningQuestions, hard: totalListeningQuestions };
       default:
         return { easy: 15, medium: 30, hard: 60 };
     }
@@ -182,7 +190,8 @@ export default function Home() {
       case 'verbLock': return 'Verb Combination Lock';
       case 'combinationLock': return 'Combination Lock';
       case 'toeflPractice': return 'TOEFL Reading Practice Test';
-      case 'toeflGrammar': return 'TOEFL Grammar Practice Test'; // New type name
+      case 'toeflGrammar': return 'TOEFL Grammar Practice Test';
+      case 'toeflListening': return 'TOEFL Listening Practice Test';
       default: return 'Items';
     }
   }
@@ -194,13 +203,17 @@ export default function Home() {
         return <GameSelection onSelectGame={handleSelectGameType} />;
       case 'difficulty':
         if (!currentGameType) return <GameSelection onSelectGame={handleSelectGameType} />;
-         if (currentGameType === 'toeflPractice') { 
+         if (currentGameType === 'toeflPractice') {
             router.push('/toefl-practice/start');
             return <div className="text-foreground">Redirecting to TOEFL Reading Test...</div>;
         }
-        if (currentGameType === 'toeflGrammar') { // New check for grammar test
+        if (currentGameType === 'toeflGrammar') {
             router.push('/toefl-grammar/start');
             return <div className="text-foreground">Redirecting to TOEFL Grammar Test...</div>;
+        }
+        if (currentGameType === 'toeflListening') {
+            router.push('/toefl-listening/start');
+            return <div className="text-foreground">Redirecting to TOEFL Listening Test...</div>;
         }
         return (
           <div className="flex flex-col items-center w-full">
@@ -230,7 +243,7 @@ export default function Home() {
             />
           );
         }
-        setView('selection'); 
+        setView('selection');
         return <GameSelection onSelectGame={handleSelectGameType} />;
       default:
         return <GameSelection onSelectGame={handleSelectGameType} />;
@@ -243,7 +256,7 @@ export default function Home() {
       onGoHome={handleGoHome}
     >
       {renderContent()}
-      
+
       {completionDialog.isOpen && completionDialog.itemType && (
         <CompletionDialog
           isOpen={completionDialog.isOpen}

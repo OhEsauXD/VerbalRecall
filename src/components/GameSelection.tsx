@@ -5,10 +5,10 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image'; 
+import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import type { GameType } from '@/app/page';
-import { BookOpenCheck, SpellCheck2 } from 'lucide-react'; // Added SpellCheck2 for Grammar
+import { BookOpenCheck, SpellCheck2, Headphones } from 'lucide-react';
 
 interface GameSelectionProps {
   onSelectGame: (type: GameType) => void;
@@ -18,10 +18,10 @@ interface GameCardData {
   type: GameType;
   title: string;
   description: string;
-  imageSrc?: string; 
-  imageAlt?: string; 
-  aiHint?: string;   
-  icon?: React.ReactNode; 
+  imageSrc?: string;
+  imageAlt?: string;
+  aiHint?: string;
+  icon?: React.ReactNode;
   buttonText: string;
 }
 
@@ -34,12 +34,19 @@ const gameCategories: Record<string, GameCardData[]> = {
       icon: <BookOpenCheck className="w-24 h-24 text-primary mx-auto my-6" />,
       buttonText: 'Start TOEFL Reading',
     },
-    { // New TOEFL Grammar Test Card
+    {
       type: 'toeflGrammar',
       title: 'TOEFL Grammar Practice',
       description: 'Sharpen your English grammar with varied question types. Timed sections and detailed feedback.',
-      icon: <SpellCheck2 className="w-24 h-24 text-primary mx-auto my-6" />, // Using a different icon
+      icon: <SpellCheck2 className="w-24 h-24 text-primary mx-auto my-6" />,
       buttonText: 'Start TOEFL Grammar',
+    },
+    {
+      type: 'toeflListening',
+      title: 'TOEFL Listening Practice',
+      description: 'Test your auditory comprehension with lectures, conversations, and mini-dialogues. Includes audio playback and timed sections.',
+      icon: <Headphones className="w-24 h-24 text-primary mx-auto my-6" />,
+      buttonText: 'Start TOEFL Listening',
     },
   ],
   trivia: [
@@ -56,7 +63,7 @@ const gameCategories: Record<string, GameCardData[]> = {
       type: 'spanishEnglishTrivia',
       title: 'Spanish to English Verb Trivia',
       description: 'Translate Spanish infinitive verbs to their English base form. ¡Buena suerte!',
-      imageSrc: 'https://picsum.photos/400/200?random=12', 
+      imageSrc: 'https://picsum.photos/400/200?random=12',
       imageAlt: 'Abstract representation of language translation',
       aiHint: 'translation dictionary',
       buttonText: 'Play ES to EN Trivia',
@@ -76,7 +83,7 @@ const gameCategories: Record<string, GameCardData[]> = {
       type: 'combinationLock',
       title: 'Thematic Combination Lock',
       description: 'Guess four related items from a given category. Rotate the tumblers to find the correct words!',
-      imageSrc: 'https://picsum.photos/400/200?random=13', 
+      imageSrc: 'https://picsum.photos/400/200?random=13',
       imageAlt: 'Abstract representation of a thematic combination lock',
       aiHint: 'themed lock',
       buttonText: 'Play Thematic Lock',
@@ -173,7 +180,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
     <Carousel
       opts={{
         align: "start",
-        loop: games.length > 1, 
+        loop: games.length > 1,
       }}
       className="w-full"
     >
@@ -199,7 +206,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
                   ) : (
                     <div className="w-full h-48 flex items-center justify-center bg-muted">
                       {/* Default icon if none specified */}
-                      <BookOpenCheck className="w-16 h-16 text-primary" /> 
+                      <BookOpenCheck className="w-16 h-16 text-primary" />
                     </div>
                   )}
                 </CardHeader>
@@ -210,18 +217,19 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
                   </CardDescription>
                 </CardContent>
                 <CardFooter className="p-6 pt-0 mt-auto">
-                  <Button 
+                  <Button
                     onClick={() => {
-                      // Updated to handle 'toeflGrammar'
                       if (game.type === 'toeflPractice') {
                         router.push('/toefl-practice/start');
                       } else if (game.type === 'toeflGrammar') {
                         router.push('/toefl-grammar/start');
+                      } else if (game.type === 'toeflListening') {
+                        router.push('/toefl-listening/start');
                       }
                        else {
                         onSelectGame(game.type);
                       }
-                    }} 
+                    }}
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {game.buttonText}
@@ -232,7 +240,7 @@ const GameCategoryCarousel: React.FC<{ title: string; games: GameCardData[]; onS
           </CarouselItem>
         ))}
       </CarouselContent>
-      {games.length > 1 && ( 
+      {games.length > 1 && (
         <>
             <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
             <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground hidden sm:flex" />
