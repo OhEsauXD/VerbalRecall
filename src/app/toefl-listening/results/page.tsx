@@ -63,7 +63,7 @@ const ToeflListeningResultsPage = () => {
       let correctAnswersCount = 0;
       (testState.answers || []).forEach((ans: ToeflListeningAnswer) => {
         const question = getQuestionById(ans.questionId);
-        if (question && ans.selectedOptionIndex !== null && question.options[ans.selectedOptionIndex]?.isCorrect) {
+        if (question && ans.selectedOptionIndex !== null && question.options[ans.selectedOptionIndex!]?.isCorrect) {
           correctAnswersCount++;
         }
       });
@@ -111,7 +111,7 @@ const ToeflListeningResultsPage = () => {
     .answer-grid { width: 100%; border-collapse: collapse; margin-top: 8px; }
     .answer-grid th, .answer-grid td { border: 1px solid #000; padding: 2px; text-align: center; font-size: 7pt; }
     .answer-grid th { background-color: #ccc; }
-    .grid-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+    .grid-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; } /* Adjust columns based on total questions */
     .grid-item-table { break-inside: avoid; page-break-inside: avoid; }
     @page { size: letter portrait; margin: 0.5in; }
     @media print {
@@ -148,7 +148,7 @@ const ToeflListeningResultsPage = () => {
     body += '<h3>Hoja de Respuestas</h3>';
     body += '<div class="grid-container">';
     
-    const numColumnsForGrid = 10; 
+    const numColumnsForGrid = totalQuestions <= 25 ? 5 : (totalQuestions <= 50 ? 10 : 10) ; // Adapt columns
     const questionsPerColumn = Math.ceil(totalQuestions / numColumnsForGrid); 
 
     let globalQuestionCounter = 0;
@@ -194,13 +194,14 @@ const ToeflListeningResultsPage = () => {
   const detailedFeedbackStyles = `
     body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; color: #333; }
     .container { max-width: 800px; margin: auto; }
-    h1, h2, h3 { color: #00693E; }
+    h1, h2, h3 { color: #00693E; } /* Green for titles for Listening Feedback */
     h1 { font-size: 24px; text-align: center; margin-bottom: 20px; }
-    .user-info { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; background-color: #e6fff2; }
+    .user-info { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; background-color: #e6fff2; } /* Light green bg */
     .user-info p { margin: 5px 0; font-size: 14px; }
     .score-summary { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 20px; }
-    .audio-part-review { margin-bottom: 30px; }
-    .audio-transcript { background-color: #f0f0f0; padding: 10px; border-radius: 4px; margin-bottom:15px; font-style: italic; }
+    .audio-part-review { margin-bottom: 30px; page-break-inside: avoid; }
+    .audio-transcript { background-color: #f0f0f0; padding: 10px; border-radius: 4px; margin-bottom:15px; font-style: italic; font-size: 0.9em; }
+    .audio-transcript strong { font-weight: bold; }
     .question-review { margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; page-break-inside: avoid;}
     .question-review p { margin: 3px 0; }
     .question-text { font-weight: bold; }
@@ -238,10 +239,13 @@ const ToeflListeningResultsPage = () => {
       body += `<div class="audio-part-review">`;
       body += `<h3>${section.audioContent.title || `Audio Part ${section.id}`} (${section.audioContent.type})</h3>`;
       
-      const scriptToDisplay = section.audioContent.type === 'mini-dialogue' 
-        ? section.audioContent.dialogues.map(d => `<strong>${d.speaker}:</strong> ${d.line}`).join('<br>')
-        : section.audioContent.script;
-      body += `<div class="audio-transcript"><strong>Transcripción:</strong><br>${scriptToDisplay.replace(/\n/g, '<br>')}</div>`;
+      let scriptToDisplay = '';
+      if (section.audioContent.type === 'mini-dialogue' && section.audioContent.dialogues) {
+        scriptToDisplay = section.audioContent.dialogues.map(d => `<strong>${d.speaker}:</strong> ${d.line}`).join('<br>');
+      } else if (section.audioContent.script) {
+        scriptToDisplay = section.audioContent.script.replace(/\n/g, '<br>');
+      }
+      body += `<div class="audio-transcript"><strong>Transcripción:</strong><br>${scriptToDisplay || 'Transcripción no disponible.'}</div>`;
 
       section.questions.forEach(q => {
         questionNumberOverall++;
@@ -318,7 +322,7 @@ const ToeflListeningResultsPage = () => {
             <CardTitle className="text-3xl font-bold text-primary">Resultados de Prueba de Comprensión Auditiva TOEFL</CardTitle>
             {userInfo && (
               <CardDescription className="text-muted-foreground mt-2">
-                Resultados para: {userInfo.nombre} {userInfo.apellidoPaterno} {userInfo.apellidoMaterno} ({userInfo.carrera} - {userInfo.grado}{userInfo.grupo})
+                Resultados para: {userInfo.nombre} ${userInfo.apellidoPaterno} ${userInfo.apellidoMaterno} ({userInfo.carrera} - {userInfo.grado}{userInfo.grupo})
                 <br />Fecha: {currentDate}
               </CardDescription>
             )}
@@ -335,11 +339,12 @@ const ToeflListeningResultsPage = () => {
                 <AccordionItem value={`listening-section-${section.id}`} key={`listening-${section.id}`}>
                   <AccordionTrigger className="text-lg hover:no-underline text-accent">{section.audioContent.title || `Audio Part ${section.id}`}</AccordionTrigger>
                   <AccordionContent>
-                    <div className="mb-2 p-2 bg-muted/50 rounded text-sm italic">
+                    <div className="mb-3 p-3 bg-muted/70 rounded text-sm italic border border-border">
                         <strong>Transcripción:</strong><br/> 
-                        {section.audioContent.type === 'mini-dialogue' 
+                        {section.audioContent.type === 'mini-dialogue' && section.audioContent.dialogues
                            ? section.audioContent.dialogues.map((d, i) => <span key={i}><strong>{d.speaker}:</strong> {d.line}<br/></span>) 
-                           : section.audioContent.script.split('\n').map((line, i) => <span key={i}>{line}<br/></span>)}
+                           : section.audioContent.script ? section.audioContent.script.split('\n').map((line, i) => <span key={i}>{line}<br/></span>)
+                           : <span className="text-muted-foreground">Transcripción no disponible para esta sección.</span>}
                     </div>
                     {section.questions.map((q, qIndexInSection) => {
                       const userAnswer = answers.find(a => a.questionId === q.id);
@@ -394,3 +399,5 @@ const ToeflListeningResultsPage = () => {
 };
 
 export default ToeflListeningResultsPage;
+
+    
