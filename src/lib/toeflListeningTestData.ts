@@ -174,7 +174,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       },
     ],
   },
-  // Part 2: Longer Conversation
+  // Part 2: Longer Conversation (Summer Vacations theme - 8 questions)
   {
     id: 2,
     audioContent: {
@@ -191,7 +191,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         { speaker: "Student A (Female)", line: "Agreed. I'm excited already! This could be an epic adventure." }
       ],
     },
-    questions: [ // 10 questions for the conversation
+    questions: [
       {
         id: "conv1-q1",
         questionText: "What is the main topic of the conversation?",
@@ -214,7 +214,6 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "Sarah menciona explícitamente 'Yellowstone y el Gran Cañón' como posibles destinos.",
       },
-      // ... Add 8 more questions for this conversation (Placeholder)
        {
         id: "conv1-q3",
         questionText: "What does Mark suggest they need to budget for?",
@@ -281,31 +280,9 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "Sarah dice: '¡Ya estoy emocionada! Esto podría ser una aventura épica'.",
       },
-      {
-        id: "conv1-q9",
-        questionText: "What practical aspect of planning does Mark emphasize?",
-        options: [
-          { text: "Choosing the right music for the road trip.", isCorrect: false },
-          { text: "Planning the route and camping spots.", isCorrect: true },
-          { text: "Deciding on the type of snacks to bring.", isCorrect: false },
-          { text: "Figuring out sightseeing activities.", isCorrect: false },
-        ],
-        explanation: "Mark menciona la necesidad de 'planificar la ruta y averiguar los lugares para acampar'.",
-      },
-      {
-        id: "conv1-q10",
-        questionText: "What is implied about Jenny and Tom's interest in a road trip?",
-        options: [
-          { text: "They are not interested.", isCorrect: false },
-          { text: "They have already planned their own trip.", isCorrect: false },
-          { text: "They had previously mentioned wanting to do something similar.", isCorrect: true },
-          { text: "They prefer to travel by plane.", isCorrect: false },
-        ],
-        explanation: "Sarah dice que Jenny y Tom 'mencionaron que querían hacer algo similar'.",
-      },
     ],
   },
-  // Part 3: Lecture 1
+  // Part 3: Lecture 1 (Climate Change - 8 questions)
   {
     id: 3,
     audioContent: {
@@ -314,7 +291,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       instructions: "Listen to part of a lecture in an environmental science class. You can play the lecture only twice.",
       script: "Good morning, everyone. Today, we're going to delve into a critical issue: the impact of climate change on our coastal ecosystems. As global temperatures rise, we're seeing a number of alarming trends. Sea level rise, primarily due to thermal expansion of water and melting glaciers and ice sheets, is perhaps the most direct threat. This leads to coastal erosion, saltwater intrusion into freshwater aquifers, and increased frequency of coastal flooding, displacing communities and destroying habitats. Furthermore, ocean acidification, caused by the absorption of excess atmospheric carbon dioxide, is severely impacting marine organisms with calcium carbonate shells, like corals and shellfish. Coral reefs, which are biodiversity hotspots, are experiencing widespread bleaching events. Warmer waters also alter species distribution and can lead to an increase in harmful algal blooms. The intricate web of life in these ecosystems is being disrupted at an unprecedented rate, and understanding these mechanisms is key to formulating effective mitigation and adaptation strategies. We'll explore some of these strategies in our next session...",
     },
-    questions: [ // 10 questions for this lecture
+    questions: [
       {
         id: "lec1-q1",
         questionText: "What is the main topic of the lecture?",
@@ -403,31 +380,9 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "La 'intrincada red de la vida' se refiere a las 'complejas interconexiones entre los organismos en un ecosistema'.",
       },
-      {
-        id: "lec1-q9",
-        questionText: "Why is understanding the mechanisms of climate change impact important?",
-        options: [
-          { text: "To accurately predict weather patterns.", isCorrect: false },
-          { text: "To develop new types of fishing equipment.", isCorrect: false },
-          { text: "To formulate effective mitigation and adaptation strategies.", isCorrect: true },
-          { text: "To increase tourism in coastal areas.", isCorrect: false },
-        ],
-        explanation: "Entender estos mecanismos es 'clave para formular estrategias efectivas de mitigación y adaptación'.",
-      },
-      {
-        id: "lec1-q10",
-        questionText: "What will be discussed in the next session, according to the lecturer?",
-        options: [
-          { text: "The history of coastal settlements.", isCorrect: false },
-          { text: "The formation of glaciers and ice sheets.", isCorrect: false },
-          { text: "The chemical composition of seawater.", isCorrect: false },
-          { text: "Strategies for mitigation and adaptation.", isCorrect: true },
-        ],
-        explanation: "El profesor concluye diciendo: 'Exploraremos algunas de estas estrategias en nuestra próxima sesión'.",
-      },
     ],
   },
-  // Part 4: Lecture 2 - History of Cacao
+  // Part 4: Lecture 2 - History of Cacao (7 questions)
   {
     id: 4,
     audioContent: {
@@ -494,17 +449,6 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       },
       {
         id: "lec2-q6",
-        questionText: "For about how long did Spain maintain a monopoly on the chocolate trade?",
-        options: [
-          { text: "A decade", isCorrect: false },
-          { text: "Fifty years", isCorrect: false },
-          { text: "Nearly a century", isCorrect: true },
-          { text: "Over two centuries", isCorrect: false },
-        ],
-        explanation: "El pasaje dice: 'Durante casi un siglo, España monopolizó el comercio del chocolate'.",
-      },
-      {
-        id: "lec2-q7",
         questionText: "What was the status of chocolate in Europe during the 17th and 18th centuries?",
         options: [
           { text: "A common drink for all social classes.", isCorrect: false },
@@ -515,7 +459,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         explanation: "Durante los siglos XVII y XVIII, el chocolate 'siguió siendo en gran medida un artículo de lujo para la élite'.",
       },
       {
-        id: "lec2-q8",
+        id: "lec2-q7",
         questionText: "What invention in the 19th century was crucial for creating solid eating chocolate?",
         options: [
           { text: "The steam engine", isCorrect: false },
@@ -525,31 +469,9 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "La 'prensa de cacao por Coenraad Johannes van Houten... que separaba la manteca de cacao de los sólidos de cacao' fue clave.",
       },
-      {
-        id: "lec2-q9",
-        questionText: "What general trend describes the evolution of chocolate consumption?",
-        options: [
-          { text: "From a sweet treat to a bitter ceremonial drink.", isCorrect: false },
-          { text: "From a commoner's drink to a royal luxury.", isCorrect: false },
-          { text: "From a sacred, bitter brew to a universally beloved sweet treat.", isCorrect: true },
-          { text: "From a solid food item to a primarily liquid beverage.", isCorrect: false },
-        ],
-        explanation: "El pasaje concluye que el viaje del cacao es 'desde una infusión sagrada y amarga... hasta una golosina dulce universalmente amada'.",
-      },
-      {
-        id: "lec2-q10",
-        questionText: "What does the lecture imply about the Olmecs' cacao beverage compared to modern chocolate?",
-        options: [
-          { text: "It was sweeter and creamier.", isCorrect: false },
-          { text: "It was very similar in taste and preparation.", isCorrect: false },
-          { text: "It was primarily eaten as a solid.", isCorrect: false },
-          { text: "It was a bitter, frothy drink, unlike sweet modern chocolate.", isCorrect: true },
-        ],
-        explanation: "Los olmecas preparaban una 'bebida amarga y espumosa, muy diferente del chocolate dulce que conocemos hoy'.",
-      },
     ],
   },
-  // Part 5: Lecture 3 - Volcanoes Around the World
+  // Part 5: Lecture 3 - Volcanoes Around the World (7 questions)
   {
     id: 5,
     audioContent: {
@@ -616,17 +538,6 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       },
       {
         id: "lec3-q6",
-        questionText: "Which of these is NOT mentioned as a destructive effect of volcanic eruptions?",
-        options: [
-          { text: "Lava flows engulfing landscapes.", isCorrect: false },
-          { text: "Creation of new landmasses.", isCorrect: true },
-          { text: "Ash falls disrupting air travel.", isCorrect: false },
-          { text: "Volcanic gases contributing to acid rain.", isCorrect: false },
-        ],
-        explanation: "La creación de nuevas masas de tierra se menciona como un efecto constructivo, no destructivo, de los volcanes.",
-      },
-      {
-        id: "lec3-q7",
         questionText: "What is a constructive role of volcanoes mentioned in the lecture?",
         options: [
           { text: "Causing short-term climate cooling.", isCorrect: false },
@@ -637,18 +548,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         explanation: "Los volcanes 'enriquecen el suelo', ya que 'la ceniza volcánica y la lava se descomponen para formar suelos altamente fértiles'.",
       },
       {
-        id: "lec3-q8",
-        questionText: "What is geothermal energy related to?",
-        options: [
-          { text: "Energy derived from wind patterns near volcanoes.", isCorrect: false },
-          { text: "The Earth's internal heat associated with volcanic activity.", isCorrect: true },
-          { text: "Solar energy concentrated by volcanic mountain slopes.", isCorrect: false },
-          { text: "Energy from burning volcanic gases.", isCorrect: false },
-        ],
-        explanation: "La energía geotérmica se 'aprovecha del calor interno de la Tierra asociado con la actividad volcánica'.",
-      },
-      {
-        id: "lec3-q9",
+        id: "lec3-q7",
         questionText: "How did volcanic activity contribute to Earth's early development?",
         options: [
           { text: "By creating the planet's magnetic field.", isCorrect: false },
@@ -657,17 +557,6 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
           { text: "By initiating the process of plate tectonics.", isCorrect: false },
         ],
         explanation: "La actividad volcánica es 'responsable de liberar gases que ayudaron a formar la atmósfera y los océanos primitivos de la Tierra'.",
-      },
-      {
-        id: "lec3-q10",
-        questionText: "What is a caldera?",
-        options: [
-          { text: "The main vent of a very active volcano.", isCorrect: false },
-          { text: "A type of volcanic rock rich in crystals.", isCorrect: false },
-          { text: "A small cone built from ejected lava fragments.", isCorrect: false },
-          { text: "A large depression formed when a volcano collapses.", isCorrect: true },
-        ],
-        explanation: "Las calderas son 'grandes depresiones con forma de caldero que se forman cuando un volcán colapsa'.",
       },
     ],
   },
