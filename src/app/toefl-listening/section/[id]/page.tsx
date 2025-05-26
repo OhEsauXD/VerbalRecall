@@ -85,9 +85,8 @@ const ToeflListeningSectionPage = () => {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   
-  // States for line-by-line playback
-  const [currentSubDialogueIndex, setCurrentSubDialogueIndex] = useState(0); // For mini-dialogue sets
-  const [currentLineIndex, setCurrentLineIndex] = useState(0); // For lines within a sub-dialogue or conversation
+  const [currentSubDialogueIndex, setCurrentSubDialogueIndex] = useState(0); 
+  const [currentLineIndex, setCurrentLineIndex] = useState(0); 
 
   const loadStateAndContent = useCallback(() => {
     const savedStateRaw = localStorage.getItem('toeflListeningTestState');
@@ -105,8 +104,8 @@ const ToeflListeningSectionPage = () => {
         const playCountForThisPart = savedState.audioPlayCounts?.[currentAudioPartId] || 0;
         setAudioPlayCount(playCountForThisPart);
         setHasAudioPlayedOnce(playCountForThisPart > 0);
-        setCurrentSubDialogueIndex(0); // Reset for new part
-        setCurrentLineIndex(0);      // Reset for new part
+        setCurrentSubDialogueIndex(savedState.currentMiniDialogueAudioIndex || 0); 
+        setCurrentLineIndex(savedState.currentLineIndex || 0);      
       } else {
         router.push('/toefl-listening/results'); 
         return;
@@ -115,8 +114,8 @@ const ToeflListeningSectionPage = () => {
       const updatedState = { 
         ...savedState, 
         currentAudioPartId: currentAudioPartId,
-        currentMiniDialogueAudioIndex: 0, 
-        currentLineIndex: 0,
+        currentMiniDialogueAudioIndex: savedState.currentMiniDialogueAudioIndex || 0, 
+        currentLineIndex: savedState.currentLineIndex || 0,
         timeRemaining 
       };
       setTestState(updatedState);
@@ -147,7 +146,7 @@ const ToeflListeningSectionPage = () => {
   };
   
   const handleAudioEnded = useCallback(() => {
-    if (!currentAudioContent || !testState) {
+    if (!currentAudioContent || !testState || !audioRef.current) {
         setIsAudioPlaying(false);
         return;
     }
@@ -162,8 +161,11 @@ const ToeflListeningSectionPage = () => {
         const nextLine = currentLineIndex + 1;
         if (nextLine < currentAudioContent.conversationScript.length) {
             setCurrentLineIndex(nextLine);
-            audioRef.current!.src = currentAudioContent.conversationScript[nextLine].audioSrc;
-            audioRef.current!.play().catch(e => {
+            const nextAudioSrc = currentAudioContent.conversationScript[nextLine].audioSrc;
+            console.log("Playing next conversation line:", nextAudioSrc);
+            audioRef.current.src = nextAudioSrc;
+            audioRef.current.load();
+            audioRef.current.play().catch(e => {
                 console.error("Error playing next conversation line:", e); setIsAudioPlaying(false);
             });
         } else {
@@ -177,22 +179,33 @@ const ToeflListeningSectionPage = () => {
         const currentDialogue = currentAudioContent.miniDialogueSet[currentSubDialogueIndex];
         const nextLineInCurrentDialogue = currentLineIndex + 1;
 
-        if (nextLineInCurrentDialogue < currentDialogue.script.length) {
+        if (currentDialogue && nextLineInCurrentDialogue < currentDialogue.script.length) {
             setCurrentLineIndex(nextLineInCurrentDialogue);
-            audioRef.current!.src = currentDialogue.script[nextLineInCurrentDialogue].audioSrc;
-            audioRef.current!.play().catch(e => {
+            const nextAudioSrc = currentDialogue.script[nextLineInCurrentDialogue].audioSrc;
+            console.log("Playing next mini-dialogue line:", nextAudioSrc);
+            audioRef.current.src = nextAudioSrc;
+            audioRef.current.load();
+            audioRef.current.play().catch(e => {
                 console.error("Error playing next mini-dialogue line:", e); setIsAudioPlaying(false);
             });
-        } else { // End of current sub-dialogue
+        } else { 
             const nextSubDialogue = currentSubDialogueIndex + 1;
             if (nextSubDialogue < currentAudioContent.miniDialogueSet.length) {
                 setCurrentSubDialogueIndex(nextSubDialogue);
                 setCurrentLineIndex(0);
-                audioRef.current!.src = currentAudioContent.miniDialogueSet[nextSubDialogue].script[0].audioSrc;
-                audioRef.current!.play().catch(e => {
-                    console.error("Error playing first line of next mini-dialogue:", e); setIsAudioPlaying(false);
-                });
-            } else { // End of all sub-dialogues in the set
+                const firstLineOfNextDialogue = currentAudioContent.miniDialogueSet[nextSubDialogue].script[0];
+                if (firstLineOfNextDialogue) {
+                    const nextAudioSrc = firstLineOfNextDialogue.audioSrc;
+                    console.log("Playing first line of next mini-dialogue:", nextAudioSrc);
+                    audioRef.current.src = nextAudioSrc;
+                    audioRef.current.load();
+                    audioRef.current.play().catch(e => {
+                        console.error("Error playing first line of next mini-dialogue:", e); setIsAudioPlaying(false);
+                    });
+                } else {
+                    setIsAudioPlaying(false); // Should not happen if data is correct
+                }
+            } else { 
                 setIsAudioPlaying(false);
                 const newOverallPlayCount = (audioPlayCount || 0) + 1;
                 setAudioPlayCount(newOverallPlayCount);
@@ -239,7 +252,7 @@ const ToeflListeningSectionPage = () => {
           clearInterval(timerInterval);
           if (audioRef.current) audioRef.current.pause();
           toast({ title: "Time's Up!", description: "Navigating to results.", variant: 'destructive' });
-          localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedState));
+          localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedTestState));
           router.push('/toefl-listening/results');
           return updatedState;
         }
@@ -258,8 +271,8 @@ const ToeflListeningSectionPage = () => {
     if (!currentAudioContent || audioPlayCount >= MAX_PLAYS_PER_PART || isAudioPlaying || !audioRef.current) return;
 
     setIsAudioPlaying(true);
-    setCurrentLineIndex(0); // Always start from the first line of the sequence/part
-    setCurrentSubDialogueIndex(0); // Reset for mini-dialogue sets
+    setCurrentLineIndex(0); 
+    setCurrentSubDialogueIndex(0); 
 
     let firstAudioSrc = "";
 
@@ -275,12 +288,16 @@ const ToeflListeningSectionPage = () => {
         return;
     }
     
-    audioRef.current.src = firstAudioSrc;
-    audioRef.current.play().catch(e => {
-      console.error("Error playing audio:", e);
-      toast({ title: "Audio Error", description: "Could not play audio. Check console.", variant: "destructive" });
-      setIsAudioPlaying(false);
-    });
+    console.log("Attempting to play audio:", firstAudioSrc);
+    if (audioRef.current) {
+        audioRef.current.src = firstAudioSrc;
+        audioRef.current.load(); // Explicitly load the new source
+        audioRef.current.play().catch(e => {
+          console.error("Error starting audio playback:", e);
+          toast({ title: "Audio Error", description: "Could not play audio. Check console for details.", variant: "destructive" });
+          setIsAudioPlaying(false);
+        });
+    }
   }, [currentAudioContent, audioPlayCount, isAudioPlaying, toast]);
 
   const handleAnswerChange = (questionId: string, optionIndex: number) => {
@@ -531,3 +548,5 @@ const ToeflListeningSectionPage = () => {
 
 export default ToeflListeningSectionPage;
 
+
+    
