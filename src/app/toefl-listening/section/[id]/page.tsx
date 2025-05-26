@@ -13,6 +13,7 @@ import {
   ToeflListeningAnswer,
   MiniDialogueAudio,
   DialogueLine,
+  ToeflListeningSectionData,
 } from '@/lib/toeflListeningTestData';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -20,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Home, Play, RotateCcw, Volume2 } from 'lucide-react';
+import { Home, Play, Pause, RotateCcw, Volume2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -71,22 +72,23 @@ const ToeflListeningSectionPage = () => {
   const currentAudioPartId = parseInt(params.id as string, 10);
 
   const [testState, setTestState] = useState<ToeflListeningTestState | null>(null);
-  const [currentAudioContent, setCurrentAudioContent] = useState<AudioContent | null>(null);
-  const [currentQuestions, setCurrentQuestions] = useState<ListeningQuestion[]>([]);
+  const [currentAudioPartData, setCurrentAudioPartData] = useState<ToeflListeningSectionData | null>(null);
+  const [activeSubDialogue, setActiveSubDialogue] = useState<MiniDialogueAudio | null>(null);
+  const [activeQuestions, setActiveQuestions] = useState<ListeningQuestion[]>([]);
   
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [showNextPartDialog, setShowNextPartDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   
-  const [audioPlayCount, setAudioPlayCount] = useState(0); 
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [hasAudioPlayedOnce, setHasAudioPlayedOnce] = useState(false); 
-  const MAX_PLAYS_PER_PART = 2;
+  // For specific sub-dialogue or lecture/conversation
+  const [currentSegmentPlayCount, setCurrentSegmentPlayCount] = useState(0); 
+  const [hasCurrentSegmentAudioPlayedOnce, setHasCurrentSegmentAudioPlayedOnce] = useState(false); 
+  const MAX_PLAYS_PER_SEGMENT = 2;
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  
-  const [currentSubDialogueIndex, setCurrentSubDialogueIndex] = useState(0); 
   const [currentLineIndex, setCurrentLineIndex] = useState(0); 
+  // currentSubDialogueIndex will be managed by testState now.
 
   const loadStateAndContent = useCallback(() => {
     const savedStateRaw = localStorage.getItem('toeflListeningTestState');
@@ -97,15 +99,28 @@ const ToeflListeningSectionPage = () => {
       const timeRemaining = Math.max(0, INITIAL_LISTENING_TEST_DURATION - elapsed);
 
       const partData = toeflListeningSections.find(part => part.id === currentAudioPartId);
+      setCurrentAudioPartData(partData || null);
 
       if (partData) {
-        setCurrentAudioContent(partData.audioContent);
-        setCurrentQuestions(partData.questions);
-        const playCountForThisPart = savedState.audioPlayCounts?.[currentAudioPartId] || 0;
-        setAudioPlayCount(playCountForThisPart);
-        setHasAudioPlayedOnce(playCountForThisPart > 0);
-        setCurrentSubDialogueIndex(savedState.currentMiniDialogueAudioIndex || 0); 
-        setCurrentLineIndex(savedState.currentLineIndex || 0);      
+        let currentQuestionsForDisplay: ListeningQuestion[] = [];
+        let playCountForCurrentSegment = 0;
+        let segmentId = `part_${currentAudioPartId}`;
+
+        if (partData.audioContent.type === 'mini-dialogue' && partData.audioContent.miniDialogueSet) {
+          const subDialogue = partData.audioContent.miniDialogueSet[savedState.currentMiniDialogueAudioIndex || 0];
+          setActiveSubDialogue(subDialogue || null);
+          if (subDialogue) {
+            currentQuestionsForDisplay = subDialogue.questions;
+            segmentId = subDialogue.id; 
+          }
+        } else {
+          setActiveSubDialogue(null);
+          currentQuestionsForDisplay = partData.questions;
+        }
+        setActiveQuestions(currentQuestionsForDisplay);
+        playCountForCurrentSegment = savedState.audioPlayCounts?.[segmentId] || 0;
+        setCurrentSegmentPlayCount(playCountForCurrentSegment);
+        setHasCurrentSegmentAudioPlayedOnce(playCountForCurrentSegment > 0);
       } else {
         router.push('/toefl-listening/results'); 
         return;
@@ -114,11 +129,10 @@ const ToeflListeningSectionPage = () => {
       const updatedState = { 
         ...savedState, 
         currentAudioPartId: currentAudioPartId,
-        currentMiniDialogueAudioIndex: savedState.currentMiniDialogueAudioIndex || 0, 
-        currentLineIndex: savedState.currentLineIndex || 0,
         timeRemaining 
       };
       setTestState(updatedState);
+      setCurrentLineIndex(0); // Reset line index when part/sub-dialogue changes
 
       if (timeRemaining <= 0 && !isTimeUp) {
         setIsTimeUp(true);
@@ -130,14 +144,14 @@ const ToeflListeningSectionPage = () => {
 
   useEffect(() => {
     loadStateAndContent();
-  }, [currentAudioPartId, loadStateAndContent]);
+  }, [currentAudioPartId, testState?.currentMiniDialogueAudioIndex, loadStateAndContent]); // Reload if sub-dialogue index changes
 
-  const updateAudioPlayCountInStorage = (newCount: number) => {
+  const updateSegmentPlayCountInStorage = (segmentId: string, newCount: number) => {
     setTestState(prevTestState => {
         if (!prevTestState) return null;
         const newAudioPlayCounts = {
             ...(prevTestState.audioPlayCounts || {}),
-            [currentAudioPartId]: newCount,
+            [segmentId]: newCount,
         };
         const updatedTestState = {...prevTestState, audioPlayCounts: newAudioPlayCounts};
         localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedTestState));
@@ -146,87 +160,60 @@ const ToeflListeningSectionPage = () => {
   };
   
   const handleAudioEnded = useCallback(() => {
-    if (!currentAudioContent || !testState || !audioRef.current) {
-        setIsAudioPlaying(false);
-        return;
+    if (!currentAudioPartData || !testState || !audioRef.current) {
+      setIsAudioPlaying(false);
+      return;
     }
 
-    if (currentAudioContent.type === 'lecture') {
+    const { audioContent } = currentAudioPartData;
+    let segmentId = `part_${currentAudioPartId}`;
+
+    if (audioContent.type === 'lecture') {
+      setIsAudioPlaying(false);
+      const newPlayCount = currentSegmentPlayCount + 1;
+      setCurrentSegmentPlayCount(newPlayCount);
+      if (!hasCurrentSegmentAudioPlayedOnce) setHasCurrentSegmentAudioPlayedOnce(true);
+      updateSegmentPlayCountInStorage(segmentId, newPlayCount);
+    } else if (audioContent.type === 'conversation' && audioContent.conversationScript) {
+      const nextLine = currentLineIndex + 1;
+      if (nextLine < audioContent.conversationScript.length) {
+        setCurrentLineIndex(nextLine);
+        audioRef.current.src = audioContent.conversationScript[nextLine].audioSrc;
+        audioRef.current.load();
+        audioRef.current.play().catch(e => { setIsAudioPlaying(false); });
+      } else {
         setIsAudioPlaying(false);
-        const newOverallPlayCount = (audioPlayCount || 0) + 1;
-        setAudioPlayCount(newOverallPlayCount);
-        if (!hasAudioPlayedOnce) setHasAudioPlayedOnce(true);
-        updateAudioPlayCountInStorage(newOverallPlayCount);
-    } else if (currentAudioContent.type === 'conversation' && currentAudioContent.conversationScript) {
-        const nextLine = currentLineIndex + 1;
-        if (nextLine < currentAudioContent.conversationScript.length) {
-            setCurrentLineIndex(nextLine);
-            const nextAudioSrc = currentAudioContent.conversationScript[nextLine].audioSrc;
-            console.log("Playing next conversation line:", nextAudioSrc);
-            audioRef.current.src = nextAudioSrc;
-            audioRef.current.load();
-            audioRef.current.play().catch(e => {
-                console.error("Error playing next conversation line:", e); setIsAudioPlaying(false);
-            });
-        } else {
-            setIsAudioPlaying(false);
-            const newOverallPlayCount = (audioPlayCount || 0) + 1;
-            setAudioPlayCount(newOverallPlayCount);
-            if (!hasAudioPlayedOnce) setHasAudioPlayedOnce(true);
-            updateAudioPlayCountInStorage(newOverallPlayCount);
-        }
-    } else if (currentAudioContent.type === 'mini-dialogue' && currentAudioContent.miniDialogueSet) {
-        const currentDialogue = currentAudioContent.miniDialogueSet[currentSubDialogueIndex];
-        const nextLineInCurrentDialogue = currentLineIndex + 1;
-
-        if (currentDialogue && nextLineInCurrentDialogue < currentDialogue.script.length) {
-            setCurrentLineIndex(nextLineInCurrentDialogue);
-            const nextAudioSrc = currentDialogue.script[nextLineInCurrentDialogue].audioSrc;
-            console.log("Playing next mini-dialogue line:", nextAudioSrc);
-            audioRef.current.src = nextAudioSrc;
-            audioRef.current.load();
-            audioRef.current.play().catch(e => {
-                console.error("Error playing next mini-dialogue line:", e); setIsAudioPlaying(false);
-            });
-        } else { 
-            const nextSubDialogue = currentSubDialogueIndex + 1;
-            if (nextSubDialogue < currentAudioContent.miniDialogueSet.length) {
-                setCurrentSubDialogueIndex(nextSubDialogue);
-                setCurrentLineIndex(0);
-                const firstLineOfNextDialogue = currentAudioContent.miniDialogueSet[nextSubDialogue].script[0];
-                if (firstLineOfNextDialogue) {
-                    const nextAudioSrc = firstLineOfNextDialogue.audioSrc;
-                    console.log("Playing first line of next mini-dialogue:", nextAudioSrc);
-                    audioRef.current.src = nextAudioSrc;
-                    audioRef.current.load();
-                    audioRef.current.play().catch(e => {
-                        console.error("Error playing first line of next mini-dialogue:", e); setIsAudioPlaying(false);
-                    });
-                } else {
-                    setIsAudioPlaying(false); // Should not happen if data is correct
-                }
-            } else { 
-                setIsAudioPlaying(false);
-                const newOverallPlayCount = (audioPlayCount || 0) + 1;
-                setAudioPlayCount(newOverallPlayCount);
-                if (!hasAudioPlayedOnce) setHasAudioPlayedOnce(true);
-                updateAudioPlayCountInStorage(newOverallPlayCount);
-            }
-        }
+        const newPlayCount = currentSegmentPlayCount + 1;
+        setCurrentSegmentPlayCount(newPlayCount);
+        if (!hasCurrentSegmentAudioPlayedOnce) setHasCurrentSegmentAudioPlayedOnce(true);
+        updateSegmentPlayCountInStorage(segmentId, newPlayCount);
+      }
+    } else if (audioContent.type === 'mini-dialogue' && audioContent.miniDialogueSet && activeSubDialogue) {
+      segmentId = activeSubDialogue.id;
+      const nextLineInCurrentDialogue = currentLineIndex + 1;
+      if (nextLineInCurrentDialogue < activeSubDialogue.script.length) {
+        setCurrentLineIndex(nextLineInCurrentDialogue);
+        audioRef.current.src = activeSubDialogue.script[nextLineInCurrentDialogue].audioSrc;
+        audioRef.current.load();
+        audioRef.current.play().catch(e => { setIsAudioPlaying(false); });
+      } else {
+        setIsAudioPlaying(false);
+        const newPlayCount = currentSegmentPlayCount + 1;
+        setCurrentSegmentPlayCount(newPlayCount);
+        if (!hasCurrentSegmentAudioPlayedOnce) setHasCurrentSegmentAudioPlayedOnce(true);
+        updateSegmentPlayCountInStorage(segmentId, newPlayCount);
+      }
     }
-  }, [currentAudioContent, testState, audioPlayCount, hasAudioPlayedOnce, currentLineIndex, currentSubDialogueIndex]);
-
+  }, [currentAudioPartData, testState, currentSegmentPlayCount, hasCurrentSegmentAudioPlayedOnce, currentLineIndex, activeSubDialogue]);
 
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
-
     const handleAudioError = (e: Event) => {
       setIsAudioPlaying(false);
       console.error("Audio playback error:", e);
       toast({ title: "Audio Error", description: "Could not play audio. Please check file path or console.", variant: "destructive" });
     };
-    
     audioElement.addEventListener('ended', handleAudioEnded);
     audioElement.addEventListener('error', handleAudioError);
     return () => {
@@ -235,86 +222,74 @@ const ToeflListeningSectionPage = () => {
     };
   }, [handleAudioEnded, toast]);
 
-
   useEffect(() => {
     if (!testState || !testState.startTime || isTimeUp) return;
-
     const timerInterval = setInterval(() => {
       setTestState(prev => {
         if (!prev || !prev.startTime) return prev;
         const elapsed = Math.floor((Date.now() - prev.startTime) / 1000);
         const remaining = Math.max(0, INITIAL_LISTENING_TEST_DURATION - elapsed);
-        
         const updatedState = { ...prev, timeRemaining: remaining };
-        
         if (remaining <= 0 && !isTimeUp) {
           setIsTimeUp(true);
           clearInterval(timerInterval);
           if (audioRef.current) audioRef.current.pause();
           toast({ title: "Time's Up!", description: "Navigating to results.", variant: 'destructive' });
-          localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedTestState));
+          localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedState));
           router.push('/toefl-listening/results');
           return updatedState;
         }
         if (remaining > 0 && prev.timeRemaining !== remaining) { 
-            localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedState));
+          localStorage.setItem('toeflListeningTestState', JSON.stringify(updatedState));
         }
         return updatedState;
       });
     }, 1000);
-
     return () => clearInterval(timerInterval);
   }, [testState, isTimeUp, router, toast]);
 
-
-  const playAudio = useCallback(() => {
-    if (!currentAudioContent || audioPlayCount >= MAX_PLAYS_PER_PART || isAudioPlaying || !audioRef.current) return;
+  const playCurrentSegmentAudio = useCallback(() => {
+    if (!currentAudioPartData || currentSegmentPlayCount >= MAX_PLAYS_PER_SEGMENT || isAudioPlaying || !audioRef.current) return;
 
     setIsAudioPlaying(true);
     setCurrentLineIndex(0); 
-    setCurrentSubDialogueIndex(0); 
 
     let firstAudioSrc = "";
+    const { audioContent } = currentAudioPartData;
 
-    if (currentAudioContent.type === 'lecture' && currentAudioContent.audioSrc) {
-        firstAudioSrc = currentAudioContent.audioSrc;
-    } else if (currentAudioContent.type === 'conversation' && currentAudioContent.conversationScript && currentAudioContent.conversationScript.length > 0) {
-        firstAudioSrc = currentAudioContent.conversationScript[0].audioSrc;
-    } else if (currentAudioContent.type === 'mini-dialogue' && currentAudioContent.miniDialogueSet && currentAudioContent.miniDialogueSet.length > 0 && currentAudioContent.miniDialogueSet[0].script.length > 0) {
-        firstAudioSrc = currentAudioContent.miniDialogueSet[0].script[0].audioSrc;
+    if (audioContent.type === 'lecture' && audioContent.audioSrc) {
+        firstAudioSrc = audioContent.audioSrc;
+    } else if (audioContent.type === 'conversation' && audioContent.conversationScript && audioContent.conversationScript.length > 0) {
+        firstAudioSrc = audioContent.conversationScript[0].audioSrc;
+    } else if (audioContent.type === 'mini-dialogue' && activeSubDialogue && activeSubDialogue.script.length > 0) {
+        firstAudioSrc = activeSubDialogue.script[0].audioSrc;
     } else {
-        toast({ title: "Audio Error", description: "No audio source found for this section.", variant: "destructive" });
+        toast({ title: "Audio Error", description: "No audio source found for this segment.", variant: "destructive" });
         setIsAudioPlaying(false);
         return;
     }
     
     console.log("Attempting to play audio:", firstAudioSrc);
-    if (audioRef.current) {
-        audioRef.current.src = firstAudioSrc;
-        audioRef.current.load(); // Explicitly load the new source
-        audioRef.current.play().catch(e => {
-          console.error("Error starting audio playback:", e);
-          toast({ title: "Audio Error", description: "Could not play audio. Check console for details.", variant: "destructive" });
-          setIsAudioPlaying(false);
-        });
-    }
-  }, [currentAudioContent, audioPlayCount, isAudioPlaying, toast]);
+    audioRef.current.src = firstAudioSrc;
+    audioRef.current.load();
+    audioRef.current.play().catch(e => {
+      console.error("Error starting audio playback:", e);
+      toast({ title: "Audio Error", description: "Could not play audio. Check console.", variant: "destructive" });
+      setIsAudioPlaying(false);
+    });
+  }, [currentAudioPartData, activeSubDialogue, currentSegmentPlayCount, isAudioPlaying, toast]);
 
   const handleAnswerChange = (questionId: string, optionIndex: number) => {
-    if (isTimeUp || !testState || !hasAudioPlayedOnce) return;
-
+    if (isTimeUp || !testState || !hasCurrentSegmentAudioPlayedOnce) return;
     setTestState(prev => {
       if (!prev) return null;
-      
       const existingAnswerIndex = prev.answers.findIndex(ans => ans.questionId === questionId);
       let newAnswers = [...prev.answers];
-
       if (existingAnswerIndex > -1) {
         newAnswers[existingAnswerIndex] = { ...newAnswers[existingAnswerIndex], selectedOptionIndex: optionIndex };
       } else {
         newAnswers.push({ questionId, selectedOptionIndex: optionIndex, isMarkedForReview: false });
       }
-      
       const newState = { ...prev, answers: newAnswers };
       localStorage.setItem('toeflListeningTestState', JSON.stringify(newState));
       return newState;
@@ -327,7 +302,6 @@ const ToeflListeningSectionPage = () => {
         if (!prev) return null;
         const existingAnswer = prev.answers.find(ans => ans.questionId === questionId);
         let newAnswers;
-
         if (existingAnswer) {
             newAnswers = prev.answers.map(ans =>
                 ans.questionId === questionId ? { ...ans, isMarkedForReview: !ans.isMarkedForReview } : ans
@@ -335,13 +309,11 @@ const ToeflListeningSectionPage = () => {
         } else {
             newAnswers = [...prev.answers, { questionId, selectedOptionIndex: null, isMarkedForReview: true }];
         }
-        
         const newState = { ...prev, answers: newAnswers };
         localStorage.setItem('toeflListeningTestState', JSON.stringify(newState));
         return newState;
     });
   };
-
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -349,32 +321,55 @@ const ToeflListeningSectionPage = () => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const allQuestionsInSectionAnswered = currentQuestions.every(q =>
+  const allQuestionsInCurrentSegmentAnswered = activeQuestions.every(q =>
     testState?.answers.find(a => a.questionId === q.id)?.selectedOptionIndex !== null &&
     testState?.answers.find(a => a.questionId === q.id)?.selectedOptionIndex !== undefined
   );
 
-  const handleNextPart = () => {
-    if (!currentAudioContent || !testState) return;
-    if (!allQuestionsInSectionAnswered) {
-      toast({ title: "Incomplete Section", description: "Please answer all questions before proceeding.", variant: 'destructive' });
+  const handleNext = () => {
+    if (!currentAudioPartData || !testState) return;
+    if (!allQuestionsInCurrentSegmentAnswered && hasCurrentSegmentAudioPlayedOnce) {
+      toast({ title: "Incomplete Section", description: "Please answer all questions for this audio segment before proceeding.", variant: 'destructive' });
       return;
     }
     setShowNextPartDialog(true);
   };
   
-  const confirmNextPart = () => {
+  const confirmNext = () => {
     setShowNextPartDialog(false);
-    if (!currentAudioContent || !testState) return;
+    if (!currentAudioPartData || !testState) return;
 
     if (audioRef.current) audioRef.current.pause();
     setIsAudioPlaying(false);
+    setHasCurrentSegmentAudioPlayedOnce(false); // Reset for the next segment
+    setCurrentSegmentPlayCount(0); // Reset for the next segment
+    setCurrentLineIndex(0);
 
-    const nextPartId = currentAudioPartId + 1;
-    localStorage.setItem('toeflListeningTestState', JSON.stringify({...testState, currentMiniDialogueAudioIndex: 0, currentLineIndex: 0})); 
+    let nextAudioPartId = currentAudioPartId;
+    let nextSubDialogueIndex = testState.currentMiniDialogueAudioIndex;
+
+    if (currentAudioPartData.audioContent.type === 'mini-dialogue' && currentAudioPartData.audioContent.miniDialogueSet) {
+      if (nextSubDialogueIndex < currentAudioPartData.audioContent.miniDialogueSet.length - 1) {
+        nextSubDialogueIndex++;
+      } else {
+        nextAudioPartId++;
+        nextSubDialogueIndex = 0; // Reset for next main part if it's also mini-dialogues
+      }
+    } else {
+      nextAudioPartId++;
+      nextSubDialogueIndex = 0; // Reset for next main part
+    }
+
+    localStorage.setItem('toeflListeningTestState', JSON.stringify({...testState, currentAudioPartId: nextAudioPartId, currentMiniDialogueAudioIndex: nextSubDialogueIndex, audioPlayCounts: testState.audioPlayCounts })); 
     
-    if (nextPartId <= TOTAL_LISTENING_PARTS) {
-      router.push(`/toefl-listening/section/${nextPartId}`);
+    if (nextAudioPartId <= TOTAL_LISTENING_PARTS) {
+        if (currentAudioPartData.audioContent.type === 'mini-dialogue' && currentAudioPartId === nextAudioPartId) {
+            // Still in the same main part, just moving to next sub-dialogue
+            setTestState(prev => prev ? ({...prev, currentMiniDialogueAudioIndex: nextSubDialogueIndex}) : null);
+            // loadStateAndContent will be called due to testState.currentMiniDialogueAudioIndex change
+        } else {
+             router.push(`/toefl-listening/section/${nextAudioPartId}`);
+        }
     } else {
       router.push('/toefl-listening/results');
     }
@@ -390,29 +385,45 @@ const ToeflListeningSectionPage = () => {
 
   const getPlayButtonText = () => {
     if (isAudioPlaying) {
-        if (currentAudioContent?.type === 'mini-dialogue' && currentAudioContent.miniDialogueSet) {
-          const currentDialogue = currentAudioContent.miniDialogueSet[currentSubDialogueIndex];
-          if(currentDialogue) {
-            return `Playing Dialogue ${currentSubDialogueIndex + 1} (Line ${currentLineIndex + 1}/${currentDialogue.script.length})...`;
-          }
-        } else if (currentAudioContent?.type === 'conversation' && currentAudioContent.conversationScript) {
-            return `Playing Line ${currentLineIndex + 1}/${currentAudioContent.conversationScript.length}...`;
+        if (currentAudioPartData?.audioContent.type === 'mini-dialogue' && activeSubDialogue) {
+            return `Playing Dialogue (Line ${currentLineIndex + 1}/${activeSubDialogue.script.length})...`;
+        } else if (currentAudioPartData?.audioContent.type === 'conversation' && currentAudioPartData.audioContent.conversationScript) {
+            return `Playing Line ${currentLineIndex + 1}/${currentAudioPartData.audioContent.conversationScript.length}...`;
         }
         return "Playing Audio...";
     }
-    if (audioPlayCount === 0) return `Play Audio Segment`;
-    if (audioPlayCount < MAX_PLAYS_PER_PART) return `Replay Audio Segment (${MAX_PLAYS_PER_PART - audioPlayCount} left)`;
+    if (currentSegmentPlayCount === 0) return `Play Audio Segment`;
+    if (currentSegmentPlayCount < MAX_PLAYS_PER_SEGMENT) return `Replay Audio Segment (${MAX_PLAYS_PER_SEGMENT - currentSegmentPlayCount} left)`;
     return "No Replays Left";
   };
   
-  const currentPartFirstGlobalQuestionIndex = toeflListeningSections
-    .slice(0, currentAudioPartId - 1)
-    .reduce((sum, sec) => sum + sec.questions.length, 0);
+  const getOverallProgressText = () => {
+    if (!currentAudioPartData || !testState) return "";
+    if (currentAudioPartData.audioContent.type === 'mini-dialogue' && currentAudioPartData.audioContent.miniDialogueSet) {
+        const totalDialogues = currentAudioPartData.audioContent.miniDialogueSet.length;
+        return `Part ${currentAudioPartId}: Dialogue ${testState.currentMiniDialogueAudioIndex + 1} of ${totalDialogues}`;
+    }
+    return `Part ${currentAudioPartId} of ${TOTAL_LISTENING_PARTS}`;
+  };
+  
+  const getSegmentTitle = () => {
+    if (!currentAudioPartData) return "Loading...";
+    if (currentAudioPartData.audioContent.type === 'mini-dialogue' && activeSubDialogue) {
+        return `${currentAudioPartData.audioContent.title || `Part ${currentAudioPartId}`} - Dialogue ${testState ? testState.currentMiniDialogueAudioIndex + 1 : ''}`;
+    }
+    return currentAudioPartData.audioContent.title || `Part ${currentAudioPartId}`;
+  };
 
 
-  if (!currentAudioContent || !testState) {
+  if (!currentAudioPartData || !testState) {
     return <div className="flex items-center justify-center min-h-screen text-xl">Loading listening section...</div>;
   }
+
+  const isLastSegmentOfTest = 
+    currentAudioPartId === TOTAL_LISTENING_PARTS &&
+    (currentAudioPartData.audioContent.type !== 'mini-dialogue' || 
+     (currentAudioPartData.audioContent.miniDialogueSet && testState.currentMiniDialogueAudioIndex === currentAudioPartData.audioContent.miniDialogueSet.length - 1));
+
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-6">
@@ -420,126 +431,80 @@ const ToeflListeningSectionPage = () => {
       <header className="flex justify-between items-center mb-4 sticky top-0 bg-background py-2 z-10">
         <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="text-sm">
-                <Home className="mr-2 h-4 w-4" /> Cancelar y Volver al Inicio
-            </Button>
+            <Button variant="outline" className="text-sm"> <Home className="mr-2 h-4 w-4" /> Cancelar y Volver</Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader><AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription>Si vuelves al inicio, tu progreso en esta prueba se perderá. ¿Deseas continuar?</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Continuar Prueba</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCancelTest} className="bg-destructive hover:bg-destructive/90">Salir y Perder Progreso</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
+          <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>¿Estás seguro?</AlertDialogTitle><AlertDialogDescription>Tu progreso se perderá.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Continuar</AlertDialogCancel><AlertDialogAction onClick={handleCancelTest} className="bg-destructive hover:bg-destructive/90">Salir</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
         </AlertDialog>
 
         <div className="text-center">
-            <h1 className="text-lg md:text-xl font-bold text-primary">
-                TOEFL Listening - {currentAudioContent.title || `Part ${currentAudioPartId}`}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-                Listening Part {currentAudioPartId} of {TOTAL_LISTENING_PARTS}
-            </p>
+            <h1 className="text-lg md:text-xl font-bold text-primary">{getSegmentTitle()}</h1>
+            <p className="text-xs text-muted-foreground">{getOverallProgressText()}</p>
         </div>
 
         <div className="text-right">
           <div className={`text-lg font-semibold ${testState.timeRemaining < 300 && testState.timeRemaining > 0 ? 'text-destructive' : 'text-foreground'}`}>
             Tiempo: {formatTime(testState.timeRemaining)}
           </div>
-          <div className="text-xs text-muted-foreground">
-            Plays Used: {audioPlayCount}/{MAX_PLAYS_PER_PART}
-          </div>
+          <div className="text-xs text-muted-foreground">Plays Used: {currentSegmentPlayCount}/{MAX_PLAYS_PER_SEGMENT}</div>
         </div>
       </header>
 
       <Card className="w-full max-w-3xl mx-auto mb-6">
         <CardHeader>
           <CardTitle className="text-md md:text-lg text-accent">
-            {currentAudioContent.title || (currentAudioContent.type === 'mini-dialogue' ? 'Mini-Dialogue Set' : 'Audio Segment')}
+            {currentAudioPartData.audioContent.instructions || "Listen carefully to the audio."}
           </CardTitle>
-          <CardDescription>
-            {currentAudioContent.instructions || "Listen carefully to the audio."}
-          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-            <Button 
-                onClick={playAudio} 
-                disabled={audioPlayCount >= MAX_PLAYS_PER_PART || isAudioPlaying || isTimeUp}
-                className="w-full sm:w-auto"
-            >
-                {isAudioPlaying ? <Volume2 className="mr-2 h-5 w-5 animate-pulse" /> : <Play className="mr-2 h-5 w-5" />}
+            <Button onClick={playCurrentSegmentAudio} disabled={currentSegmentPlayCount >= MAX_PLAYS_PER_SEGMENT || isAudioPlaying || isTimeUp} className="w-full sm:w-auto">
+                {isAudioPlaying ? <Pause className="mr-2 h-5 w-5" /> : <Play className="mr-2 h-5 w-5" />}
                 {getPlayButtonText()}
             </Button>
         </CardContent>
       </Card>
 
-      {hasAudioPlayedOnce && !isTimeUp && (
+      {hasCurrentSegmentAudioPlayedOnce && !isTimeUp && (
         <div className="space-y-4 max-w-3xl mx-auto">
           <h3 className="text-lg font-semibold text-center text-primary mb-3">Questions</h3>
-          {currentQuestions.map((q, index) => (
+          {activeQuestions.map((q, index) => (
             <div key={q.id} className="mb-3">
               <ListeningQuestionRenderer
                 question={q}
                 currentAnswer={testState.answers.find(a => a.questionId === q.id)}
                 onAnswerChange={handleAnswerChange}
-                isInteractive={hasAudioPlayedOnce && !isTimeUp}
-                questionNumber={currentPartFirstGlobalQuestionIndex + index + 1}
+                isInteractive={hasCurrentSegmentAudioPlayedOnce && !isTimeUp}
+                questionNumber={index + 1} // Question number within the current segment
               />
               <div className="mt-1 flex items-center space-x-2 pl-1">
-                <Checkbox
-                  id={`mark-review-${q.id}`}
-                  checked={testState.answers.find(a => a.questionId === q.id)?.isMarkedForReview || false}
-                  onCheckedChange={() => toggleMarkForReview(q.id)}
-                  disabled={isTimeUp || !hasAudioPlayedOnce}
-                />
-                <Label htmlFor={`mark-review-${q.id}`} className="text-xs font-medium text-muted-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Mark for Review
-                </Label>
+                <Checkbox id={`mark-review-${q.id}`} checked={testState.answers.find(a => a.questionId === q.id)?.isMarkedForReview || false} onCheckedChange={() => toggleMarkForReview(q.id)} disabled={isTimeUp || !hasCurrentSegmentAudioPlayedOnce} />
+                <Label htmlFor={`mark-review-${q.id}`} className="text-xs font-medium text-muted-foreground">Mark for Review</Label>
               </div>
             </div>
           ))}
         </div>
       )}
-      {!hasAudioPlayedOnce && !isTimeUp && (
-          <p className="text-center text-muted-foreground mt-6">Please play the audio to see the questions.</p>
+      {!hasCurrentSegmentAudioPlayedOnce && !isTimeUp && (
+          <p className="text-center text-muted-foreground mt-6">Please play the audio to see the questions for this segment.</p>
       )}
-
 
       <footer className="mt-8 text-center">
          <AlertDialog open={showNextPartDialog} onOpenChange={setShowNextPartDialog}>
             <AlertDialogTrigger asChild>
-                 <Button
-                    onClick={handleNextPart}
-                    disabled={isTimeUp || !allQuestionsInSectionAnswered || !hasAudioPlayedOnce || isAudioPlaying}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 text-md"
-                  >
-                    {currentAudioPartId === TOTAL_LISTENING_PARTS ? 'Finish Listening Test' : 'Next Audio Part'}
+                 <Button onClick={handleNext} disabled={isTimeUp || !hasCurrentSegmentAudioPlayedOnce || isAudioPlaying || (!allQuestionsInCurrentSegmentAnswered && activeQuestions.length > 0) } className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 text-md">
+                    {isLastSegmentOfTest ? 'Finish Listening Test' : (currentAudioPartData.audioContent.type === 'mini-dialogue' ? 'Next Dialogue/Questions' : 'Next Audio Part')}
+                    <ChevronRight className="ml-2 h-5 w-5"/>
                   </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
-                <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Navigation</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Are you sure you want to move to the {currentAudioPartId === TOTAL_LISTENING_PARTS ? 'results page' : 'next audio part'}? You cannot return to this audio part.
-                </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmNextPart}>Proceed</AlertDialogAction>
-                </AlertDialogFooter>
+                <AlertDialogHeader><AlertDialogTitle>Confirm Navigation</AlertDialogTitle><AlertDialogDescription>Are you sure you want to move to the next segment? You cannot return to this audio segment.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={confirmNext}>Proceed</AlertDialogAction></AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
       </footer>
 
        {isTimeUp && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 text-center bg-background">
-            <CardTitle className="text-xl text-destructive mb-3">Time's Up!</CardTitle>
-            <CardDescription className="mb-3">Your time for the listening test has expired. Your answers have been submitted.</CardDescription>
-            <Button onClick={() => router.push('/toefl-listening/results')}>View Results</Button>
-          </Card>
+          <Card className="p-6 text-center bg-background"><CardTitle className="text-xl text-destructive mb-3">Time's Up!</CardTitle><CardDescription className="mb-3">Your time has expired.</CardDescription><Button onClick={() => router.push('/toefl-listening/results')}>View Results</Button></Card>
         </div>
       )}
     </div>
@@ -547,6 +512,3 @@ const ToeflListeningSectionPage = () => {
 };
 
 export default ToeflListeningSectionPage;
-
-
-    

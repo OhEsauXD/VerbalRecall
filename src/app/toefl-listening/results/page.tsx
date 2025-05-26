@@ -12,7 +12,7 @@ import {
     TOTAL_LISTENING_PARTS,
     DialogueLine,
     MiniDialogueAudio,
-    ToeflListeningSectionData // Ensure this is imported
+    ToeflListeningSectionData
 } from '@/lib/toeflListeningTestData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +31,15 @@ const ToeflListeningResultsPage = () => {
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
 
-  const totalQuestions = toeflListeningSections.reduce((sum, sec) => sum + sec.questions.length, 0);
+  let totalQuestions = 0;
+  toeflListeningSections.forEach(section => {
+    if (section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet) {
+        totalQuestions += section.audioContent.miniDialogueSet.reduce((sum, md) => sum + md.questions.length, 0);
+    } else {
+        totalQuestions += section.questions.length;
+    }
+  });
+
 
   const resultsCardRef = useRef<HTMLDivElement>(null);
   const [isPageDataLoaded, setIsPageDataLoaded] = useState(false);
@@ -40,8 +48,15 @@ const ToeflListeningResultsPage = () => {
 
   const getQuestionById = (questionId: string): ListeningQuestion | undefined => {
     for (const section of toeflListeningSections) {
-      const question = section.questions.find(q => q.id === questionId);
-      if (question) return question;
+        if (section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet) {
+            for (const subDialogue of section.audioContent.miniDialogueSet) {
+                const question = subDialogue.questions.find(q => q.id === questionId);
+                if (question) return question;
+            }
+        } else {
+            const question = section.questions.find(q => q.id === questionId);
+            if (question) return question;
+        }
     }
     return undefined;
   };
@@ -167,11 +182,23 @@ const ToeflListeningResultsPage = () => {
                 let actualQuestionId: string | undefined;
 
                 outerLoop: for (const section of toeflListeningSections) {
-                    for (const q of section.questions) {
-                        currentQNum++;
-                        if (currentQNum === questionNumberOverall) {
-                            actualQuestionId = q.id;
-                            break outerLoop;
+                    if (section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet) {
+                        for (const subDialogue of section.audioContent.miniDialogueSet) {
+                            for (const q of subDialogue.questions) {
+                                currentQNum++;
+                                if (currentQNum === questionNumberOverall) {
+                                    actualQuestionId = q.id;
+                                    break outerLoop;
+                                }
+                            }
+                        }
+                    } else {
+                        for (const q of section.questions) {
+                            currentQNum++;
+                            if (currentQNum === questionNumberOverall) {
+                                actualQuestionId = q.id;
+                                break outerLoop;
+                            }
                         }
                     }
                 }
@@ -219,14 +246,16 @@ const ToeflListeningResultsPage = () => {
     @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none; } }
   `;
 
-  const getTranscriptForSection = (section: ToeflListeningSectionData): string => {
-    if (section.audioContent.type === 'lecture' && section.audioContent.script) {
-        return section.audioContent.script;
-    } else if (section.audioContent.type === 'conversation' && section.audioContent.conversationScript) {
-        return section.audioContent.conversationScript.map(line => `<strong>${line.speaker}:</strong> ${line.line}`).join('<br>');
-    } else if (section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet) {
-        return section.audioContent.miniDialogueSet.map(dialogue =>
-            dialogue.script.map(line => `<strong>${line.speaker}:</strong> ${line.line}`).join('<br>')
+  const getTranscriptForSection = (sectionData: ToeflListeningSectionData): string => {
+    const { audioContent } = sectionData;
+    if (audioContent.type === 'lecture' && audioContent.script) {
+        return audioContent.script;
+    } else if (audioContent.type === 'conversation' && audioContent.conversationScript) {
+        return audioContent.conversationScript.map(line => `<strong>${line.speaker}:</strong> ${line.line}`).join('<br>');
+    } else if (audioContent.type === 'mini-dialogue' && audioContent.miniDialogueSet) {
+        return audioContent.miniDialogueSet.map(dialogue =>
+            `<strong>Dialogue ${dialogue.id.split('_d')[1]}:</strong><br>` + // Assuming ID like mdsX_dY
+            dialogue.script.map(line => `&nbsp;&nbsp;<strong>${line.speaker}:</strong> ${line.line}`).join('<br>')
         ).join('<br><br>---<br><br>');
     }
     return 'Transcripción no disponible.';
@@ -252,12 +281,17 @@ const ToeflListeningResultsPage = () => {
 
     body += '<h2>Revisión Detallada</h2>';
     let questionNumberOverall = 0;
+
     toeflListeningSections.forEach(section => {
       body += `<div class="audio-part-review">`;
       body += `<h3>${section.audioContent.title || `Audio Part ${section.id}`} (${section.audioContent.type})</h3>`;
       body += `<div class="audio-transcript"><strong>Transcripción:</strong><br>${getTranscriptForSection(section)}</div>`;
 
-      section.questions.forEach(q => {
+      const questionsToReview = section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet 
+        ? section.audioContent.miniDialogueSet.flatMap(md => md.questions) 
+        : section.questions;
+
+      questionsToReview.forEach(q => {
         questionNumberOverall++;
         const userAnswer = answers.find(a => a.questionId === q.id);
         const selectedOptionIndex = userAnswer?.selectedOptionIndex;
@@ -284,7 +318,7 @@ const ToeflListeningResultsPage = () => {
         }
         body += '</div>';
       });
-      body += `</div>`; // End audio-part-review
+      body += `</div>`;
     });
     body += '</div>';
 
@@ -303,24 +337,10 @@ const ToeflListeningResultsPage = () => {
   };
 
   if (!isPageDataLoaded && !currentDate) {
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
-            <Card className="w-full max-w-md text-center"><CardHeader><CardTitle className="text-2xl text-primary">Cargando Resultados de Comprensión Auditiva...</CardTitle></CardHeader><CardContent><p className="text-muted-foreground mb-6">Por favor espere.</p></CardContent></Card>
-        </div>
-    );
+    return (<div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground"><Card className="w-full max-w-md text-center"><CardHeader><CardTitle className="text-2xl text-primary">Cargando...</CardTitle></CardHeader><CardContent><p className="text-muted-foreground mb-6">Por favor espere.</p></CardContent></Card></div>);
   }
   if (isPageDataLoaded && !userInfo && answers.length === 0) {
-     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
-            <Card className="w-full max-w-md text-center opacity-100 translate-y-0">
-                <CardHeader><CardTitle className="text-2xl text-primary">No se Encontraron Resultados de Comprensión Auditiva</CardTitle></CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground mb-6">Parece que no has completado la prueba de comprensión auditiva o tu sesión ha expirado.</p>
-                    <Button onClick={handleGoHome} className="w-full bg-primary hover:bg-primary/90"><Home className="mr-2 h-4 w-4"/>Ir al Inicio</Button>
-                </CardContent>
-            </Card>
-        </div>
-    );
+     return (<div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground"><Card className="w-full max-w-md text-center opacity-100 translate-y-0"><CardHeader><CardTitle className="text-2xl text-primary">No Results Found</CardTitle></CardHeader><CardContent><p className="text-muted-foreground mb-6">It seems you haven't completed the test or your session has expired.</p><Button onClick={handleGoHome} className="w-full bg-primary hover:bg-primary/90"><Home className="mr-2 h-4 w-4"/>Go Home</Button></CardContent></Card></div>);
   }
 
   return (
@@ -332,7 +352,7 @@ const ToeflListeningResultsPage = () => {
             <CardTitle className="text-3xl font-bold text-primary">Resultados de Prueba de Comprensión Auditiva TOEFL</CardTitle>
             {userInfo && (
               <CardDescription className="text-muted-foreground mt-2">
-                Resultados para: {userInfo.nombre} {userInfo.apellidoPaterno} ${userInfo.apellidoMaterno} (${userInfo.carrera} - ${userInfo.grado}${userInfo.grupo})
+                Resultados para: {userInfo.nombre} {userInfo.apellidoPaterno} ${userInfo.apellidoMaterno} (${userInfo.carrera} - ${userInfo.grado}{userInfo.grupo})
                 <br />Fecha: {currentDate}
               </CardDescription>
             )}
@@ -343,60 +363,66 @@ const ToeflListeningResultsPage = () => {
           <CardContent>
             <h3 className="text-xl font-semibold mb-4 mt-6 text-center text-primary">Revisa Tus Respuestas</h3>
             <Accordion type="single" collapsible className="w-full">
-              {toeflListeningSections.map(section => (
-                <AccordionItem value={`listening-section-${section.id}`} key={`listening-${section.id}`}>
-                  <AccordionTrigger className="text-lg hover:no-underline text-accent">{section.audioContent.title || `Audio Part ${section.id}`}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="mb-3 p-3 bg-muted/70 rounded text-sm italic border border-border whitespace-pre-line">
-                        <strong>Transcripción:</strong><br/>
-                        <span dangerouslySetInnerHTML={{ __html: getTranscriptForSection(section) }} />
-                    </div>
-                    {section.questions.map((q, qIndexInSection) => {
-                      const userAnswer = answers.find(a => a.questionId === q.id);
-                      const selectedOptionIndex = userAnswer?.selectedOptionIndex;
-                      const isCorrect = selectedOptionIndex !== undefined && selectedOptionIndex !== null && q.options[selectedOptionIndex]?.isCorrect;
+              {toeflListeningSections.map(section => {
+                const sectionTitle = section.audioContent.title || `Audio Part ${section.id}`;
+                const questionsForThisSection = section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet
+                    ? section.audioContent.miniDialogueSet.flatMap((md, mdIndex) => 
+                        md.questions.map(q => ({ ...q, subDialogueId: md.id, subDialogueIndex: mdIndex }))
+                      )
+                    : section.questions.map(q => ({ ...q, subDialogueId: null, subDialogueIndex: null }));
+                
+                // Calculate starting overall question number for this section
+                let startingOverallQNumber = 1;
+                for (let i = 0; i < toeflListeningSections.findIndex(s => s.id === section.id); i++) {
+                    const prevSection = toeflListeningSections[i];
+                    if (prevSection.audioContent.type === 'mini-dialogue' && prevSection.audioContent.miniDialogueSet) {
+                        startingOverallQNumber += prevSection.audioContent.miniDialogueSet.reduce((sum, md) => sum + md.questions.length, 0);
+                    } else {
+                        startingOverallQNumber += prevSection.questions.length;
+                    }
+                }
 
-                      const overallQuestionNumber = toeflListeningSections.slice(0, toeflListeningSections.findIndex(s => s.id === section.id)).reduce((sum, sec) => sum + sec.questions.length, 0) + qIndexInSection + 1;
-
-
-                      return (
-                        <div key={q.id} className="mb-6 p-4 border-b border-border last:border-b-0">
-                          <p className="font-semibold text-foreground">{overallQuestionNumber}. {q.questionText}</p>
-                          <ul className="list-none pl-0 mt-2 space-y-1">
-                            {q.options.map((opt, index) => (
-                              <li key={index} className={cn("p-2 rounded-md", opt.isCorrect ? "bg-green-100 dark:bg-green-800/70 text-green-700 dark:text-green-300 font-bold" : (selectedOptionIndex === index && !opt.isCorrect) ? "bg-red-100 dark:bg-red-900/70 text-red-700 dark:text-red-300 line-through" : "bg-muted/50 text-muted-foreground")}>
-                                {String.fromCharCode(97 + index)}) {opt.text}
-                                {selectedOptionIndex === index && (isCorrect ? <span className="font-bold ml-2 text-green-600 dark:text-green-400">(Tu respuesta ✓)</span> : <span className="font-bold ml-2 text-red-600 dark:text-red-400">(Tu respuesta ✗)</span>)}
-                                {opt.isCorrect && selectedOptionIndex !== index && <span className="font-bold ml-2">(Respuesta Correcta)</span>}
-                              </li>
-                            ))}
-                          </ul>
-                          {q.explanation && <p className="mt-2 text-sm text-muted-foreground italic"><strong>Explicación (Español):</strong> {q.explanation}</p>}
+                return (
+                    <AccordionItem value={`listening-section-${section.id}`} key={`listening-${section.id}`}>
+                    <AccordionTrigger className="text-lg hover:no-underline text-accent">{sectionTitle}</AccordionTrigger>
+                    <AccordionContent>
+                        <div className="mb-3 p-3 bg-muted/70 rounded text-sm italic border border-border whitespace-pre-line">
+                            <strong>Transcripción:</strong><br/>
+                            <span dangerouslySetInnerHTML={{ __html: getTranscriptForSection(section) }} />
                         </div>
-                      );
-                    })}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
+                        {questionsForThisSection.map((q, qIndexInSection) => {
+                        const userAnswer = answers.find(a => a.questionId === q.id);
+                        const selectedOptionIndex = userAnswer?.selectedOptionIndex;
+                        const isCorrect = selectedOptionIndex !== undefined && selectedOptionIndex !== null && q.options[selectedOptionIndex]?.isCorrect;
+                        const overallQuestionNumber = startingOverallQNumber + qIndexInSection;
+
+                        return (
+                            <div key={q.id} className="mb-6 p-4 border-b border-border last:border-b-0">
+                            <p className="font-semibold text-foreground">{overallQuestionNumber}. {q.questionText}</p>
+                            <ul className="list-none pl-0 mt-2 space-y-1">
+                                {q.options.map((opt, index) => (
+                                <li key={index} className={cn("p-2 rounded-md", opt.isCorrect ? "bg-green-100 dark:bg-green-800/70 text-green-700 dark:text-green-300 font-bold" : (selectedOptionIndex === index && !opt.isCorrect) ? "bg-red-100 dark:bg-red-900/70 text-red-700 dark:text-red-300 line-through" : "bg-muted/50 text-muted-foreground")}>
+                                    {String.fromCharCode(97 + index)}) {opt.text}
+                                    {selectedOptionIndex === index && (isCorrect ? <span className="font-bold ml-2 text-green-600 dark:text-green-400">(Tu respuesta ✓)</span> : <span className="font-bold ml-2 text-red-600 dark:text-red-400">(Tu respuesta ✗)</span>)}
+                                    {opt.isCorrect && selectedOptionIndex !== index && <span className="font-bold ml-2">(Respuesta Correcta)</span>}
+                                </li>
+                                ))}
+                            </ul>
+                            {q.explanation && <p className="mt-2 text-sm text-muted-foreground italic"><strong>Explicación (Español):</strong> {q.explanation}</p>}
+                            </div>
+                        );
+                        })}
+                    </AccordionContent>
+                    </AccordionItem>
+                );
+              })}
             </Accordion>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-center items-center gap-4 p-6">
-            <AlertDialog open={showScoreSheetDialog} onOpenChange={setShowScoreSheetDialog}>
-              <Tooltip><TooltipTrigger asChild><AlertDialogTrigger asChild>
-                <Button onClick={() => setShowScoreSheetDialog(true)} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"><Printer className="mr-2 h-4 w-4"/> Imprimir Hoja de Puntaje</Button>
-              </AlertDialogTrigger></TooltipTrigger><TooltipContent><p>Genera una hoja de respuestas con tu información y puntaje (monocromático).</p></TooltipContent></Tooltip>
-              <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Confirmar Impresión</AlertDialogTitle><AlertDialogDescription>Se abrirá el diálogo de impresión para tu hoja de puntaje. ¿Continuar?</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handlePrintScoreSheet}>Imprimir</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
-              <Tooltip><TooltipTrigger asChild><AlertDialogTrigger asChild>
-                <Button onClick={() => setShowFeedbackDialog(true)} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"><FileText className="mr-2 h-4 w-4"/> Descargar Feedback Detallado</Button>
-              </AlertDialogTrigger></TooltipTrigger><TooltipContent><p>Genera un PDF con transcripciones, preguntas, tus respuestas, correctas y explicaciones.</p></TooltipContent></Tooltip>
-              <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Confirmar Descarga</AlertDialogTitle><AlertDialogDescription>Se abrirá el diálogo de impresión para tu reporte detallado. ¿Continuar?</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDownloadDetailedFeedback}>Descargar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-            </AlertDialog>
-
-            <Tooltip><TooltipTrigger asChild><Button onClick={handlePlayAgain} variant="outline" className="w-full sm:w-auto"><RotateCcw className="mr-2 h-4 w-4"/> Jugar de Nuevo</Button></TooltipTrigger><TooltipContent><p>Reinicia la prueba de comprensión auditiva.</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button onClick={handleGoHome} variant="outline" className="w-full sm:w-auto"><Home className="mr-2 h-4 w-4"/>Ir al Inicio</Button></TooltipTrigger><TooltipContent><p>Vuelve a la página principal de juegos.</p></TooltipContent></Tooltip>
+            <AlertDialog open={showScoreSheetDialog} onOpenChange={setShowScoreSheetDialog}><Tooltip><TooltipTrigger asChild><AlertDialogTrigger asChild><Button onClick={() => setShowScoreSheetDialog(true)} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"><Printer className="mr-2 h-4 w-4"/> Imprimir Hoja de Puntaje</Button></AlertDialogTrigger></TooltipTrigger><TooltipContent><p>Genera una hoja de respuestas (monocromático).</p></TooltipContent></Tooltip><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Confirmar Impresión</AlertDialogTitle><AlertDialogDescription>Se abrirá el diálogo de impresión. ¿Continuar?</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handlePrintScoreSheet}>Imprimir</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+            <AlertDialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}><Tooltip><TooltipTrigger asChild><AlertDialogTrigger asChild><Button onClick={() => setShowFeedbackDialog(true)} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"><FileText className="mr-2 h-4 w-4"/> Descargar Feedback Detallado</Button></AlertDialogTrigger></TooltipTrigger><TooltipContent><p>Genera un PDF con transcripciones, preguntas, respuestas y explicaciones.</p></TooltipContent></Tooltip><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Confirmar Descarga</AlertDialogTitle><AlertDialogDescription>Se abrirá el diálogo de impresión. ¿Continuar?</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDownloadDetailedFeedback}>Descargar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+            <Tooltip><TooltipTrigger asChild><Button onClick={handlePlayAgain} variant="outline" className="w-full sm:w-auto"><RotateCcw className="mr-2 h-4 w-4"/> Jugar de Nuevo</Button></TooltipTrigger><TooltipContent><p>Reinicia la prueba.</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button onClick={handleGoHome} variant="outline" className="w-full sm:w-auto"><Home className="mr-2 h-4 w-4"/>Ir al Inicio</Button></TooltipTrigger><TooltipContent><p>Vuelve a la página principal.</p></TooltipContent></Tooltip>
           </CardFooter>
         </Card>
       </div>
@@ -405,4 +431,3 @@ const ToeflListeningResultsPage = () => {
 };
 
 export default ToeflListeningResultsPage;
-

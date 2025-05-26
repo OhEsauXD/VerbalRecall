@@ -5,45 +5,38 @@ export interface ListeningQuestionOption {
 }
 
 export interface ListeningQuestion {
-  id: string; // e.g., "l1-q1" (lecture 1, question 1), "md1-q1" (mini-dialogue 1, question 1)
+  id: string; // e.g., "l1-q1" (lecture 1, question 1), "mds1_d1_q1" (mini-dialogue set 1, dialogue 1, question 1)
   questionText: string;
   options: ListeningQuestionOption[];
   explanation: string; // Spanish explanation for the correct answer
 }
 
 export interface DialogueLine {
-  speaker: string; // e.g., "Man", "Woman", "Narrator", "Professor"
+  speaker: string;
   line: string;
   audioSrc: string; // Path to the audio file for this specific line
 }
 
-// Specific structure for individual mini-dialogues within a set
 export interface MiniDialogueAudio {
   id: string; // e.g., "mds1_d1" for the first mini-dialogue in set 1
-  // audioSrc field removed from here as each line will have its own
-  script: DialogueLine[]; // Text lines for this mini-dialogue for display/transcript
+  script: DialogueLine[];
+  questions: ListeningQuestion[]; // Questions specific to this mini-dialogue
 }
 
 export interface AudioContent {
   type: 'lecture' | 'conversation' | 'mini-dialogue';
   title?: string;
   instructions?: string;
-
-  // For Lectures (single audio file for the whole part)
-  audioSrc?: string;
-  script?: string; // Full text for lectures, for transcript
-
-  // For Conversations (array of DialogueLine objects, each with its own audioSrc)
-  conversationScript?: DialogueLine[];
-
-  // For Mini-Dialogue sets (array of individual MiniDialogueAudio objects, each containing DialogueLines with their own audioSrc)
-  miniDialogueSet?: MiniDialogueAudio[];
+  audioSrc?: string; // For single-file lectures/conversations
+  script?: string; // Full text for lectures (for transcript)
+  conversationScript?: DialogueLine[]; // For line-by-line conversations
+  miniDialogueSet?: MiniDialogueAudio[]; // For sets of mini-dialogues
 }
 
 export interface ToeflListeningSectionData {
-  id: number; // 1, 2, 3, 4, 5 (for grouping, e.g., Part A, Part B, Part C)
+  id: number;
   audioContent: AudioContent;
-  questions: ListeningQuestion[];
+  questions: ListeningQuestion[]; // Main questions array for lectures/conversations. For mini-dialogues, this will be empty as questions are nested.
 }
 
 export const toeflListeningSections: ToeflListeningSectionData[] = [
@@ -53,7 +46,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
     audioContent: {
       type: 'mini-dialogue',
       title: 'Mini-Dialogue Set 1',
-      instructions: "Listen to several short dialogues. After each dialogue, you will be asked a question about it. You can play each dialogue set only twice.",
+      instructions: "Listen to each short dialogue. After the dialogue, answer the questions about it. You can play each dialogue only twice.",
       miniDialogueSet: [
         {
           id: "mds1_d1",
@@ -61,6 +54,30 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
             { speaker: "Man", line: "The math class was brutal today, wasn't it?", audioSrc: "/assets/audios/mds1_d1_l1.mp3" },
             { speaker: "Woman", line: "Tell me about it! And the professor said the final will be even harder.", audioSrc: "/assets/audios/mds1_d1_l2.mp3" },
           ],
+          questions: [
+            {
+              id: "mds1_d1_q1",
+              questionText: "What does the woman imply about the final exam?",
+              options: [
+                { text: "It will be easier than today's class.", isCorrect: false },
+                { text: "It will be more challenging.", isCorrect: true },
+                { text: "She is not planning to take it.", isCorrect: false },
+                { text: "The professor will provide a study guide.", isCorrect: false },
+              ],
+              explanation: "La mujer dice que el final 'será aún más difícil', lo que implica que será más desafiante.",
+            },
+            {
+              id: "mds1_d1_q2",
+              questionText: "How does the man likely feel after the woman's comment?",
+              options: [
+                { text: "Relieved", isCorrect: false },
+                { text: "Discouraged", isCorrect: true },
+                { text: "Indifferent", isCorrect: false },
+                { text: "Excited", isCorrect: false },
+              ],
+              explanation: "Dado que la clase ya fue 'brutal', escuchar que el final será peor probablemente lo desanime.",
+            },
+          ]
         },
         {
           id: "mds1_d2",
@@ -68,6 +85,30 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
             { speaker: "Woman", line: "I can't believe how expensive textbooks have become this semester.", audioSrc: "/assets/audios/mds1_d2_l1.mp3" },
             { speaker: "Man", line: "I know, right? I'm thinking of looking for used copies online.", audioSrc: "/assets/audios/mds1_d2_l2.mp3" },
           ],
+          questions: [
+            {
+              id: "mds1_d2_q1",
+              questionText: "What are the speakers mainly discussing?",
+              options: [
+                { text: "Their favorite online stores.", isCorrect: false },
+                { text: "The high cost of textbooks.", isCorrect: true },
+                { text: "A difficult class assignment.", isCorrect: false },
+                { text: "How to save money on transportation.", isCorrect: false },
+              ],
+              explanation: "La mujer menciona lo 'caros que se han vuelto los libros de texto', y el hombre está de acuerdo.",
+            },
+            {
+              id: "mds1_d2_q2",
+              questionText: "What is the man considering doing?",
+              options: [
+                { text: "Dropping the course.", isCorrect: false },
+                { text: "Asking the professor for cheaper options.", isCorrect: false },
+                { text: "Sharing textbooks with the woman.", isCorrect: false },
+                { text: "Searching for used textbooks online.", isCorrect: true },
+              ],
+              explanation: "El hombre dice: 'Estoy pensando en buscar copias usadas en línea'.",
+            },
+          ]
         },
         {
           id: "mds1_d3",
@@ -75,6 +116,30 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
             { speaker: "Man", line: "Are you going to the career fair on Friday?", audioSrc: "/assets/audios/mds1_d3_l1.mp3" },
             { speaker: "Woman", line: "Definitely! I need to start looking for internships for the summer.", audioSrc: "/assets/audios/mds1_d3_l2.mp3" },
           ],
+          questions: [
+            {
+              id: "mds1_d3_q1",
+              questionText: "Why is the woman planning to go to the career fair?",
+              options: [
+                { text: "To meet new people.", isCorrect: false },
+                { text: "To look for summer internships.", isCorrect: true },
+                { text: "To attend a company presentation.", isCorrect: false },
+                { text: "To help her friend find a job.", isCorrect: false },
+              ],
+              explanation: "La mujer dice: '¡Definitivamente! Necesito empezar a buscar pasantías para el verano'.",
+            },
+            {
+              id: "mds1_d3_q2",
+              questionText: "What event are they talking about?",
+              options: [
+                { text: "A summer festival.", isCorrect: false },
+                { text: "A job interview.", isCorrect: false },
+                { text: "A career fair.", isCorrect: true },
+                { text: "A company recruitment drive.", isCorrect: false },
+              ],
+              explanation: "El hombre pregunta si ella va a 'la feria de empleo (career fair) el viernes'.",
+            },
+          ]
         },
         {
           id: "mds1_d4",
@@ -82,6 +147,30 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
             { speaker: "Woman", line: "This traffic is terrible. We're going to be late for the movie.", audioSrc: "/assets/audios/mds1_d4_l1.mp3" },
             { speaker: "Man", line: "Maybe we should have taken the subway instead.", audioSrc: "/assets/audios/mds1_d4_l2.mp3" },
           ],
+          questions: [
+            {
+              id: "mds1_d4_q1",
+              questionText: "What problem are the speakers encountering?",
+              options: [
+                { text: "Their car broke down.", isCorrect: false },
+                { text: "They missed the movie start time.", isCorrect: false },
+                { text: "They are stuck in heavy traffic.", isCorrect: true },
+                { text: "They cannot find parking.", isCorrect: false },
+              ],
+              explanation: "La mujer dice: 'Este tráfico es terrible. Vamos a llegar tarde a la película'.",
+            },
+            {
+              id: "mds1_d4_q2",
+              questionText: "What alternative transportation does the man suggest they could have used?",
+              options: [
+                { text: "A bicycle.", isCorrect: false },
+                { text: "A taxi.", isCorrect: false },
+                { text: "The bus.", isCorrect: false },
+                { text: "The subway.", isCorrect: true },
+              ],
+              explanation: "El hombre dice: 'Quizás deberíamos haber tomado el metro (subway) en su lugar'.",
+            },
+          ]
         },
         {
           id: "mds1_d5",
@@ -89,126 +178,34 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
             { speaker: "Man", line: "I'm really struggling with this physics assignment.", audioSrc: "/assets/audios/mds1_d5_l1.mp3" },
             { speaker: "Woman", line: "Have you tried asking Professor Davis for help during his office hours?", audioSrc: "/assets/audios/mds1_d5_l2.mp3" },
           ],
+          questions: [
+            {
+              id: "mds1_d5_q1",
+              questionText: "What is the man's problem?",
+              options: [
+                { text: "He missed his physics class.", isCorrect: false },
+                { text: "He doesn't understand the professor.", isCorrect: false },
+                { text: "He finds his physics assignment difficult.", isCorrect: true },
+                { text: "He doesn't have enough time to do his assignment.", isCorrect: false },
+              ],
+              explanation: "El hombre dice: 'Realmente estoy batallando con esta tarea de física'.",
+            },
+            {
+              id: "mds1_d5_q2",
+              questionText: "What does the woman suggest the man do?",
+              options: [
+                { text: "Work on the assignment with her.", isCorrect: false },
+                { text: "Drop the physics course.", isCorrect: false },
+                { text: "Ask Professor Davis for help.", isCorrect: true },
+                { text: "Find a tutor for physics.", isCorrect: false },
+              ],
+              explanation: "La mujer pregunta: '¿Has intentado pedirle ayuda al Profesor Davis durante sus horas de oficina?'.",
+            },
+          ]
         },
       ],
     },
-    questions: [
-      // Questions for Dialogue 1
-      {
-        id: "md1-q1",
-        questionText: "What does the woman imply about the final exam?",
-        options: [
-          { text: "It will be easier than today's class.", isCorrect: false },
-          { text: "It will be more challenging.", isCorrect: true },
-          { text: "She is not planning to take it.", isCorrect: false },
-          { text: "The professor will provide a study guide.", isCorrect: false },
-        ],
-        explanation: "La mujer dice que el final 'será aún más difícil', lo que implica que será más desafiante.",
-      },
-      {
-        id: "md1-q2",
-        questionText: "How does the man likely feel after the woman's comment?",
-        options: [
-          { text: "Relieved", isCorrect: false },
-          { text: "Discouraged", isCorrect: true },
-          { text: "Indifferent", isCorrect: false },
-          { text: "Excited", isCorrect: false },
-        ],
-        explanation: "Dado que la clase ya fue 'brutal', escuchar que el final será peor probablemente lo desanime.",
-      },
-      // Questions for Dialogue 2
-      {
-        id: "md1-q3",
-        questionText: "What are the speakers mainly discussing?",
-        options: [
-          { text: "Their favorite online stores.", isCorrect: false },
-          { text: "The high cost of textbooks.", isCorrect: true },
-          { text: "A difficult class assignment.", isCorrect: false },
-          { text: "How to save money on transportation.", isCorrect: false },
-        ],
-        explanation: "La mujer menciona lo 'caros que se han vuelto los libros de texto', y el hombre está de acuerdo.",
-      },
-      {
-        id: "md1-q4",
-        questionText: "What is the man considering doing?",
-        options: [
-          { text: "Dropping the course.", isCorrect: false },
-          { text: "Asking the professor for cheaper options.", isCorrect: false },
-          { text: "Sharing textbooks with the woman.", isCorrect: false },
-          { text: "Searching for used textbooks online.", isCorrect: true },
-        ],
-        explanation: "El hombre dice: 'Estoy pensando en buscar copias usadas en línea'.",
-      },
-      // Questions for Dialogue 3
-      {
-        id: "md1-q5",
-        questionText: "Why is the woman planning to go to the career fair?",
-        options: [
-          { text: "To meet new people.", isCorrect: false },
-          { text: "To look for summer internships.", isCorrect: true },
-          { text: "To attend a company presentation.", isCorrect: false },
-          { text: "To help her friend find a job.", isCorrect: false },
-        ],
-        explanation: "La mujer dice: '¡Definitivamente! Necesito empezar a buscar pasantías para el verano'.",
-      },
-      {
-        id: "md1-q6",
-        questionText: "What event are they talking about?",
-        options: [
-          { text: "A summer festival.", isCorrect: false },
-          { text: "A job interview.", isCorrect: false },
-          { text: "A career fair.", isCorrect: true },
-          { text: "A company recruitment drive.", isCorrect: false },
-        ],
-        explanation: "El hombre pregunta si ella va a 'la feria de empleo (career fair) el viernes'.",
-      },
-      // Questions for Dialogue 4
-      {
-        id: "md1-q7",
-        questionText: "What problem are the speakers encountering?",
-        options: [
-          { text: "Their car broke down.", isCorrect: false },
-          { text: "They missed the movie start time.", isCorrect: false },
-          { text: "They are stuck in heavy traffic.", isCorrect: true },
-          { text: "They cannot find parking.", isCorrect: false },
-        ],
-        explanation: "La mujer dice: 'Este tráfico es terrible. Vamos a llegar tarde a la película'.",
-      },
-      {
-        id: "md1-q8",
-        questionText: "What alternative transportation does the man suggest they could have used?",
-        options: [
-          { text: "A bicycle.", isCorrect: false },
-          { text: "A taxi.", isCorrect: false },
-          { text: "The bus.", isCorrect: false },
-          { text: "The subway.", isCorrect: true },
-        ],
-        explanation: "El hombre dice: 'Quizás deberíamos haber tomado el metro (subway) en su lugar'.",
-      },
-      // Questions for Dialogue 5
-      {
-        id: "md1-q9",
-        questionText: "What is the man's problem?",
-        options: [
-          { text: "He missed his physics class.", isCorrect: false },
-          { text: "He doesn't understand the professor.", isCorrect: false },
-          { text: "He finds his physics assignment difficult.", isCorrect: true },
-          { text: "He doesn't have enough time to do his assignment.", isCorrect: false },
-        ],
-        explanation: "El hombre dice: 'Realmente estoy batallando con esta tarea de física'.",
-      },
-      {
-        id: "md1-q10",
-        questionText: "What does the woman suggest the man do?",
-        options: [
-          { text: "Work on the assignment with her.", isCorrect: false },
-          { text: "Drop the physics course.", isCorrect: false },
-          { text: "Ask Professor Davis for help.", isCorrect: true },
-          { text: "Find a tutor for physics.", isCorrect: false },
-        ],
-        explanation: "La mujer pregunta: '¿Has intentado pedirle ayuda al Profesor Davis durante sus horas de oficina?'.",
-      },
-    ],
+    questions: [], // Main questions array is now empty for mini-dialogue section
   },
   // Part 2: Longer Conversation (Summer Vacations theme - 8 questions)
   {
@@ -217,7 +214,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'conversation',
       title: 'Conversation: Planning a Summer Trip',
       instructions: "Listen to a conversation between two students. You can play the conversation only twice.",
-      conversationScript: [ 
+      conversationScript: [
         { speaker: "Student A (Female)", line: "Hey Mark, have you thought about what you're doing this summer? I was thinking of maybe taking a road trip.", audioSrc: "/assets/audios/conv_summer_l1.mp3" },
         { speaker: "Student B (Male)", line: "A road trip sounds amazing, Sarah! Where were you thinking of going? I've always wanted to see the national parks out west.", audioSrc: "/assets/audios/conv_summer_l2.mp3" },
         { speaker: "Student A (Female)", line: "That's exactly what I had in mind! Maybe Yellowstone and the Grand Canyon? We'd need to plan the route and figure out camping spots though.", audioSrc: "/assets/audios/conv_summer_l3.mp3" },
@@ -250,7 +247,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "Sarah menciona explícitamente 'Yellowstone y el Gran Cañón' como posibles destinos.",
       },
-       {
+      {
         id: "conv1-q3",
         questionText: "What does Mark suggest they need to budget for?",
         options: [
@@ -325,7 +322,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'lecture',
       title: 'Lecture: The Impact of Climate Change on Coastal Ecosystems',
       instructions: "Listen to part of a lecture in an environmental science class. You can play the lecture only twice.",
-      audioSrc: "/assets/audios/lecture_climate_change.mp3", 
+      audioSrc: "/assets/audios/lecture_climate_change.mp3",
       script: "Good morning, everyone. Today, we're going to delve into a critical issue: the impact of climate change on our coastal ecosystems. As global temperatures rise, we're seeing a number of alarming trends. Sea level rise, primarily due to thermal expansion of water and melting glaciers and ice sheets, is perhaps the most direct threat. This leads to coastal erosion, saltwater intrusion into freshwater aquifers, and increased frequency of coastal flooding, displacing communities and destroying habitats. Furthermore, ocean acidification, caused by the absorption of excess atmospheric carbon dioxide, is severely impacting marine organisms with calcium carbonate shells, like corals and shellfish. Coral reefs, which are biodiversity hotspots, are experiencing widespread bleaching events. Warmer waters also alter species distribution and can lead to an increase in harmful algal blooms. The intricate web of life in these ecosystems is being disrupted at an unprecedented rate, and understanding these mechanisms is key to formulating effective mitigation and adaptation strategies. We'll explore some of these strategies in our next session...",
     },
     questions: [
@@ -340,7 +337,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
         ],
         explanation: "El profesor introduce el tema como 'el impacto del cambio climático en nuestros ecosistemas costeros'.",
       },
-       {
+      {
         id: "lec1-q2",
         questionText: "What are the two primary causes of sea level rise mentioned?",
         options: [
@@ -426,7 +423,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'lecture',
       title: 'Lecture: The Journey of Cacao - From Ancient Ritual to Global Treat',
       instructions: "Listen to part of a lecture on the history of cacao. You can play it twice.",
-      audioSrc: "/assets/audios/lecture_cacao_history.mp3", 
+      audioSrc: "/assets/audios/lecture_cacao_history.mp3",
       script: "Welcome, class. Today we embark on a fascinating journey tracing the history of cacao, the plant that gives us chocolate. Its story begins in Mesoamerica, with the Olmec civilization, around 1500 BC, being among the first to cultivate and utilize cacao beans. They prepared a bitter, frothy beverage, a far cry from the sweet chocolate we know today. The Mayans, succeeding the Olmecs, elevated cacao to a divine status, considering it a food of the gods and even using the beans as currency. Their texts and pottery frequently depict cacao in religious ceremonies and as a symbol of wealth and power. They would often mix ground cacao with water, chili peppers, cornmeal, and spices to create their ceremonial drink. \n\nLater, the Aztecs adopted many Mayan customs regarding cacao, calling their version 'xocolatl,' meaning 'bitter water.' For the Aztecs, this drink was typically reserved for royalty, warriors, and priests, believed to impart strength, wisdom, and even act as an aphrodisiac. When Christopher Columbus encountered cacao beans on his fourth voyage in 1502, he didn't fully grasp their significance. However, it was Hernán Cortés who, after observing its widespread use and value in the Aztec empire, introduced cacao to Spain in the early 16th century. \n\nThe Spanish court initially kept chocolate a closely guarded secret. They began to transform the beverage by adding sugar, honey, vanilla, and sometimes cinnamon, to counteract its natural bitterness, making it a sweet, warm, and highly prized drink among the aristocracy. For nearly a century, Spain monopolized the chocolate trade. Gradually, as knowledge and supplies spread, chocolate's popularity extended across Europe during the 17th and 18th centuries, though it remained largely a luxury item for the elite. \n\nThe 19th century marked a pivotal turning point with the Industrial Revolution. Key inventions like the cocoa press by Coenraad Johannes van Houten in 1828, which separated cocoa butter from cocoa solids, and the subsequent development of solid eating chocolate by companies like Fry's and Cadbury, democratized chocolate. It became more affordable, and its forms diversified, leading to the bars, truffles, and myriad confections we enjoy globally today. So, from a sacred, bitter brew of ancient civilizations to a universally beloved treat, cacao's journey is a testament to cultural exchange and technological innovation.",
     },
     questions: [
@@ -516,7 +513,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'lecture',
       title: 'Lecture: Volcanoes - Earth\'s Fiery Architects',
       instructions: "Listen to part of a lecture about volcanoes. You can play it twice.",
-      audioSrc: "/assets/audios/lecture_volcanoes.mp3", 
+      audioSrc: "/assets/audios/lecture_volcanoes.mp3",
       script: "Good afternoon. Today, we turn our attention to one of Earth's most powerful and awe-inspiring natural phenomena: volcanoes. A volcano is essentially a rupture in the crust of a planetary-mass object, such as Earth, that allows hot lava, volcanic ash, and gases to escape from a magma chamber below the surface. Most volcanoes are found where tectonic plates are diverging or converging. For example, the Pacific Ring of Fire, an area encircling the Pacific Ocean basin, is home to over 75% of the world's active and dormant volcanoes due to intense plate tectonic activity. \n\nThere are several types of volcanoes, classified by their shape and eruption style. Shield volcanoes, like Mauna Loa in Hawaii, are characterized by broad, gently sloping sides formed by fluid basaltic lava flows. Stratovolcanoes, or composite volcanoes, such as Mount Fuji in Japan or Mount Rainier in the United States, are conical and built up by many layers of hardened lava, tephra, pumice, and ash. These are often associated with more explosive eruptions. Cinder cones are simpler structures built from ejected lava fragments called cinders that fall back around the vent. Calderas are large, cauldron-like depressions that form when a volcano collapses, often after a massive eruption. \n\nVolcanic eruptions can have profound impacts, both destructive and constructive. Destructive effects include lava flows that engulf landscapes, pyroclastic flows – fast-moving currents of hot gas and volcanic matter – that can be incredibly deadly, and ash falls that can blanket vast areas, disrupt air travel, and cause respiratory problems. Volcanic gases, like sulfur dioxide, can also contribute to acid rain and short-term climate cooling. \n\nHowever, volcanoes also play a crucial role in creating land and enriching soil. Volcanic ash and lava break down to form highly fertile soils, ideal for agriculture. Geothermal energy, harnessed from the Earth's internal heat associated with volcanic activity, provides a renewable energy source in many regions. Furthermore, volcanic activity is responsible for releasing gases that helped form Earth's early atmosphere and oceans. Understanding volcanoes, their behavior, and their hazards is vital for mitigating risks to communities living in their vicinity and for appreciating their role in shaping our planet.",
     },
     questions: [
@@ -602,9 +599,9 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
 ];
 
 export const INITIAL_LISTENING_TEST_DURATION = 40 * 60; // 40 minutes
-export const TOTAL_LISTENING_PARTS = toeflListeningSections.length; // Should be 5 now
+export const TOTAL_LISTENING_PARTS = toeflListeningSections.length;
 
-export type { UserInfo } from './toeflTestData'; 
+export type { UserInfo } from './toeflTestData';
 
 export type ToeflListeningAnswer = {
   questionId: string;
@@ -613,34 +610,48 @@ export type ToeflListeningAnswer = {
 };
 
 export type ToeflListeningTestState = {
-  currentAudioPartId: number; 
-  currentMiniDialogueAudioIndex?: number; 
-  currentLineIndex?: number; // Index of the current line being played (for line-by-line playback)
+  currentAudioPartId: number;
+  currentMiniDialogueAudioIndex: number; // Index for current mini-dialogue within a set
+  currentLineIndex: number; // Index of the current line being played (for line-by-line playback)
   answers: ToeflListeningAnswer[];
   startTime: number | null;
   timeRemaining: number;
   userInfo?: UserInfo;
-  audioPlayCounts: { [audioPartId: number]: number }; 
+  audioPlayCounts: { [audioPartIdOrSubDialogueId: string]: number }; // Key by part ID for lectures/conversations, or sub-dialogue ID string for mini-dialogues
 };
 
-
+// Helper function to get current section and question index within section
 export const getListeningPartAndQuestionIndex = (
   globalIndex: number,
   sections: ToeflListeningSectionData[]
 ): { partId: number; questionIndexInPart: number } => {
   let questionsCounted = 0;
   for (const section of sections) {
-    if (globalIndex < questionsCounted + section.questions.length) {
+    let questionsInSection = 0;
+    if (section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet) {
+      questionsInSection = section.audioContent.miniDialogueSet.reduce((sum, md) => sum + md.questions.length, 0);
+    } else {
+      questionsInSection = section.questions.length;
+    }
+
+    if (globalIndex < questionsCounted + questionsInSection) {
       return {
         partId: section.id,
         questionIndexInPart: globalIndex - questionsCounted,
       };
     }
-    questionsCounted += section.questions.length;
+    questionsCounted += questionsInSection;
+  }
+  // Fallback, should not be reached if globalIndex is valid
+  const lastSection = sections[sections.length - 1];
+  let lastSectionQuestions = 0;
+  if (lastSection.audioContent.type === 'mini-dialogue' && lastSection.audioContent.miniDialogueSet) {
+      lastSectionQuestions = lastSection.audioContent.miniDialogueSet.reduce((sum, md) => sum + md.questions.length, 0);
+  } else {
+      lastSectionQuestions = lastSection.questions.length;
   }
   return {
-    partId: sections[sections.length - 1].id,
-    questionIndexInPart: sections[sections.length - 1].questions.length - 1
+    partId: lastSection.id,
+    questionIndexInPart: lastSectionQuestions - 1,
   };
 };
-
