@@ -2,8 +2,8 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation'; 
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages, KeyRound, BookOpenCheck, SpellCheck2 } from 'lucide-react'; 
+import { useRouter } from 'next/navigation';
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages, KeyRound, BookOpenCheck, SpellCheck2, Headphones } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -15,23 +15,25 @@ interface SidebarNavProps {
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) => {
   const { setOpenMobile } = useSidebar();
-  const router = useRouter(); 
+  const router = useRouter();
 
   const handleSelectGame = (type: GameType) => {
     if (type === 'toeflPractice') {
       router.push('/toefl-practice/start');
-    } else if (type === 'toeflGrammar') { // Handle new TOEFL Grammar Test
+    } else if (type === 'toeflGrammar') {
       router.push('/toefl-grammar/start');
+    } else if (type === 'toeflListening') {
+      router.push('/toefl-listening/start');
     }
      else {
       onSelectGameType(type);
     }
-    setOpenMobile(false); 
+    setOpenMobile(false);
   };
 
   const handleGoHomeClick = () => {
     onGoHome();
-    setOpenMobile(false); 
+    setOpenMobile(false);
   };
 
   return (
@@ -53,10 +55,16 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>TOEFL Reading</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem> {/* New Item for TOEFL Grammar */}
+      <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('toeflGrammar')} tooltip="TOEFL Grammar Practice">
-          <SpellCheck2 /> {/* Different Icon */}
+          <SpellCheck2 />
           <span>TOEFL Grammar</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => handleSelectGame('toeflListening')} tooltip="TOEFL Listening Practice">
+          <Headphones />
+          <span>TOEFL Listening</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
 
@@ -149,7 +157,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
       </SidebarMenuItem>
       <SidebarMenuItem>
         <SidebarMenuButton onClick={() => handleSelectGame('combinationLock')} tooltip="Play Thematic Combination Lock Game">
-          <KeyRound /> 
+          <KeyRound />
           <span>Thematic Lock</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
