@@ -14,12 +14,13 @@ export interface ListeningQuestion {
 export interface DialogueLine {
   speaker: string; // e.g., "Man", "Woman", "Narrator", "Professor"
   line: string;
+  audioSrc: string; // Path to the audio file for this specific line
 }
 
 // Specific structure for individual mini-dialogues within a set
 export interface MiniDialogueAudio {
-  id: string; // e.g., "dialogue_1_1" for the first mini-dialogue
-  audioSrc: string; // Path to the audio file for this specific mini-dialogue
+  id: string; // e.g., "mds1_d1" for the first mini-dialogue in set 1
+  // audioSrc field removed from here as each line will have its own
   script: DialogueLine[]; // Text lines for this mini-dialogue for display/transcript
 }
 
@@ -28,12 +29,14 @@ export interface AudioContent {
   title?: string;
   instructions?: string;
 
-  // For Lectures and Conversations (single audio file for the whole part)
+  // For Lectures (single audio file for the whole part)
   audioSrc?: string;
   script?: string; // Full text for lectures, for transcript
-  conversationScript?: DialogueLine[]; // Full text for conversations, for transcript
 
-  // For Mini-Dialogue sets (array of individual audio files, one per dialogue in the set)
+  // For Conversations (array of DialogueLine objects, each with its own audioSrc)
+  conversationScript?: DialogueLine[];
+
+  // For Mini-Dialogue sets (array of individual MiniDialogueAudio objects, each containing DialogueLines with their own audioSrc)
   miniDialogueSet?: MiniDialogueAudio[];
 }
 
@@ -54,42 +57,37 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       miniDialogueSet: [
         {
           id: "mds1_d1",
-          audioSrc: "/assets/audios/mini_dialogue_1_1.mp3", // Example path
           script: [
-            { speaker: "Man", line: "The math class was brutal today, wasn't it?" },
-            { speaker: "Woman", line: "Tell me about it! And the professor said the final will be even harder." },
+            { speaker: "Man", line: "The math class was brutal today, wasn't it?", audioSrc: "/assets/audios/mds1_d1_l1.mp3" },
+            { speaker: "Woman", line: "Tell me about it! And the professor said the final will be even harder.", audioSrc: "/assets/audios/mds1_d1_l2.mp3" },
           ],
         },
         {
           id: "mds1_d2",
-          audioSrc: "/assets/audios/mini_dialogue_1_2.mp3", // Example path
           script: [
-            { speaker: "Woman", line: "I can't believe how expensive textbooks have become this semester." },
-            { speaker: "Man", line: "I know, right? I'm thinking of looking for used copies online." },
+            { speaker: "Woman", line: "I can't believe how expensive textbooks have become this semester.", audioSrc: "/assets/audios/mds1_d2_l1.mp3" },
+            { speaker: "Man", line: "I know, right? I'm thinking of looking for used copies online.", audioSrc: "/assets/audios/mds1_d2_l2.mp3" },
           ],
         },
         {
           id: "mds1_d3",
-          audioSrc: "/assets/audios/mini_dialogue_1_3.mp3", // Example path
           script: [
-            { speaker: "Man", line: "Are you going to the career fair on Friday?" },
-            { speaker: "Woman", line: "Definitely! I need to start looking for internships for the summer." },
+            { speaker: "Man", line: "Are you going to the career fair on Friday?", audioSrc: "/assets/audios/mds1_d3_l1.mp3" },
+            { speaker: "Woman", line: "Definitely! I need to start looking for internships for the summer.", audioSrc: "/assets/audios/mds1_d3_l2.mp3" },
           ],
         },
         {
           id: "mds1_d4",
-          audioSrc: "/assets/audios/mini_dialogue_1_4.mp3", // Example path
           script: [
-            { speaker: "Woman", line: "This traffic is terrible. We're going to be late for the movie." },
-            { speaker: "Man", line: "Maybe we should have taken the subway instead." },
+            { speaker: "Woman", line: "This traffic is terrible. We're going to be late for the movie.", audioSrc: "/assets/audios/mds1_d4_l1.mp3" },
+            { speaker: "Man", line: "Maybe we should have taken the subway instead.", audioSrc: "/assets/audios/mds1_d4_l2.mp3" },
           ],
         },
         {
           id: "mds1_d5",
-          audioSrc: "/assets/audios/mini_dialogue_1_5.mp3", // Example path
           script: [
-            { speaker: "Man", line: "I'm really struggling with this physics assignment." },
-            { speaker: "Woman", line: "Have you tried asking Professor Davis for help during his office hours?" },
+            { speaker: "Man", line: "I'm really struggling with this physics assignment.", audioSrc: "/assets/audios/mds1_d5_l1.mp3" },
+            { speaker: "Woman", line: "Have you tried asking Professor Davis for help during his office hours?", audioSrc: "/assets/audios/mds1_d5_l2.mp3" },
           ],
         },
       ],
@@ -97,7 +95,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
     questions: [
       // Questions for Dialogue 1
       {
-        id: "md1-q1", // Keep original q IDs for matching existing answers if any
+        id: "md1-q1",
         questionText: "What does the woman imply about the final exam?",
         options: [
           { text: "It will be easier than today's class.", isCorrect: false },
@@ -219,15 +217,14 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'conversation',
       title: 'Conversation: Planning a Summer Trip',
       instructions: "Listen to a conversation between two students. You can play the conversation only twice.",
-      audioSrc: "/assets/audios/conversation_summer_trip.mp3", // Example path
-      conversationScript: [ // For transcript display
-        { speaker: "Student A (Female)", line: "Hey Mark, have you thought about what you're doing this summer? I was thinking of maybe taking a road trip." },
-        { speaker: "Student B (Male)", line: "A road trip sounds amazing, Sarah! Where were you thinking of going? I've always wanted to see the national parks out west." },
-        { speaker: "Student A (Female)", line: "That's exactly what I had in mind! Maybe Yellowstone and the Grand Canyon? We'd need to plan the route and figure out camping spots though." },
-        { speaker: "Student B (Male)", line: "Definitely. And we'd have to budget for gas and food. How long were you thinking of going for? Two weeks? Three?" },
-        { speaker: "Student A (Female)", line: "Three weeks would be ideal to really explore. We could also invite Jenny and Tom; they mentioned wanting to do something similar. The more, the merrier for sharing driving and costs!" },
-        { speaker: "Student B (Male)", line: "Good idea. Let's talk to them. We should probably start looking at maps and park reservations soon if we're serious. Summer's not too far off." },
-        { speaker: "Student A (Female)", line: "Agreed. I'm excited already! This could be an epic adventure." }
+      conversationScript: [ 
+        { speaker: "Student A (Female)", line: "Hey Mark, have you thought about what you're doing this summer? I was thinking of maybe taking a road trip.", audioSrc: "/assets/audios/conv_summer_l1.mp3" },
+        { speaker: "Student B (Male)", line: "A road trip sounds amazing, Sarah! Where were you thinking of going? I've always wanted to see the national parks out west.", audioSrc: "/assets/audios/conv_summer_l2.mp3" },
+        { speaker: "Student A (Female)", line: "That's exactly what I had in mind! Maybe Yellowstone and the Grand Canyon? We'd need to plan the route and figure out camping spots though.", audioSrc: "/assets/audios/conv_summer_l3.mp3" },
+        { speaker: "Student B (Male)", line: "Definitely. And we'd have to budget for gas and food. How long were you thinking of going for? Two weeks? Three?", audioSrc: "/assets/audios/conv_summer_l4.mp3" },
+        { speaker: "Student A (Female)", line: "Three weeks would be ideal to really explore. We could also invite Jenny and Tom; they mentioned wanting to do something similar. The more, the merrier for sharing driving and costs!", audioSrc: "/assets/audios/conv_summer_l5.mp3" },
+        { speaker: "Student B (Male)", line: "Good idea. Let's talk to them. We should probably start looking at maps and park reservations soon if we're serious. Summer's not too far off.", audioSrc: "/assets/audios/conv_summer_l6.mp3" },
+        { speaker: "Student A (Female)", line: "Agreed. I'm excited already! This could be an epic adventure.", audioSrc: "/assets/audios/conv_summer_l7.mp3" }
       ],
     },
     questions: [
@@ -328,7 +325,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'lecture',
       title: 'Lecture: The Impact of Climate Change on Coastal Ecosystems',
       instructions: "Listen to part of a lecture in an environmental science class. You can play the lecture only twice.",
-      audioSrc: "/assets/audios/lecture_climate_change.mp3", // Example path
+      audioSrc: "/assets/audios/lecture_climate_change.mp3", 
       script: "Good morning, everyone. Today, we're going to delve into a critical issue: the impact of climate change on our coastal ecosystems. As global temperatures rise, we're seeing a number of alarming trends. Sea level rise, primarily due to thermal expansion of water and melting glaciers and ice sheets, is perhaps the most direct threat. This leads to coastal erosion, saltwater intrusion into freshwater aquifers, and increased frequency of coastal flooding, displacing communities and destroying habitats. Furthermore, ocean acidification, caused by the absorption of excess atmospheric carbon dioxide, is severely impacting marine organisms with calcium carbonate shells, like corals and shellfish. Coral reefs, which are biodiversity hotspots, are experiencing widespread bleaching events. Warmer waters also alter species distribution and can lead to an increase in harmful algal blooms. The intricate web of life in these ecosystems is being disrupted at an unprecedented rate, and understanding these mechanisms is key to formulating effective mitigation and adaptation strategies. We'll explore some of these strategies in our next session...",
     },
     questions: [
@@ -429,7 +426,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'lecture',
       title: 'Lecture: The Journey of Cacao - From Ancient Ritual to Global Treat',
       instructions: "Listen to part of a lecture on the history of cacao. You can play it twice.",
-      audioSrc: "/assets/audios/lecture_cacao_history.mp3", // Example path
+      audioSrc: "/assets/audios/lecture_cacao_history.mp3", 
       script: "Welcome, class. Today we embark on a fascinating journey tracing the history of cacao, the plant that gives us chocolate. Its story begins in Mesoamerica, with the Olmec civilization, around 1500 BC, being among the first to cultivate and utilize cacao beans. They prepared a bitter, frothy beverage, a far cry from the sweet chocolate we know today. The Mayans, succeeding the Olmecs, elevated cacao to a divine status, considering it a food of the gods and even using the beans as currency. Their texts and pottery frequently depict cacao in religious ceremonies and as a symbol of wealth and power. They would often mix ground cacao with water, chili peppers, cornmeal, and spices to create their ceremonial drink. \n\nLater, the Aztecs adopted many Mayan customs regarding cacao, calling their version 'xocolatl,' meaning 'bitter water.' For the Aztecs, this drink was typically reserved for royalty, warriors, and priests, believed to impart strength, wisdom, and even act as an aphrodisiac. When Christopher Columbus encountered cacao beans on his fourth voyage in 1502, he didn't fully grasp their significance. However, it was Hernán Cortés who, after observing its widespread use and value in the Aztec empire, introduced cacao to Spain in the early 16th century. \n\nThe Spanish court initially kept chocolate a closely guarded secret. They began to transform the beverage by adding sugar, honey, vanilla, and sometimes cinnamon, to counteract its natural bitterness, making it a sweet, warm, and highly prized drink among the aristocracy. For nearly a century, Spain monopolized the chocolate trade. Gradually, as knowledge and supplies spread, chocolate's popularity extended across Europe during the 17th and 18th centuries, though it remained largely a luxury item for the elite. \n\nThe 19th century marked a pivotal turning point with the Industrial Revolution. Key inventions like the cocoa press by Coenraad Johannes van Houten in 1828, which separated cocoa butter from cocoa solids, and the subsequent development of solid eating chocolate by companies like Fry's and Cadbury, democratized chocolate. It became more affordable, and its forms diversified, leading to the bars, truffles, and myriad confections we enjoy globally today. So, from a sacred, bitter brew of ancient civilizations to a universally beloved treat, cacao's journey is a testament to cultural exchange and technological innovation.",
     },
     questions: [
@@ -519,7 +516,7 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
       type: 'lecture',
       title: 'Lecture: Volcanoes - Earth\'s Fiery Architects',
       instructions: "Listen to part of a lecture about volcanoes. You can play it twice.",
-      audioSrc: "/assets/audios/lecture_volcanoes.mp3", // Example path
+      audioSrc: "/assets/audios/lecture_volcanoes.mp3", 
       script: "Good afternoon. Today, we turn our attention to one of Earth's most powerful and awe-inspiring natural phenomena: volcanoes. A volcano is essentially a rupture in the crust of a planetary-mass object, such as Earth, that allows hot lava, volcanic ash, and gases to escape from a magma chamber below the surface. Most volcanoes are found where tectonic plates are diverging or converging. For example, the Pacific Ring of Fire, an area encircling the Pacific Ocean basin, is home to over 75% of the world's active and dormant volcanoes due to intense plate tectonic activity. \n\nThere are several types of volcanoes, classified by their shape and eruption style. Shield volcanoes, like Mauna Loa in Hawaii, are characterized by broad, gently sloping sides formed by fluid basaltic lava flows. Stratovolcanoes, or composite volcanoes, such as Mount Fuji in Japan or Mount Rainier in the United States, are conical and built up by many layers of hardened lava, tephra, pumice, and ash. These are often associated with more explosive eruptions. Cinder cones are simpler structures built from ejected lava fragments called cinders that fall back around the vent. Calderas are large, cauldron-like depressions that form when a volcano collapses, often after a massive eruption. \n\nVolcanic eruptions can have profound impacts, both destructive and constructive. Destructive effects include lava flows that engulf landscapes, pyroclastic flows – fast-moving currents of hot gas and volcanic matter – that can be incredibly deadly, and ash falls that can blanket vast areas, disrupt air travel, and cause respiratory problems. Volcanic gases, like sulfur dioxide, can also contribute to acid rain and short-term climate cooling. \n\nHowever, volcanoes also play a crucial role in creating land and enriching soil. Volcanic ash and lava break down to form highly fertile soils, ideal for agriculture. Geothermal energy, harnessed from the Earth's internal heat associated with volcanic activity, provides a renewable energy source in many regions. Furthermore, volcanic activity is responsible for releasing gases that helped form Earth's early atmosphere and oceans. Understanding volcanoes, their behavior, and their hazards is vital for mitigating risks to communities living in their vicinity and for appreciating their role in shaping our planet.",
     },
     questions: [
@@ -605,9 +602,9 @@ export const toeflListeningSections: ToeflListeningSectionData[] = [
 ];
 
 export const INITIAL_LISTENING_TEST_DURATION = 40 * 60; // 40 minutes
-export const TOTAL_LISTENING_PARTS = toeflListeningSections.length;
+export const TOTAL_LISTENING_PARTS = toeflListeningSections.length; // Should be 5 now
 
-export type { UserInfo } from './toeflTestData'; // Assuming UserInfo structure is the same
+export type { UserInfo } from './toeflTestData'; 
 
 export type ToeflListeningAnswer = {
   questionId: string;
@@ -616,16 +613,17 @@ export type ToeflListeningAnswer = {
 };
 
 export type ToeflListeningTestState = {
-  currentAudioPartId: number; // ID of the current ToeflListeningSectionData
-  currentMiniDialogueAudioIndex?: number; // For mini-dialogue set, index of the current audio file being played or cued
+  currentAudioPartId: number; 
+  currentMiniDialogueAudioIndex?: number; 
+  currentLineIndex?: number; // Index of the current line being played (for line-by-line playback)
   answers: ToeflListeningAnswer[];
   startTime: number | null;
   timeRemaining: number;
   userInfo?: UserInfo;
-  audioPlayCounts: { [audioPartId: number]: number }; // Tracks plays per *main audio part ID*
+  audioPlayCounts: { [audioPartId: number]: number }; 
 };
 
-// Helper to map a global question index to its part and index within that part
+
 export const getListeningPartAndQuestionIndex = (
   globalIndex: number,
   sections: ToeflListeningSectionData[]
@@ -640,9 +638,9 @@ export const getListeningPartAndQuestionIndex = (
     }
     questionsCounted += section.questions.length;
   }
-  // Fallback if globalIndex is out of bounds
   return {
     partId: sections[sections.length - 1].id,
     questionIndexInPart: sections[sections.length - 1].questions.length - 1
   };
 };
+

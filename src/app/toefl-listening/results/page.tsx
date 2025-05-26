@@ -11,7 +11,8 @@ import {
     ListeningQuestion,
     TOTAL_LISTENING_PARTS,
     DialogueLine,
-    MiniDialogueAudio
+    MiniDialogueAudio,
+    ToeflListeningSectionData // Ensure this is imported
 } from '@/lib/toeflListeningTestData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -202,7 +203,7 @@ const ToeflListeningResultsPage = () => {
     .user-info p { margin: 5px 0; font-size: 14px; }
     .score-summary { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 20px; }
     .audio-part-review { margin-bottom: 30px; page-break-inside: avoid; }
-    .audio-transcript { background-color: #f0f0f0; padding: 10px; border-radius: 4px; margin-bottom:15px; font-style: italic; font-size: 0.9em; }
+    .audio-transcript { background-color: #f0f0f0; padding: 10px; border-radius: 4px; margin-bottom:15px; font-style: italic; font-size: 0.9em; white-space: pre-line; }
     .audio-transcript strong { font-weight: bold; }
     .question-review { margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; page-break-inside: avoid;}
     .question-review p { margin: 3px 0; }
@@ -219,14 +220,14 @@ const ToeflListeningResultsPage = () => {
   `;
 
   const getTranscriptForSection = (section: ToeflListeningSectionData): string => {
-    if (section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet) {
-      return section.audioContent.miniDialogueSet.map(dialogue =>
-        dialogue.script.map(line => `<strong>${line.speaker}:</strong> ${line.line}`).join('<br>')
-      ).join('<br><br>---<br><br>');
+    if (section.audioContent.type === 'lecture' && section.audioContent.script) {
+        return section.audioContent.script;
     } else if (section.audioContent.type === 'conversation' && section.audioContent.conversationScript) {
-      return section.audioContent.conversationScript.map(line => `<strong>${line.speaker}:</strong> ${line.line}`).join('<br>');
-    } else if (section.audioContent.script) {
-      return section.audioContent.script.replace(/\n/g, '<br>');
+        return section.audioContent.conversationScript.map(line => `<strong>${line.speaker}:</strong> ${line.line}`).join('<br>');
+    } else if (section.audioContent.type === 'mini-dialogue' && section.audioContent.miniDialogueSet) {
+        return section.audioContent.miniDialogueSet.map(dialogue =>
+            dialogue.script.map(line => `<strong>${line.speaker}:</strong> ${line.line}`).join('<br>')
+        ).join('<br><br>---<br><br>');
     }
     return 'Transcripción no disponible.';
   };
@@ -331,7 +332,7 @@ const ToeflListeningResultsPage = () => {
             <CardTitle className="text-3xl font-bold text-primary">Resultados de Prueba de Comprensión Auditiva TOEFL</CardTitle>
             {userInfo && (
               <CardDescription className="text-muted-foreground mt-2">
-                Resultados para: {userInfo.nombre} {userInfo.apellidoPaterno} {userInfo.apellidoMaterno} ({userInfo.carrera} - {userInfo.grado}{userInfo.grupo})
+                Resultados para: {userInfo.nombre} {userInfo.apellidoPaterno} ${userInfo.apellidoMaterno} (${userInfo.carrera} - ${userInfo.grado}${userInfo.grupo})
                 <br />Fecha: {currentDate}
               </CardDescription>
             )}
@@ -346,7 +347,7 @@ const ToeflListeningResultsPage = () => {
                 <AccordionItem value={`listening-section-${section.id}`} key={`listening-${section.id}`}>
                   <AccordionTrigger className="text-lg hover:no-underline text-accent">{section.audioContent.title || `Audio Part ${section.id}`}</AccordionTrigger>
                   <AccordionContent>
-                    <div className="mb-3 p-3 bg-muted/70 rounded text-sm italic border border-border">
+                    <div className="mb-3 p-3 bg-muted/70 rounded text-sm italic border border-border whitespace-pre-line">
                         <strong>Transcripción:</strong><br/>
                         <span dangerouslySetInnerHTML={{ __html: getTranscriptForSection(section) }} />
                     </div>
@@ -404,3 +405,4 @@ const ToeflListeningResultsPage = () => {
 };
 
 export default ToeflListeningResultsPage;
+
