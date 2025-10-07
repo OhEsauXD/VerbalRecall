@@ -1,9 +1,11 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages, KeyRound, BookOpenCheck, SpellCheck2, Headphones } from 'lucide-react';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { app } from '@/lib/firebase';
+import { BookText, SpellCheck, Home, PawPrint, Leaf, Utensils, Building, Clock, Cog, Globe, HelpCircle, Lock, Languages, KeyRound, BookOpenCheck, SpellCheck2, Headphones, LogIn, LogOut } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import type { GameType } from '@/app/page';
@@ -16,6 +18,15 @@ interface SidebarNavProps {
 const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) => {
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth(app);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSelectGame = (type: GameType) => {
     if (type === 'toeflPractice') {
@@ -35,6 +46,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
     onGoHome();
     setOpenMobile(false);
   };
+
+  const handleSignOut = () => {
+    getAuth(app).signOut();
+    router.push('/');
+    setOpenMobile(false);
+  }
 
   return (
     <SidebarMenu>
@@ -161,6 +178,22 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ onSelectGameType, onGoHome }) =
           <span>Thematic Lock</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
+      <SidebarSeparator />
+      {user ? (
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out">
+            <LogOut />
+            <span>Sign Out</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ) : (
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={() => router.push('/login')} tooltip="Login">
+            <LogIn />
+            <span>Login</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
     </SidebarMenu>
   );
 };
